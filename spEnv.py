@@ -38,12 +38,12 @@ class SpEnv(gym.Env):
         spTimeserie = pandas.read_csv('./datasets/'+MK+'Hour.csv')[minLimit:maxLimit] # opening the dataset
         
         #Converts each column to a list
-        Date = spTimeserie.ix[:, 'Date'].tolist()
-        Time = spTimeserie.ix[:, 'Time'].tolist()
-        Open = spTimeserie.ix[:, 'Open'].tolist()
-        High = spTimeserie.ix[:, 'High'].tolist()
-        Low = spTimeserie.ix[:, 'Low'].tolist()
-        Close = spTimeserie.ix[:, 'Close'].tolist()
+        Date = spTimeserie.loc[:, 'Date'].tolist()
+        Time = spTimeserie.loc[:, 'Time'].tolist()
+        Open = spTimeserie.loc[:, 'Open'].tolist()
+        High = spTimeserie.loc[:, 'High'].tolist()
+        Low = spTimeserie.loc[:, 'Low'].tolist()
+        Close = spTimeserie.loc[:, 'Close'].tolist()
         
         #Open the weekly and daily data as a merged data structure
         #Get 20 dimensional vectors (close-open) considering 20 past days and 8 dimensional vectors (close-open) 

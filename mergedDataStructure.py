@@ -16,12 +16,12 @@ class MergedDataStructure():
         timeserie = pandas.read_csv(filename)
         
         #Transform each column into a list
-        Date = timeserie.ix[:, 'Date'].tolist()
-        Time = timeserie.ix[:, 'Time'].tolist()
-        Open = timeserie.ix[:, 'Open'].tolist()
-        High = timeserie.ix[:, 'High'].tolist()
-        Low = timeserie.ix[:, 'Low'].tolist()
-        Close = timeserie.ix[:, 'Close'].tolist()
+        Date = timeserie.loc[:, 'Date'].tolist()
+        Time = timeserie.loc[:, 'Time'].tolist()
+        Open = timeserie.loc[:, 'Open'].tolist()
+        High = timeserie.loc[:, 'High'].tolist()
+        Low = timeserie.loc[:, 'Low'].tolist()
+        Close = timeserie.loc[:, 'Close'].tolist()
 
         #Create empty list and dictionary
         self.list=[]

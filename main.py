@@ -18,7 +18,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten
 
 #Activation Layers used in the source code
-from keras.layers.advanced_activations import LeakyReLU, PReLU, ReLU
+from keras.layers import LeakyReLU, PReLU, ReLU
 
 #Optimizer used in the NN
 from keras.optimizers import Adam

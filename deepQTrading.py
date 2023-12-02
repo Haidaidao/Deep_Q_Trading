@@ -11,7 +11,7 @@ from keras.models import Sequential
 
 #Keras libraries for layers, activations and optimizers used
 from keras.layers import Dense, Activation, Flatten
-from keras.layers.advanced_activations import LeakyReLU, PReLU
+from keras.layers import LeakyReLU, PReLU
 from keras.optimizers import Adam
 
 #RL Agent 
@@ -231,8 +231,8 @@ class DeepQTrading:
 
             #Separate the Validation and testing data according to the limits found before
             #Prepare the training and validation files for saving them later 
-            ensambleValid=pd.DataFrame(index=self.dates[validMinLimit:validMaxLimit].ix[:,'Date'].drop_duplicates().tolist())
-            ensambleTest=pd.DataFrame(index=self.dates[testMinLimit:testMaxLimit].ix[:,'Date'].drop_duplicates().tolist())
+            ensambleValid=pd.DataFrame(index=self.dates[validMinLimit:validMaxLimit].loc[:,'Date'].drop_duplicates().tolist())
+            ensambleTest=pd.DataFrame(index=self.dates[testMinLimit:testMaxLimit].loc[:,'Date'].drop_duplicates().tolist())
             
             #Put the name of the index for validation and testing
             ensambleValid.index.name='Date'
