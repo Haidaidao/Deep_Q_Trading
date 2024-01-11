@@ -5,14 +5,16 @@ import numpy as np
 import sys
 from math import floor
 from ensemble import ensemble
-
+import global_config
 #Call it with the name of file plus the number of walks
 # python plotResults.py results 2 
 numPlots=11
 outputFile=str(sys.argv[1])+"Edit"+".pdf"
 numEpochs=100
 pdf=PdfPages(outputFile)
-numFiles=9
+with open('numFile.txt', 'r', encoding='utf-8') as file:
+    numFile = int(file.read())
+numFiles=numFile+1
 
 
 

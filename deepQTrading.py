@@ -32,6 +32,7 @@ import datetime
 from trend import Trend
 from macd import MACD
 from AgentObject import AgentObject
+import global_config
 
 #Prefix of the name of the market (S&P500) files used to load the data
 MK="dax"
@@ -165,8 +166,11 @@ class DeepQTrading:
 
         currentStartingPointTemp = self.currentStartingPoint
         numFile = getNumFile(self.agent[0], self.currentStartingPoint, self.walkSize, self.endingPoint, self.testSize, self.trainSize, self.validationSize)
-        # numFile = numFile + 1
-        print(numFile)
+        numFile = numFile + 1
+        print(global_config.numFile)
+        with open('numFile.txt', 'w', encoding='utf-8') as file:
+            file.write(str(numFile-1))
+        
 
         trainMin = [None]*(numFile+1)
         trainMax = [None]*(numFile+1)
