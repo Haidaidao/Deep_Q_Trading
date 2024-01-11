@@ -28,6 +28,9 @@ from rl.agents.dqn import DQNAgent
 from rl.memory import SequentialMemory
 from rl.policy import EpsGreedyQPolicy
 
+from ensemble import ensemble
+
+from macd import MACD
 
 #Library used for showing the exception in the case of error 
 import sys
@@ -50,8 +53,10 @@ startingTime=datetime.datetime.now()
 #Short(id 2): It predicts that the stock market value will decrease at the end of the day.
 #So, the action that must be done is selling at the beginning of the day and buy it at the end of the day (aka short). 
 nb_actions = int(sys.argv[1])
+print(type(sys.argv[1]))
 
 isOnlyShort=sys.argv[2]==1
+print(isOnlyShort)
 
 #This is a simple NN considered. It is composed of:
 #One flatten layer to get 68 dimensional vectors as input
@@ -60,7 +65,7 @@ isOnlyShort=sys.argv[2]==1
 #the input is 20 observation days from the past, 8 observations from the past week and 
 #40 observations from the past hours
 model = Sequential()
-model.add(Flatten(input_shape=(1,1,68)))
+model.add(Flatten(input_shape=(1,1,20)))
 model.add(Dense(35,activation='linear'))
 model.add(LeakyReLU(alpha=.001))
 model.add(Dense(nb_actions))
@@ -76,17 +81,17 @@ model.add(Activation('linear'))
 #testSize: the size of the testing data gotten from dataset, we are setting 6 stock market months, or 180 days
 #outputFile: where the results will be written
 #begin: where the walks will start from. We are defining January 1st of 2010
-#end: where the walks will finish. We are defining February 22nd of 2019
+#end: where the walks will finish. We are defining February 22nd of 2011
 #nOutput:number of walks
 dqt = DeepQTrading(
     model=model,
-    explorations=[(0.2,100)],
+    explorations=[(0.2,50)],
     trainSize=datetime.timedelta(days=360*5),
     validationSize=datetime.timedelta(days=30*6),
     testSize=datetime.timedelta(days=30*6),
     outputFile="./Output/csv/walks/walks",
     begin=datetime.datetime(2001,1,1,0,0,0,0),
-    end=datetime.datetime(2019,2,28,0,0,0,0),
+    end=datetime.datetime(2011,2,28,0,0,0,0),
     nbActions=nb_actions,
     isOnlyShort=isOnlyShort,
     ensembleFolderName=sys.argv[3]
@@ -95,5 +100,10 @@ dqt = DeepQTrading(
 dqt.run()
 
 dqt.end()
+
+
+# val, col = ensemble(9,0,"test",0)
+# print(col)
+# print(val)
 
 
