@@ -10,6 +10,7 @@ from itertools import product
 from sklearn.ensemble import RandomForestClassifier, StackingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
+import global_config
 
 def full_ensemble(df):
     m1 = df.eq(1).all(axis=1)
@@ -79,7 +80,7 @@ def ensemble(numWalks,perc,type,numDel):
 
     values = []
 
-    dax = pd.read_csv("./datasets/daxDay.csv", index_col='Date')
+    dax = pd.read_csv("./datasets/" + global_config.MK + "Day.csv", index_col='Date')
 
     type_train = "train"
 
@@ -92,7 +93,6 @@ def ensemble(numWalks,perc,type,numDel):
         df3 = pd.read_csv("./Output/ensemble/ensembleFolder/walk" + "Week" + str(j) + "ensemble_" + type_train + ".csv",
                           index_col='Date')
         
-
         for deleted in range(1, numDel):
             del df1['iteration' + str(deleted)]
             del df2['iteration' + str(deleted)]

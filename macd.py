@@ -10,10 +10,10 @@ from datetime import datetime
 from mergedDataStructure import MergedDataStructure
 #Callback is the library used to show metrics 
 import callback
-
+import global_config
 from decimal import Decimal
 
-MK = "dax"
+MK = global_config.MK
 
 class MACD:
     def __init__(self, iteration = None, minLimit=None, maxLimit=None, name = "Week", type = "test", columnName = "trend"):

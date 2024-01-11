@@ -21,8 +21,9 @@ from datetime import datetime
 from decimal import Decimal
 
 import string
+import global_config
 
-MK = "dax"
+MK = global_config.MK
 
 def identify_df_trends(df, column, window_size=5, identify='both'):
     """

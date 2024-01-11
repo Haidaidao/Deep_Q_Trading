@@ -12,9 +12,9 @@ import pandas
 from datetime import datetime
 
 from decimal import Decimal
-
+import global_config
 #This is the prefix of the files that will be opened. It is related to the s&p500 stock market datasets
-MK = "dax"
+MK = global_config.MK
 
 
 class SpEnv(gym.Env):

@@ -35,7 +35,8 @@ from AgentObject import AgentObject
 import global_config
 
 #Prefix of the name of the market (S&P500) files used to load the data
-MK="dax"
+MK= global_config.MK
+# MK="dax"
 
 def getDate_Index(Frame, datesFrame, date):
     Frame['Date'] = pd.to_datetime(Frame['Date'], format='%m/%d/%Y')
@@ -167,10 +168,10 @@ class DeepQTrading:
         currentStartingPointTemp = self.currentStartingPoint
         numFile = getNumFile(self.agent[0], self.currentStartingPoint, self.walkSize, self.endingPoint, self.testSize, self.trainSize, self.validationSize)
         numFile = numFile + 1
-        print(global_config.numFile)
+        print(numFile)
         with open('numFile.txt', 'w', encoding='utf-8') as file:
             file.write(str(numFile-1))
-        
+
 
         trainMin = [None]*(numFile+1)
         trainMax = [None]*(numFile+1)
@@ -260,7 +261,8 @@ class DeepQTrading:
 
                     #Load the weights saved before in a random way if it is the first time
                     self.agent[index].agent.load_weights("q.weights")
-
+                    print("name: ", name)
+                    print("iteration: ", iteration)
                     ########################################TRAINING STAGE########################################################
 
                     #The TrainMinLimit will be loaded as the initial date at the beginning, and will be updated later.
