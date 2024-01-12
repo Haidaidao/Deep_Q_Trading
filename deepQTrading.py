@@ -463,7 +463,7 @@ class DeepQTrading:
                         valid.writeFile()
                         test  = LSTMTrend(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
                         test.writeFile()
-
+                       
                     #For the next walk, the current starting point will be the current starting point + the test size
                     #It means that, for the next walk, the training data will start 6 months after the training data of
                     #the previous walk

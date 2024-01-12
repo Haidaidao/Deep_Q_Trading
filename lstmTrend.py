@@ -54,15 +54,22 @@ class LSTMTrend:
         data = df[['Close']].values.reshape(-1, 1)
         scaler = StandardScaler()
         data_scaled = scaler.fit_transform(data)
+        data_scaled = np.round(data_scaled, 2)
         print(data_scaled)
-        # Train GMM-HMM
-        data_scaled = np.nan_to_num(data_scaled, nan=np.nan, posinf=None, neginf=None)
-        # Kiểm tra và loại bỏ hàng chứa NaN
-        data_scaled = data_scaled[~np.isnan(data_scaled).any(axis=1)]
-        num_states = 4
-        num_components = 2
-        gmm_hmm = hmm.GMMHMM(n_components=num_states, n_mix=num_components, covariance_type="full", random_state=42)
-        gmm_hmm.fit(data)
+
+        # Kiểm tra xem có bất kỳ giá trị NaN nào trong mảng không
+        contains_nan = np.isnan(data_scaled).any()
+
+        # Kiểm tra xem có bất kỳ giá trị vô cực (inf) nào trong mảng không
+        contains_inf = np.isinf(data_scaled).any()
+        
+        data_scaled = np.nan_to_num(data_scaled, nan=0.0, posinf=0.0, neginf=0.0)
+        # data_scaled = data_scaled[np.isinf(data_scaled)] = 0
+        if contains_nan == False and  contains_inf == False:
+            num_states = 4
+            num_components = 2
+            gmm_hmm = hmm.GMMHMM(n_components=num_states, n_mix=num_components, covariance_type="full", random_state=42)
+            gmm_hmm.fit(data_scaled)
 
         # Use GMM-HMM probabilities to construct dataset
         market_trends = self.create_trend_labels(self.Close)
