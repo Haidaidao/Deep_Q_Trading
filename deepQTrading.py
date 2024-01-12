@@ -31,6 +31,7 @@ import datetime
 
 from trend import Trend
 from macd import MACD
+from lstmTrend import LSTMTrend
 from AgentObject import AgentObject
 import global_config
 
@@ -322,7 +323,7 @@ class DeepQTrading:
                         if name == "Hour":
                             testMax[count] = testMaxLimit
 
-                        if count<9:
+                        if count<(numFile+1):
                             count = count +1
                     else:
                         
@@ -456,11 +457,11 @@ class DeepQTrading:
                         ensambleValid.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_valid.csv")
                         ensambleTest.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_test.csv")
                     else:
-                        train = Trend(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
+                        train = LSTMTrend(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
                         train.writeFile()
-                        valid = Trend(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
+                        valid = LSTMTrend(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
                         valid.writeFile()
-                        test  = Trend(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
+                        test  = LSTMTrend(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
                         test.writeFile()
 
                     #For the next walk, the current starting point will be the current starting point + the test size

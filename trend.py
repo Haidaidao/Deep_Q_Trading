@@ -13,8 +13,6 @@ from unidecode import unidecode
 import gym
 from gym import spaces
 
-#Pandas is the library used to deal with the CSV dataset
-import pandas as pd
 #datetime is the library used to manipulate time and date
 from datetime import datetime
 
