@@ -56,37 +56,38 @@ class LSTMTrend:
         # Preprocess the data
         df = self.spTimeserie[['Close']]
 
-        data = df[['Close']].values.reshape(-1, 1)
-        scaler = StandardScaler()
-        data_scaled = scaler.fit_transform(data)
-        data_scaled = np.round(data_scaled, 2)
-        print(data_scaled)
+        # data = df[['Close']].values.reshape(-1, 1)
+        # scaler = StandardScaler()
+        # data_scaled = scaler.fit_transform(data)
+        # data_scaled = np.round(data_scaled, 2)
 
-        # Kiểm tra xem có bất kỳ giá trị NaN nào trong mảng không
-        contains_nan = np.isnan(data_scaled).any()
+        # # Kiểm tra xem có bất kỳ giá trị NaN nào trong mảng không
+        # contains_nan = np.isnan(data_scaled).any()
 
-        # Kiểm tra xem có bất kỳ giá trị vô cực (inf) nào trong mảng không
-        contains_inf = np.isinf(data_scaled).any()
+        # # Kiểm tra xem có bất kỳ giá trị vô cực (inf) nào trong mảng không
+        # contains_inf = np.isinf(data_scaled).any()
         
-        data_scaled = np.nan_to_num(data_scaled, nan=0.0, posinf=0.0, neginf=0.0)
-        # data_scaled = data_scaled[np.isinf(data_scaled)] = 0
-        if contains_nan == False and  contains_inf == False:
-            num_states = 3 # ba trang thai up down hold
-            num_components = 2
-            gmm_hmm = hmm.GMMHMM(n_components=num_states, n_mix=num_components, covariance_type="full", random_state=42)
-            gmm_hmm.fit(data_scaled)
+        # data_scaled = np.nan_to_num(data_scaled, nan=0.0, posinf=0.0, neginf=0.0)
+        # # data_scaled = data_scaled[np.isinf(data_scaled)] = 0
+        # if contains_nan == False and  contains_inf == False:
+        #     num_states = 3 # ba trang thai up down hold
+        #     num_components = 2
+        #     gmm_hmm = hmm.GMMHMM(n_components=num_states, n_mix=num_components, covariance_type="full", random_state=42)
+        #     gmm_hmm.fit(data_scaled)
 
         # Use GMM-HMM probabilities to construct dataset
         market_trends = self.create_trend_labels(self.Close)
-        print(market_trends)
-        print("---------------")
-        gmm_hmm_probs = gmm_hmm.predict_proba(data_scaled)
-        X = np.array([gmm_hmm_probs[i].flatten() for i in range(len(gmm_hmm_probs))])
+
+        # gmm_hmm_probs = gmm_hmm.predict_proba(data_scaled)
+        # X = np.array([gmm_hmm_probs[i].flatten() for i in range(len(gmm_hmm_probs))])
+        X = np.array(self.Close)
+        X = X.reshape(-1, 1)
+        print(X)
         y = market_trends
 
         # Split dataset into training and testing sets
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
+    
         # Train LSTM model
         model = Sequential()
         model.add(LSTM(units=50, activation='relu', input_shape=(X_train.shape[1], 1)))
