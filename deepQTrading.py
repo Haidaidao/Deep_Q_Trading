@@ -210,7 +210,7 @@ class DeepQTrading:
 
                 #Iteration is the current walk
                 iteration+=1
-                if iteration < (numFile+1):
+                if iteration < (numFile):
                     #Initiate the output file
                     self.outputFile=open(self.outputFileName+name+str(iteration+1)+".csv", "w+")
                     #write the first row of the csv
@@ -323,7 +323,7 @@ class DeepQTrading:
                         if name == "Hour":
                             testMax[count] = testMaxLimit
 
-                        if count<(numFile+1):
+                        if count<(numFile):
                             count = count +1
                     else:
                         

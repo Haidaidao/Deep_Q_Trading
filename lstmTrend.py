@@ -49,8 +49,7 @@ class LSTMTrend:
     def writeFile(self):
         # Preprocess the data
         df = self.spTimeserie[['Close']]
-        print(df)
-        print("====================")
+
         data = df[['Close']].values.reshape(-1, 1)
         scaler = StandardScaler()
         data_scaled = scaler.fit_transform(data)

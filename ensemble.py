@@ -119,8 +119,7 @@ def ensemble(numWalks,perc,type,numDel):
 
         for k in range(0,len(df1)):
             list_combine_train = np.append(list_combine_train, [[df1['ensemble'][k], df2['ensemble'][k], df3_temp['ensemble'][k]]], axis=0)
-        print(df1)
-        print("=====================")
+
         y_train = ensemble_y_true(df1, df2, df3)
        
         rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
