@@ -38,12 +38,18 @@ class LSTMTrend:
         self.type = type
 
     def create_trend_labels(self, close_prices):
-        
+        threshold_low = -0.03 # nguong down
+        threshold_high = 0.03 # nguong up
         trends = [0]
         for i in range(1, len(close_prices)):
-            if close_prices[i] > close_prices[i - 1]: trends.append(1)  # UP
-            elif close_prices[i] < close_prices[i - 1]: trends.append(2)  # DOWN
-            else: trends.append(0)  # HOLD
+            changes = (close_prices[i] - close_prices[i - 1]) / close_prices[i - 1]
+            
+            # if close_prices[i] > close_prices[i - 1]: trends.append(1)  # UP
+            # elif close_prices[i] < close_prices[i - 1]: trends.append(2)  # DOWN
+            # else: trends.append(0)  # HOLD
+            if changes >= threshold_low: trends.append(2)
+            elif changes < threshold_high: trends.append(1)
+            else: trends.append(0)
         return np.array(trends)
 
     def writeFile(self):
@@ -65,7 +71,7 @@ class LSTMTrend:
         data_scaled = np.nan_to_num(data_scaled, nan=0.0, posinf=0.0, neginf=0.0)
         # data_scaled = data_scaled[np.isinf(data_scaled)] = 0
         if contains_nan == False and  contains_inf == False:
-            num_states = 4
+            num_states = 3 # ba trang thai up down hold
             num_components = 2
             gmm_hmm = hmm.GMMHMM(n_components=num_states, n_mix=num_components, covariance_type="full", random_state=42)
             gmm_hmm.fit(data_scaled)
