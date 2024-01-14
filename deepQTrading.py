@@ -52,6 +52,7 @@ def getDate_Index(Frame, datesFrame, date):
 
     return index[0]
 
+
 def getNumFile(agent,currentStartingPoint, walkSize, endingPoint, testSize, trainSize, validationSize):   
     iteration=-1
     while(currentStartingPoint+walkSize <= endingPoint):
