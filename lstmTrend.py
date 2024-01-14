@@ -11,8 +11,10 @@ from hmmlearn import hmm
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense
+from tensorflow.keras.layers import LSTM, Dense, Dropout
+from tensorflow.keras.utils import to_categorical
 
 import global_config
 
@@ -37,84 +39,70 @@ class LSTMTrend:
         self.iteration = iteration
         self.type = type
 
-    def create_trend_labels(self, close_prices):
-        threshold_low = -0.03 # nguong down
-        threshold_high = 0.03 # nguong up
-        trends = [0]
-        for i in range(1, len(close_prices)):
-            changes = (close_prices[i] - close_prices[i - 1]) / close_prices[i - 1]
-            
-            # if close_prices[i] > close_prices[i - 1]: trends.append(1)  # UP
-            # elif close_prices[i] < close_prices[i - 1]: trends.append(2)  # DOWN
-            # else: trends.append(0)  # HOLD
-            if changes >= threshold_low: trends.append(2)
-            elif changes < threshold_high: trends.append(1)
-            else: trends.append(0)
-        return np.array(trends)
-
-    def writeFile(self):
-        # Preprocess the data
-        df = self.spTimeserie[['Close']]
-
-        # data = df[['Close']].values.reshape(-1, 1)
-        # scaler = StandardScaler()
-        # data_scaled = scaler.fit_transform(data)
-        # data_scaled = np.round(data_scaled, 2)
-
-        # # Kiểm tra xem có bất kỳ giá trị NaN nào trong mảng không
-        # contains_nan = np.isnan(data_scaled).any()
-
-        # # Kiểm tra xem có bất kỳ giá trị vô cực (inf) nào trong mảng không
-        # contains_inf = np.isinf(data_scaled).any()
-        
-        # data_scaled = np.nan_to_num(data_scaled, nan=0.0, posinf=0.0, neginf=0.0)
-        # # data_scaled = data_scaled[np.isinf(data_scaled)] = 0
-        # if contains_nan == False and  contains_inf == False:
-        #     num_states = 3 # ba trang thai up down hold
-        #     num_components = 2
-        #     gmm_hmm = hmm.GMMHMM(n_components=num_states, n_mix=num_components, covariance_type="full", random_state=42)
-        #     gmm_hmm.fit(data_scaled)
-
-        # Use GMM-HMM probabilities to construct dataset
-        market_trends = self.create_trend_labels(self.Close)
-
-        # gmm_hmm_probs = gmm_hmm.predict_proba(data_scaled)
-        # X = np.array([gmm_hmm_probs[i].flatten() for i in range(len(gmm_hmm_probs))])
-        X = np.array(self.Close)
-        X = X.reshape(-1, 1)
-        print(X)
-        y = market_trends
-
-        # Split dataset into training and testing sets
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    def create_sequences(self, data, sequence_length):
+        sequences = []
+        labels = []
+        for i in range(len(data)):
+            if i < sequence_length - 1:
+                # Đối với ngày đầu tiên, sử dụng dữ liệu từ chính ngày đó
+                sequences.append(data.iloc[i:i+1, :-1].values.repeat(sequence_length, axis=0))
+            else:
+                sequences.append(data.iloc[i-sequence_length+1:i+1, :-1].values)
+            labels.append(data.iloc[i, -1])
+        return np.array(sequences), np.array(labels)
     
-        # Train LSTM model
-        model = Sequential()
-        model.add(LSTM(units=50, activation='relu', input_shape=(X_train.shape[1], 1)))
-        model.add(Dense(units=3, activation='softmax'))  # 3 units for UP, DOWN, HOLD
-        model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    def writeFile(self):
+        df = self.spTimeserie
+        df['Date'] = pd.to_datetime(df['Date'])
+        df.set_index('Date', inplace=True)
+        df['Close_change'] = df['Close'].pct_change() * 100
+        df['Trend'] = df.apply(lambda row: 1 if row['Close_change'] > 0.5 else 2 if row['Close_change'] < -0.5 else 0, axis=1)
+        df.dropna(inplace=True)
 
-        # Reshape input for LSTM
-        X_train_lstm = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
-        X_test_lstm = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
+        scaler = MinMaxScaler()
+        scaled_columns = scaler.fit_transform(df[['Open', 'High', 'Low', 'Close']])
+        scaled_df = pd.DataFrame(scaled_columns, index=df.index, columns=['Scaled_Open', 'Scaled_High', 'Scaled_Low', 'Scaled_Close'])
+        scaled_df['Trend'] = df['Trend'].values
 
-        # Fit the LSTM model
-        model.fit(X_train_lstm, y_train, epochs=10, batch_size=32, validation_data=(X_test_lstm, y_test))
-        
-        # Evaluate the model
-        y_pred = np.argmax(model.predict(X_test_lstm), axis=1)
-        accuracy = accuracy_score(y_test, y_pred)
-        print(f"Accuracy: {accuracy}")
+        sequence_length = 1
+        X, y = self.create_sequences(scaled_df, sequence_length)
+        y_onehot = to_categorical(y, num_classes=3)
 
-        # Predict market trends for entire dataset
-        X_all = X.reshape((X.shape[0], X.shape[1], 1))
-        y_pred_all = np.argmax(model.predict(X_all), axis=1)
-        df[self.columnName] = y_pred_all
+        # Xây dựng mô hình LSTM
+        model = Sequential([
+            LSTM(50, activation='relu', input_shape=(X.shape[1], X.shape[2])),
+            Dropout(0.2),
+            Dense(3, activation='softmax')
+        ])
+
+        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+        # Huấn luyện mô hình
+        model.fit(X, y_onehot, epochs=100)
+
+        # Dự đoán xu hướng cho mỗi ngày
+        predicted_trends = model.predict(X)
+        predicted_trends = np.argmax(predicted_trends, axis=1)
+        predicted_trends = np.insert(predicted_trends, 0, 1) 
+
+        X_hmm = predicted_trends.reshape(-1, 1)
+
+        # Khởi tạo mô hình GMMHMM
+        n_components = 3  # Số lượng trạng thái ẩn (có thể điều chỉnh tùy theo dữ liệu)
+        param=set(predicted_trends.ravel())
+        model_hmm=hmm.GaussianHMM(n_components=n_components, covariance_type="full", n_iter=100,params="s")
+
+        # Huấn luyện mô hình GMMHMM
+        model_hmm.fit(X_hmm)
+        if np.isnan(X_hmm).any() or np.isinf(X_hmm).any():
+            print("Dữ liệu đầu vào chứa NaN hoặc inf.")
+        # Dự đoán trạng thái ẩn
+        hidden_states = model_hmm.predict(X_hmm)
 
         ensambleValid=pd.DataFrame(index=self.Date)
         ensambleValid.index.name='Date'
         ensambleValid['trend'] = 0
         for i in range(len(ensambleValid)):
-            ensambleValid['trend'].iat[i] = df['trend'].iat[i]
+            ensambleValid['trend'].iat[i] = hidden_states[i]
 
         ensambleValid.to_csv("./Output/ensemble/"+"ensembleFolder"+"/walk"+self.name+str(self.iteration)+"ensemble_"+self.type+".csv")

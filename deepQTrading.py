@@ -459,7 +459,6 @@ class DeepQTrading:
                     else:
                         train = LSTMTrend(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
                         train.writeFile()
-                  
                         valid = LSTMTrend(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
                         valid.writeFile()
                         test  = LSTMTrend(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")

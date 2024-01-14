@@ -102,7 +102,7 @@ def ensemble(numWalks,perc,type,numDel):
             df1 = full_ensemble(df1)
         else:
             df1 = perc_ensemble(df1, perc)
-
+        print(df1)
         df2.index = pd.to_datetime(df2.index)
         df2.index = df2.index.strftime('%m/%d/%Y')
         df2.rename(columns={'trend': 'ensemble'}, inplace=True)
