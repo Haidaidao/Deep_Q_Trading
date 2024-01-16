@@ -1,16 +1,16 @@
-# Multi-DQN: an Ensemble of Deep Q-Learning Agents for Stock Market Forecasting                                                                                                            
+# Multi-DQN: Integrating Time-Scaled Machine Learning Approaches for Enhanced Stock Market Investment Decisions                                                                                                           
 
 ## Abstract 
 
-The stock market forecasting is one of the most challenging application of machine learning, as its historical data are naturally noisy and unstable. Most of the successful approaches act in a supervised manner, labeling training data as being of positive or negative moments of the market. However, training machine learning classifiers in such a way may suffer from over-fitting, since the market behavior depends on several external factors like other markets trends, political events, etc. In this paper, we aim at minimizing such problems by proposing an ensemble of reinforcement learning approaches which do not use annotations (i.e., market goes up or down) to learn, but rather learn how to maximize a return function over the training stage. In order to achieve this goal, we exploit a Q-learning agent trained several times with the same training data and investigate its ensemble behavior in important real-world stock markets. Experimental results in intraday trading indicate better performance than the conventional Buy-and-Hold strategy, which still behaves well in our setups. We also discuss qualitative and quantitative analyses of these results.
+Predicting stock market trends is a major challenge for scientists due to the noisy and unstable nature of the data. While there have been many studies based on machine learning models, these typically rely on information from a single timeframe, failing to utilize valuable data from varying timeframes. Multi-timeframe trading is a critical and effective method in the financial trading domain. This paper presents a new approach to stock investment decision-making by combining multiple timeframes with ensemble machine learning models. Our method uniquely integrates short-term, mid-term, and long-term analytical perspectives to enhance the decision-making process in the volatile stock investment field. Initially, we use reinforcement learning algorithms to navigate and capitalize on short-term market fluctuations. For mid-term and long-term scopes, different machine learning techniques are applied to identify trends and market patterns from historical data.
 
 ## Authors
 
-- Salvatore Carta
-- Anselmo Ferreira
-- Alessandro Sebastian Podda
-- Diego Reforgiato Recupero
-- Antonio Sanna
+- Dao Dai Hai
+- Le Dang Minh Khoi
+- Tran Huynh Ngoc Diep
+- Tran Thao Quyen
+
 
 # Info 
 
@@ -20,7 +20,9 @@ The stock market forecasting is one of the most challenging application of machi
 * **main.py**: the entry point of the application;
 * **deepQTrading.py**: used to organize our data in walks and set up the agents;
 * **spEnv.py**: the environment used for the agents;
-* **mergedDataStructure.py**: the data structure we use to instantiate the multi-resolution feature vector;
+* **global_config.py**: save global value;
+* **trend.py**: Method of using trendet to find market trends;
+* **macd.py**: Method of using MACD to find market trends;
 * **callback.py**: a module used to log and trace the results.
 
 #### Other tools:
@@ -34,9 +36,9 @@ On the other hand, the file **utils/plotResults.py** can be used to generate a .
 
 ## Requirements
 * Python 3
-* Tensorflow (1.15): `pip install tensorflow==1.15`
+* Tensorflow : `pip install tensorflow`
 * Keras: `pip install keras`
-* Keras-RL: `pip install keras-rl`
+* Keras-RL: `pip install keras-rl2`
 * OpenAI Gym: `pip install gym`
 * Pandas: `pip install pandas`
 

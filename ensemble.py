@@ -29,7 +29,7 @@ def perc_ensemble(df, thr = 0.7):
     c2 = (df.eq(2).sum(1) / df.shape[1]).gt(thr)
     return pd.DataFrame(np.select([c1, c2], [1, 2], 0), index=df.index, columns=['ensemble'])
 
-
+# Get the results in the log file of the week that contains that day.
 def getActionWeek(weeksFrame, date):
     date = datetime.strptime(date,"%m/%d/%Y")
 
@@ -68,6 +68,7 @@ def ensemble_y_true(df1, df2, df3):
                 df.loc[df1.index[k]] = 0
     return df['ensemble'].tolist()
 
+# ================================================ Random Forest
 def ensemble(numWalks,perc,type,numDel):
     dollSum = 0
     rewSum = 0
@@ -102,7 +103,7 @@ def ensemble(numWalks,perc,type,numDel):
             df1 = full_ensemble(df1)
         else:
             df1 = perc_ensemble(df1, perc)
-        print(df1)
+        
         df2.index = pd.to_datetime(df2.index)
         df2.index = df2.index.strftime('%m/%d/%Y')
         df2.rename(columns={'trend': 'ensemble'}, inplace=True)
@@ -206,47 +207,40 @@ def ensemble(numWalks,perc,type,numDel):
 
 
     values.append([' ','Sum',str(round(rewSum,2)),str(round(posSum,2)),str(round(negSum,2)),str(round(dollSum,2)),str(round(covSum/numSum,2)),(str(round(posSum/covSum,2)) if (covSum>0) else "None")])
-    # print(values)
     return values,columns
-# ================================================ Sử Dụng Phương Pháp Trung Bình Có Trọng Số
+# ================================================ Base-rule
 
 # def ensemble(numWalks,perc,type,numDel):
-#     dollSum = 0
-#     rewSum = 0
-#     posSum = 0
-#     negSum = 0
-#     covSum = 0
-#     numSum = 0
+#     dollSum=0
+#     rewSum=0
+#     posSum=0
+#     negSum=0
+#     covSum=0
+#     numSum=0
 
 #     columns = ["From","To", "Reward%", "#Wins", "#Losses", "Dollars", "Coverage", "Accuracy"]
 
-#     values = []
+#     values=[]
 
-#     dax = pd.read_csv("./datasets/daxDay.csv", index_col='Date')
+#     dax = pd.read_csv("./datasets/" + global_config.MK + "Day.csv", index_col='Date')
 
-#     from_date=""
-#     to_date=""
+#     for j in range(0,numWalks):
 
-#     for j in range(0, numWalks):
-#         df1 = pd.read_csv("./Output/ensemble/ensembleFolder/walk" + "Hour" + str(j) + "ensemble_" + type + ".csv",
-#                           index_col='Date')
-#         df2 = pd.read_csv("./Output/ensemble/ensembleFolder/walk" + "Day" + str(j) + "ensemble_" + type + ".csv",
-#                           index_col='Date')
-#         df3 = pd.read_csv("./Output/ensemble/ensembleFolder/walk" + "Week" + str(j) + "ensemble_" + type + ".csv",
-#                           index_col='Date')
-        
+#         df1=pd.read_csv("./Output/ensemble/ensembleFolder/walk"+"Hour"+str(j)+"ensemble_"+type+".csv",index_col='Date')
+#         df2=pd.read_csv("./Output/ensemble/ensembleFolder/walk"+"Day"+str(j)+"ensemble_"+type+".csv",index_col='Date')
+#         df3=pd.read_csv("./Output/ensemble/ensembleFolder/walk"+"Week"+str(j)+"ensemble_"+type+".csv",index_col='Date')
+
 #         from_date=str(df2.index[0])
 #         to_date=str(df2.index[len(df2)-1])
 
-#         for deleted in range(1, numDel):
-#             del df1['iteration' + str(deleted)]
-#             del df2['iteration' + str(deleted)]
-#             del df3['iteration' + str(deleted)]
+#         for deleted in range(1,numDel):
+#             del df1['iteration'+str(deleted)]
+#             del df2['iteration'+str(deleted)]
 
-#         if perc == 0:
-#             df1 = full_ensemble(df1)
+#         if perc==0:
+#             df1=full_ensemble(df1)
 #         else:
-#             df1 = perc_ensemble(df1, perc)
+#             df1=perc_ensemble(df1,perc)
 
 #         df2.index = pd.to_datetime(df2.index)
 #         df2.index = df2.index.strftime('%m/%d/%Y')
@@ -256,34 +250,6 @@ def ensemble(numWalks,perc,type,numDel):
 #         df3.index = df3.index.strftime('%m/%d/%Y')
 #         df3.rename(columns={'trend': 'ensemble'}, inplace=True)
 
-#         df3_temp = pd.DataFrame(index=df2.index).assign(ensemble=0)
-
-#         for k in range(0,len(df3_temp)):
-#             df3_temp['ensemble'][k] = getActionWeek(df3,df3_temp.index[k])
-        
-#         y_true = ensemble_y_true(df1, df2, df3)
-        
-#         # Tạo lưới trọng số
-#         # Tạo ra tất cả các tổ hợp có thể của trọng số với các giá trị từ 0 đến 1 
-#         # (với bước nhảy 0.1), với điều kiện tổng trọng số bằng 1
-#         weights = list(product(np.arange(0, 1.1, 0.1), repeat=3))
-#         weights = [w for w in weights if np.sum(w) == 1]
-
-#         # Tìm trọng số tốt nhất
-#         best_score = 0
-#         best_weights = None
-
-#         for w in weights:
-#             combined_pred = weighted_average(np.array([df1['ensemble'].to_list(), df2['ensemble'].to_list(), df3_temp['ensemble'].to_list()]), w)
-#             score = accuracy_score(y_true, np.round(combined_pred))
-#             if score > best_score:
-#                 best_score = score
-#                 best_weights = w
-
-#         weight_1 = best_weights[0]
-#         weight_2 = best_weights[1]
-#         weight_3 = best_weights[2]
-        
 #         for deleted in range(1,numDel):
 #             del df['iteration'+str(deleted)]
 
@@ -292,7 +258,15 @@ def ensemble(numWalks,perc,type,numDel):
 
 #         for k in range(0,len(df1)):
 #             if(df1.index[k] in df2.index):
-#                 df.loc[df1.index[k]] = bin_predictions((df1['ensemble'][k] * weight_1 + df2.loc[df1.index[k],'ensemble'] * weight_2 + getActionWeek(df3, df2.index[k]) * weight_3))
+#                 if df1['ensemble'][k] == df2.loc[df1.index[k],'ensemble'] and getActionWeek(df3, df2.index[k]) == df2.loc[df1.index[k],'ensemble']:
+#                     df.loc[df1.index[k]] = df1['ensemble'][k]
+#                 elif getActionWeek(df3, df2.index[k]) == df2.loc[df1.index[k],'ensemble'] and df1['ensemble'][k] != df2.loc[df1.index[k],'ensemble']:
+#                     df.loc[df1.index[k]] = df2.loc[df1.index[k],'ensemble']
+#                 elif getActionWeek(df3, df2.index[k]) != df2.loc[df1.index[k],'ensemble']:
+#                     df.loc[df1.index[k]] = 0
+#                 else:
+#                     df.loc[df1.index[k]] = 0
+
 
 #         num=0
 #         rew=0
@@ -332,3 +306,4 @@ def ensemble(numWalks,perc,type,numDel):
 #     values.append([' ','Sum',str(round(rewSum,2)),str(round(posSum,2)),str(round(negSum,2)),str(round(dollSum,2)),str(round(covSum/numSum,2)),(str(round(posSum/covSum,2)) if (covSum>0) else "None")])
 #     # print(values)
 #     return values,columns
+

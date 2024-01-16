@@ -53,10 +53,8 @@ startingTime=datetime.datetime.now()
 #Short(id 2): It predicts that the stock market value will decrease at the end of the day.
 #So, the action that must be done is selling at the beginning of the day and buy it at the end of the day (aka short). 
 nb_actions = int(sys.argv[1])
-print(type(sys.argv[1]))
 
 isOnlyShort=sys.argv[2]==1
-print(isOnlyShort)
 
 #This is a simple NN considered. It is composed of:
 #One flatten layer to get 68 dimensional vectors as input
@@ -73,7 +71,7 @@ model.add(Activation('linear'))
 
 
 #Define the DeepQTrading class with the following parameters:
-#explorations: 0.2 operations are random, and 100 epochs.
+#explorations: 0.2 operations are random, and 50 epochs.
 #in this case, epochs parameter is used because the Agent acts on daily basis, so its better to repeat the experiments several
 #times so, its defined that each epoch will work on the data from training, validation and testing.
 #trainSize: the size of the train data gotten from the dataset, we are setting 5 stock market years, or 1800 days

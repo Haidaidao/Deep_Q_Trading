@@ -35,24 +35,24 @@ from lstmTrend import LSTMTrend
 from AgentObject import AgentObject
 import global_config
 
-#Prefix of the name of the market (S&P500) files used to load the data
 MK= global_config.MK
 # MK="dax"
 
+
+# Find the index of the same day or next day in the dataframe
 def getDate_Index(Frame, datesFrame, date):
     Frame['Date'] = pd.to_datetime(Frame['Date'], format='%m/%d/%Y')
     specific_date = datesFrame.loc[date,'Date']
-    print("This date ",specific_date)
+
     specific_date = pd.to_datetime(specific_date, format='%m/%d/%Y')
     next_date = Frame[Frame['Date'] >= specific_date].iloc[0]['Date']
-    print("Next date ",next_date)
-    # print(str(datesFrame.loc[testMin[iteration],'Date']) + " ======= " + str(next_date))
+
     date_to_find = pd.to_datetime(next_date)
     index = Frame.index[Frame['Date'] == date_to_find].tolist()
 
     return index[0]
 
-
+# Count the total number of walks
 def getNumFile(agent,currentStartingPoint, walkSize, endingPoint, testSize, trainSize, validationSize):   
     iteration=-1
     while(currentStartingPoint+walkSize <= endingPoint):
@@ -150,7 +150,7 @@ class DeepQTrading:
             #Just the index considering date and time will be important, because date and time will be used to define the train,
             #validation and test for each walk
             self.agent[i].sp = self.agent[i].sp.index
-            # print(self.agent[i].dates.loc[[0,2],'Date'])
+
 
         #Receives the operation cost, which is 0
         #Operation cost is the cost for long and short. It is defined as zero
@@ -170,7 +170,7 @@ class DeepQTrading:
         currentStartingPointTemp = self.currentStartingPoint
         numFile = getNumFile(self.agent[0], self.currentStartingPoint, self.walkSize, self.endingPoint, self.testSize, self.trainSize, self.validationSize)
         numFile = numFile + 1
-        print(numFile)
+       
         with open('numFile.txt', 'w', encoding='utf-8') as file:
             file.write(str(numFile-1))
 
@@ -190,10 +190,6 @@ class DeepQTrading:
         daysFrame = pd.read_csv('./datasets/'+MK+"Day"+'.csv')
 
         count = 0
-        # print(getDate_Index(daysFrame, datesFrame, 2719))
-        # print("===================")
-        # print(getDate_Index(daysFrame, datesFrame, 17618))
-        # return
 
         for i in range(len(self.agent)):
             #Initiates the environments,
@@ -263,8 +259,7 @@ class DeepQTrading:
 
                     #Load the weights saved before in a random way if it is the first time
                     self.agent[index].agent.load_weights("q.weights")
-                    print("name: ", name)
-                    print("iteration: ", iteration)
+
                     ########################################TRAINING STAGE########################################################
 
                     #The TrainMinLimit will be loaded as the initial date at the beginning, and will be updated later.
@@ -365,22 +360,18 @@ class DeepQTrading:
                             #policy will be 0.2, so the randomness of predictions (actions) will happen with 20% of probability
                             self.policy.eps = eps[0]
 
-                            #there will be 100 iterations (epochs), or eps[1])
+                            #there will be 50 iterations (epochs), or eps[1])
 
                             for i in range(0,eps[1]):
                                 del(trainEnv)
 
                                 #Define the training, validation and testing environments with their respective callbacks
-                                print("train")
-                                print("minLimit=trainMinLimit,maxLimit=trainMaxLimit : " +  str(trainMinLimit) + " == " +  str(trainMaxLimit))
                                 trainEnv = SpEnv(operationCost=self.operationCost,minLimit=trainMinLimit,maxLimit=trainMaxLimit,callback=self.trainer,isOnlyShort=self.isOnlyShort, ensamble=ensambleTrain,columnName="iteration"+str(i), name=name)
                                 del(validEnv)
-                                print("valid")
-                                print("minLimit=validMinLimit,maxLimit=validMaxLimit : " +  str(validMinLimit) + " == " +  str(validMaxLimit))
+
                                 validEnv=SpEnv(operationCost=self.operationCost, minLimit=validMinLimit,maxLimit=validMaxLimit,callback=self.validator,isOnlyShort=self.isOnlyShort,ensamble=ensambleValid,columnName="iteration"+str(i), name=name)
                                 del(testEnv)
-                                print("test")
-                                print("minLimit=testMinLimit,maxLimit=testMaxLimit : " +  str(testMinLimit) + " == " +  str(testMaxLimit))
+
                                 testEnv=SpEnv(operationCost=self.operationCost,minLimit=testMinLimit,maxLimit=testMaxLimit,callback=self.tester,isOnlyShort=self.isOnlyShort,ensamble=ensambleTest,columnName="iteration"+str(i), name=name)
 
                                 #Reset the callback
@@ -414,7 +405,6 @@ class DeepQTrading:
                                 (_,testCoverage,testAccuracy,testReward,testLongPerc,testShortPerc,testLongAcc,testShortAcc,testLongPrec,testShortPrec)=self.tester.getInfo()
                                 #Print callback values on the screen
                                 print(str(i) + " TEST:  acc: " + str(testAccuracy)+ " cov: " + str(testCoverage)+ " rew: " + str(testReward))
-                                print(" ")
 
                                 #write the walk data on the text file
                                 self.outputFile.write(
@@ -453,16 +443,16 @@ class DeepQTrading:
                         self.outputFile.close()
 
                         #Write validation and Testing data into files
-                        #Save the files for processing later with the ensemble considering the 100 epochs
+                        #Save the files for processing later with the ensemble considering the 50 epochs
                         ensambleTrain.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_train.csv")
                         ensambleValid.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_valid.csv")
                         ensambleTest.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_test.csv")
                     else:
-                        train = LSTMTrend(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
+                        train = MACD(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
                         train.writeFile()
-                        valid = LSTMTrend(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
+                        valid = MACD(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
                         valid.writeFile()
-                        test  = LSTMTrend(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
+                        test  = MACD(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
                         test.writeFile()
                        
                     #For the next walk, the current starting point will be the current starting point + the test size
