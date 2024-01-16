@@ -21,7 +21,7 @@ Predicting stock market trends is a major challenge for scientists due to the no
 * **deepQTrading.py**: used to organize our data in walks and set up the agents;
 * **spEnv.py**: the environment used for the agents;
 * **global_config.py**: save global value;
-* **trend.py**: Method of using trendet to find market trends;
+* **trend.py**: Method of using TrendWA to find market trends;
 * **macd.py**: Method of using MACD to find market trends;
 * **callback.py**: a module used to log and trace the results.
 
