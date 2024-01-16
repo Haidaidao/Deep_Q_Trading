@@ -208,40 +208,41 @@ class DeepQTrading:
                 #Iteration is the current walk
                 iteration+=1
                 if iteration < (numFile):
-                    #Initiate the output file
-                    self.outputFile=open(self.outputFileName+name+str(iteration+1)+".csv", "w+")
-                    #write the first row of the csv
-                    self.outputFile.write(
-                        "Iteration,"+
-                        "trainAccuracy,"+
-                        "trainCoverage,"+
-                        "trainReward,"+
-                        "trainLong%,"+
-                        "trainShort%,"+
-                        "trainLongAcc,"+
-                        "trainShortAcc,"+
-                        "trainLongPrec,"+
-                        "trainShortPrec,"+
+                    if name == "Hour":
+                        #Initiate the output file
+                        self.outputFile=open(self.outputFileName+name+str(iteration+1)+".csv", "w+")
+                        #write the first row of the csv
+                        self.outputFile.write(
+                            "Iteration,"+
+                            "trainAccuracy,"+
+                            "trainCoverage,"+
+                            "trainReward,"+
+                            "trainLong%,"+
+                            "trainShort%,"+
+                            "trainLongAcc,"+
+                            "trainShortAcc,"+
+                            "trainLongPrec,"+
+                            "trainShortPrec,"+
 
-                        "validationAccuracy,"+
-                        "validationCoverage,"+
-                        "validationReward,"+
-                        "validationLong%,"+
-                        "validationShort%,"+
-                        "validationLongAcc,"+
-                        "validationShortAcc,"+
-                        "validLongPrec,"+
-                        "validShortPrec,"+
+                            "validationAccuracy,"+
+                            "validationCoverage,"+
+                            "validationReward,"+
+                            "validationLong%,"+
+                            "validationShort%,"+
+                            "validationLongAcc,"+
+                            "validationShortAcc,"+
+                            "validLongPrec,"+
+                            "validShortPrec,"+
 
-                        "testAccuracy,"+
-                        "testCoverage,"+
-                        "testReward,"+
-                        "testLong%,"+
-                        "testShort%,"+
-                        "testLongAcc,"+
-                        "testShortAcc,"+
-                        "testLongPrec,"+
-                        "testShortPrec\n")
+                            "testAccuracy,"+
+                            "testCoverage,"+
+                            "testReward,"+
+                            "testLong%,"+
+                            "testShort%,"+
+                            "testLongAcc,"+
+                            "testShortAcc,"+
+                            "testLongPrec,"+
+                            "testShortPrec\n")
 
 
                     #Empty the memory and agent
@@ -407,37 +408,38 @@ class DeepQTrading:
                                 print(str(i) + " TEST:  acc: " + str(testAccuracy)+ " cov: " + str(testCoverage)+ " rew: " + str(testReward))
 
                                 #write the walk data on the text file
-                                self.outputFile.write(
-                                    str(i)+","+
-                                    str(trainAccuracy)+","+
-                                    str(trainCoverage)+","+
-                                    str(trainReward)+","+
-                                    str(trainLongPerc)+","+
-                                    str(trainShortPerc)+","+
-                                    str(trainLongAcc)+","+
-                                    str(trainShortAcc)+","+
-                                    str(trainLongPrec)+","+
-                                    str(trainShortPrec)+","+
+                                if name == "Hour":
+                                    self.outputFile.write(
+                                        str(i)+","+
+                                        str(trainAccuracy)+","+
+                                        str(trainCoverage)+","+
+                                        str(trainReward)+","+
+                                        str(trainLongPerc)+","+
+                                        str(trainShortPerc)+","+
+                                        str(trainLongAcc)+","+
+                                        str(trainShortAcc)+","+
+                                        str(trainLongPrec)+","+
+                                        str(trainShortPrec)+","+
 
-                                    str(validAccuracy)+","+
-                                    str(validCoverage)+","+
-                                    str(validReward)+","+
-                                    str(validLongPerc)+","+
-                                    str(validShortPerc)+","+
-                                    str(validLongAcc)+","+
-                                    str(validShortAcc)+","+
-                                    str(validLongPrec)+","+
-                                    str(validShortPrec)+","+
+                                        str(validAccuracy)+","+
+                                        str(validCoverage)+","+
+                                        str(validReward)+","+
+                                        str(validLongPerc)+","+
+                                        str(validShortPerc)+","+
+                                        str(validLongAcc)+","+
+                                        str(validShortAcc)+","+
+                                        str(validLongPrec)+","+
+                                        str(validShortPrec)+","+
 
-                                    str(testAccuracy)+","+
-                                    str(testCoverage)+","+
-                                    str(testReward)+","+
-                                    str(testLongPerc)+","+
-                                    str(testShortPerc)+","+
-                                    str(testLongAcc)+","+
-                                    str(testShortAcc)+","+
-                                    str(testLongPrec)+","+
-                                    str(testShortPrec)+"\n")
+                                        str(testAccuracy)+","+
+                                        str(testCoverage)+","+
+                                        str(testReward)+","+
+                                        str(testLongPerc)+","+
+                                        str(testShortPerc)+","+
+                                        str(testLongAcc)+","+
+                                        str(testShortAcc)+","+
+                                        str(testLongPrec)+","+
+                                        str(testShortPrec)+"\n")
 
                         #Close the file
                         self.outputFile.close()

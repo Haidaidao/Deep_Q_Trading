@@ -1,2 +1,2 @@
 numFile = 0
-MK = "msft"
+MK = "sp500"
