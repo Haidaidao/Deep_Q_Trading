@@ -36,7 +36,7 @@ On the other hand, the file **utils/plotResults.py** can be used to generate a .
 
 ## Requirements
 * Python 3
-* Tensorflow : `pip install tensorflow`
+* Tensorflow : `pip install tensorflow==2.10.0`
 * Keras: `pip install keras`
 * Keras-RL: `pip install keras-rl2`
 * OpenAI Gym: `pip install gym`
