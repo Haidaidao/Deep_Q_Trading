@@ -47,7 +47,7 @@ The code needs three positional parameters to be correctly executed:<br>
 `python main.py <numberOfActions> <isOnlyShort> <ensembleFolder>`<br>
 <br>
 
-* To run the **FULL** agent you need to run: `python main.py 3 0 ensembleFolder`
+* To run the **FULL** agent you need to run: `python main.py 3 0 ''`
 * To run the **ONLY LONG** agent you need to run: `python main.py 2 0 ensembleFolder`
 * To run the **ONLY SHORT** agent you need to run: `python main.py 2 1 ensembleFolder`
 

@@ -177,13 +177,11 @@ def ensemble(numWalks,perc,type,numDel):
             if date in dax.index:
                 if (i['ensemble']==1):
                     pos+= 1 if (dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
-
                     neg+= 0 if (dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
                     rew+=(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
                     doll+=(dax.at[date,'Close']-dax.at[date,'Open'])*50
                     cov+=1
                 elif (i['ensemble']==2):
-
                     neg+= 0 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
                     pos+= 1 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
                     rew+=-(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
