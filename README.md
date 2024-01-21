@@ -27,12 +27,7 @@ Predicting stock market trends is a major challenge for scientists due to the no
 
 #### Other tools:
 * **ensemble.py**: can be used to generate the threshold ensemble from the main agents;
-* **splitEnsemble.py**: can be used to generate the final ensemble for the LONG+SHORT agent (after running ensemble.py).
-
-
-If you want to adapt the code and use it for more markets, you can use the file **utils/parserWeek.py**, to create a weekly resolution dataset.<br>
-On the other hand, the file **utils/plotResults.py** can be used to generate a .pdf containing several plots, useful to get information on the testing phase of the algorithm.
-
+* **plotResults.py**: can be used to generate the final ensemble for the LONG+SHORT agent (after running ensemble.py).
 
 ## Requirements
 * Python 3
@@ -47,7 +42,7 @@ The code needs three positional parameters to be correctly executed:<br>
 `python main.py <numberOfActions> <isOnlyShort> <ensembleFolder>`<br>
 <br>
 
-* To run the **FULL** agent you need to run: `python main.py 3 0 ''`
+* To run the **FULL** agent you need to run: `python main.py 3 0 ensembleFolder`
 * To run the **ONLY LONG** agent you need to run: `python main.py 2 0 ensembleFolder`
 * To run the **ONLY SHORT** agent you need to run: `python main.py 2 1 ensembleFolder`
 

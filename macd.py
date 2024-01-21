@@ -6,8 +6,7 @@ import numpy
 import pandas as pd
 #datetime is the library used to manipulate time and date
 from datetime import datetime
-#Library created by Tonio to merge data used as feature vectors
-from mergedDataStructure import MergedDataStructure
+
 #Callback is the library used to show metrics 
 import callback
 import global_config
