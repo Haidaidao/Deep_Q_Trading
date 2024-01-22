@@ -14,8 +14,6 @@ import global_config
 import xgboost as xgb
 from sklearn.preprocessing import LabelEncoder
 
-from pytorch_lightning import LightningModule, Trainer
-
 def perc_ensemble(df, thr = 0.7):
     c1 = (df.eq(1).sum(1) / df.shape[1]).gt(thr)
     c2 = (df.eq(2).sum(1) / df.shape[1]).gt(thr)

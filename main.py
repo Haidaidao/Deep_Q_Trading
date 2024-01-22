@@ -83,7 +83,7 @@ model.add(Activation('linear'))
 #nOutput:number of walks
 dqt = DeepQTrading(
     model=model,
-    explorations=[(0.2,50)],
+    explorations=[(0.2,5)],
     trainSize=datetime.timedelta(days=360*5),
     validationSize=datetime.timedelta(days=30*6),
     testSize=datetime.timedelta(days=30*6),
