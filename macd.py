@@ -31,10 +31,6 @@ class MACD:
         self.name = name
         self.iteration = iteration
         self.type = type
-            #self.ensemble is a big table (before file writing) containing observations as lines and epochs as columns
-            #each column will contain a decision for each epoch at each date. It is saved later.
-            #We read this table later in order to make ensemble decisions at each epoch
-            # self.ensamble[self.columnName]=0
 
     def EMA(self, period=12):
         # print(pd.Series(self.Close).ewm(span=period, adjust=False).mean())
@@ -60,13 +56,6 @@ class MACD:
         else:
             return 0
 
-    # def trend(self):
-    #     trendResult = [] 
-    #     macd , signal = self.calculate_MACD()
-    #     for i in range(0,len(self.Date)):
-    #         trendResult.append(self.analyze_market_trend(macd[i], signal[i]))
-    #     return pd.DataFrame({'ensemble': trendResult}, index=pd.to_datetime(self.Date))
-    
     def trend(self):
         trendResult = [] 
         macd , signal = self.calculate_MACD()
