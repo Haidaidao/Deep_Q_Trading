@@ -81,27 +81,23 @@ model.add(Activation('linear'))
 #begin: where the walks will start from. We are defining January 1st of 2010
 #end: where the walks will finish. We are defining February 22nd of 2011
 #nOutput:number of walks
-dqt = DeepQTrading(
-    model=model,
-    explorations=[(0.2,5)],
-    trainSize=datetime.timedelta(days=360*5),
-    validationSize=datetime.timedelta(days=30*6),
-    testSize=datetime.timedelta(days=30*6),
-    outputFile="./Output/csv/walks/walks",
-    begin=datetime.datetime(2001,1,1,0,0,0,0),
-    end=datetime.datetime(2011,2,28,0,0,0,0),
-    nbActions=nb_actions,
-    isOnlyShort=isOnlyShort,
-    ensembleFolderName=sys.argv[3]
-    )
+# dqt = DeepQTrading(
+#     model=model,
+#     explorations=[(0.2,50)],
+#     trainSize=datetime.timedelta(days=360*5),
+#     validationSize=datetime.timedelta(days=30*6),
+#     testSize=datetime.timedelta(days=30*6),
+#     outputFile="./Output/csv/walks/walks",
+#     begin=datetime.datetime(2001,1,1,0,0,0,0),
+#     end=datetime.datetime(2011,2,28,0,0,0,0),
+#     nbActions=nb_actions,
+#     isOnlyShort=isOnlyShort,
+#     ensembleFolderName=sys.argv[3]
+#     )
 
-dqt.run()
+# dqt.run()
 
-dqt.end()
+# dqt.end()
 
-
-
-# print(col)
-# print(val)
 
 
