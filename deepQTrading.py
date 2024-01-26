@@ -93,7 +93,7 @@ def getNumFile(agent,currentStartingPoint, walkSize, endingPoint, testSize, trai
 class DeepQTrading:
 
     def __init__(self, model, explorations, trainSize, validationSize, testSize, outputFile, begin, end, nbActions, isOnlyShort, ensembleFolderName, operationCost=0):
-
+        
         self.isOnlyShort=isOnlyShort
         self.ensembleFolderName=ensembleFolderName
 
@@ -162,7 +162,6 @@ class DeepQTrading:
         self.tester=ValidationCallback()
         self.outputFileName=outputFile
 
-    
 
     def run(self):
 
@@ -189,7 +188,7 @@ class DeepQTrading:
         daysFrame = pd.read_csv('./datasets/'+MK+"Day"+'.csv')
 
         count = 0
-
+        print("=======================")
         for i in range(len(self.agent)):
             #Initiates the environments,
             trainEnv=validEnv=testEnv=" "
