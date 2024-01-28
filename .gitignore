@@ -35,4 +35,4 @@ telegramSettings.py
 *.tar
 *.zip
 
-
+q.weights.*
