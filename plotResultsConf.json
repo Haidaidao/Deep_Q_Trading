@@ -1,6 +1,7 @@
 {
-    "type": "Base",
+    "type": "XGBoost",
     "num_files": 9,
     "MK": "dax",
-    "ensemble_folder": "ensembleFolder"
+    "ensemble_folder": "ensembleFolder",
+    "label_threshold": 0.005
 }

@@ -28,10 +28,6 @@ from rl.agents.dqn import DQNAgent
 from rl.memory import SequentialMemory
 from rl.policy import EpsGreedyQPolicy
 
-from ensemble import ensemble
-
-from macd import MACD
-
 #Library used for showing the exception in the case of error 
 import sys
 

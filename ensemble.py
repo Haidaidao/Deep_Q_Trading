@@ -16,6 +16,7 @@ from sklearn.preprocessing import LabelEncoder
 
 
 ensembleFolder = global_config.ensembleFolder
+threshold = global_config.label_threshold
 
 
 # Get the results in the log file of the week that contains that day.
@@ -28,33 +29,86 @@ def getActionWeek(weeksFrame, date):
             return  weeksFrame['ensemble'][i]
     return 0
 
-def ensemble_y_true(df1, df2, df3):
+# def ensemble_y_true(df1, df2, df3):
 
-    df = pd.DataFrame(columns=['ensemble'])
-    df = df.set_index(pd.Index([], name='date'))
+#     df = pd.DataFrame(columns=['ensemble'])
+#     df = df.set_index(pd.Index([], name='date'))
 
-    for k in range(0,len(df1)):
-        if(df1.index[k] in df2.index):
-            if df1['ensemble'][k] == 0:
-                df.loc[df1.index[k]] = 0
-            else:
-                if df1['ensemble'][k] == getActionWeek(df3, df2.index[k]) or df1['ensemble'][k] == df2.loc[df1.index[k],'ensemble']: 
-                    if  getActionWeek(df3, df2.index[k]) == df2.loc[df1.index[k],'ensemble']  and df2.loc[df1.index[k],'ensemble'] != df1['ensemble'][k] :
-                        df.loc[df1.index[k]] = 0
-                    elif df2.loc[df1.index[k],'ensemble'] == 0 and getActionWeek(df3, df2.index[k]) !=0:
-                        df.loc[df1.index[k]] = getActionWeek(df3, df2.index[k])
-                    elif df2.loc[df1.index[k],'ensemble'] != 0 and getActionWeek(df3, df2.index[k]) ==0:
-                        df.loc[df1.index[k]] = df2.loc[df1.index[k],'ensemble']
-                    elif getActionWeek(df3, df2.index[k]) != df2.loc[df1.index[k],'ensemble']:
-                        df.loc[df1.index[k]] = 0
-                    elif getActionWeek(df3, df2.index[k]) == df2.loc[df1.index[k],'ensemble']:
-                        df.loc[df1.index[k]] = df2.loc[df1.index[k],'ensemble']
-                    else:
-                        df.loc[df1.index[k]] = 0
-                else: 
-                    df.loc[df1.index[k]] = 0
+#     for k in range(0,len(df1)):
+#         if(df1.index[k] in df2.index):
+#             if df1['ensemble'][k] == 0:
+#                 df.loc[df1.index[k]] = 0
+#             else:
+#                 if df1['ensemble'][k] == getActionWeek(df3, df2.index[k]) or df1['ensemble'][k] == df2.loc[df1.index[k],'ensemble']: 
+#                     if  getActionWeek(df3, df2.index[k]) == df2.loc[df1.index[k],'ensemble']  and df2.loc[df1.index[k],'ensemble'] != df1['ensemble'][k] :
+#                         df.loc[df1.index[k]] = 0
+#                     elif df2.loc[df1.index[k],'ensemble'] == 0 and getActionWeek(df3, df2.index[k]) !=0:
+#                         df.loc[df1.index[k]] = getActionWeek(df3, df2.index[k])
+#                     elif df2.loc[df1.index[k],'ensemble'] != 0 and getActionWeek(df3, df2.index[k]) ==0:
+#                         df.loc[df1.index[k]] = df2.loc[df1.index[k],'ensemble']
+#                     elif getActionWeek(df3, df2.index[k]) != df2.loc[df1.index[k],'ensemble']:
+#                         df.loc[df1.index[k]] = 0
+#                     elif getActionWeek(df3, df2.index[k]) == df2.loc[df1.index[k],'ensemble']:
+#                         df.loc[df1.index[k]] = df2.loc[df1.index[k],'ensemble']
+#                     else:
+#                         df.loc[df1.index[k]] = 0
+#                 else: 
+#                     df.loc[df1.index[k]] = 0
 
-    return df['ensemble'].tolist()
+#     return df['ensemble'].tolist()
+
+def ensemble_y_true(feature, stats, threshold):
+
+    labels = []
+    last_action = 0
+    skip = 0
+    
+    for index, _ in feature.iterrows():
+        if index not in stats.index:
+            labels.append(last_action)
+            skip += 1
+            continue
+        
+        close = stats.loc[index, 'Close']
+        open = stats.loc[index, 'Open']
+        
+        action = 0
+        changes = (close - open) / open
+
+        if changes >= threshold or (last_action == 1 and changes >= 0 and changes < threshold):
+            last_action = 1
+            action = 1
+        elif changes < -threshold or (last_action == 2 and changes < 0 and changes >= -threshold):
+            last_action = 2
+            action = 2
+        else:
+            last_action = 0
+
+        labels.append(action)
+
+    # for index, row in stats.iterrows():
+    #     if index not in feature1.index and index not in feature2.index and index not in feature3.index:
+    #         continue
+    #     action = 0
+    #     changes = (row['Close'] - row['Open']) / row['Open']
+
+    #     if changes >= threshold or (last_action == 1 and changes >= 0 and changes < threshold):
+    #         last_action = 1
+    #         action = 1
+    #     elif changes < -threshold or (last_action == 2 and changes < 0 and changes >= -threshold):
+    #         last_action = 2
+    #         action = 2
+    #     else:
+    #         last_action = 0
+            
+    #     labels.append(action)
+
+    # with open('test.txt', 'w') as f:
+    #     f.write('\n'.join(map(str, labels)))
+            
+    return labels
+
+
 
 
 # ================================================ XGBoots
@@ -74,7 +128,10 @@ def XGBoostEnsemble(numWalks,type,numDel):
 
     type_train = "train"
 
+    xgb_model = xgb.XGBClassifier(n_estimators=100, random_state=42)
+
     for j in range(0, numWalks):
+
         # Train
         df1 = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Hour" + str(j) + "ensemble_" + type_train+ ".csv",
                           index_col='Date')
@@ -108,11 +165,11 @@ def XGBoostEnsemble(numWalks,type,numDel):
         for k in range(0,len(df1)):
             list_combine_train = np.append(list_combine_train, [[df1['ensemble'][k], df2['ensemble'][k], df3_temp['ensemble'][k]]], axis=0)
       
-        y_train = ensemble_y_true(df1, df2, df3)
+        y_train = ensemble_y_true(df1, dax, threshold)
 
         le = LabelEncoder()
         y_train = le.fit_transform(y_train)
-        xgb_model = xgb.XGBClassifier(n_estimators=100, random_state=42)
+        # xgb_model = xgb.XGBClassifier(n_estimators=100, random_state=42)
         xgb_model.fit(list_combine_train, y_train)
 
         # Predict
@@ -211,6 +268,8 @@ def RandomForestEnsemble(numWalks,type,numDel):
 
     type_train = "train"
 
+    rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+
     for j in range(0, numWalks):
         # Train
         df1 = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Hour" + str(j) + "ensemble_" + type_train+ ".csv",
@@ -245,9 +304,9 @@ def RandomForestEnsemble(numWalks,type,numDel):
         for k in range(0,len(df1)):
             list_combine_train = np.append(list_combine_train, [[df1['ensemble'][k], df2['ensemble'][k], df3_temp['ensemble'][k]]], axis=0)
 
-        y_train = ensemble_y_true(df1, df2, df3)
+        y_train = ensemble_y_true(df1, dax, threshold)
 
-        rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+        # rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
         rf_model.fit(list_combine_train, y_train)
 
         # Predict
