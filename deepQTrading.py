@@ -54,10 +54,21 @@ def getDate_Index(Frame, datesFrame, date):
 # Count the total number of walks
 def getNumFile(agent,currentStartingPoint, walkSize, endingPoint, testSize, trainSize, validationSize):   
     iteration=-1
+
+    trainMin = []
+    trainMax = []
+
+    validMin = []
+    validMax = []
+
+    testMin = []
+    testMax = []
+
     while(currentStartingPoint+walkSize <= endingPoint):
 
-        #Iteration is the current walk
+    #     #Iteration is the current walk
         iteration+=1  
+
         trainMinLimit=None
         while(trainMinLimit is None):
             try:
@@ -65,13 +76,18 @@ def getNumFile(agent,currentStartingPoint, walkSize, endingPoint, testSize, trai
                 break
             except:
                 currentStartingPoint+=datetime.timedelta(hours=1)
+        trainMin.append(trainMinLimit)
 
         trainMaxLimit=None
         while(trainMaxLimit is None):
             try:
                 trainMaxLimit = agent.sp.get_loc(currentStartingPoint+trainSize)
             except:
-                currentStartingPoint+=datetime.timedelta(hours=1)
+                currentStartingPoint+=datetime.timedelta(hours=1)   
+        trainMax.append(trainMaxLimit)
+
+        validMinLimit=trainMaxLimit
+        validMin.append(validMinLimit)
 
         validMaxLimit=None
         while(validMaxLimit is None):
@@ -79,16 +95,22 @@ def getNumFile(agent,currentStartingPoint, walkSize, endingPoint, testSize, trai
                 validMaxLimit = agent.sp.get_loc(currentStartingPoint+trainSize+validationSize)
             except:
                 currentStartingPoint+=datetime.timedelta(hours=1)
+        validMax.append(validMaxLimit)
+
+        testMinLimit=validMaxLimit
+        testMin.append(testMinLimit)
 
         testMaxLimit=None
         while(testMaxLimit is None):
             try:
                 testMaxLimit = agent.sp.get_loc(currentStartingPoint+trainSize+validationSize+testSize)
             except:
-                currentStartingPoint+=datetime.timedelta(hours=1)
+                currentStartingPoint+=datetime.timedelta(hours=1)      
+        testMax.append(testMaxLimit)
 
         currentStartingPoint+=testSize
-    return iteration
+
+    return iteration, trainMin, trainMax, validMin, validMax, testMin, testMax
 
 class DeepQTrading:
 
@@ -109,9 +131,9 @@ class DeepQTrading:
         self.memory = SequentialMemory(limit=10000, window_length=1)
 
         #Instantiate the agent with parameters received
-        self.agent.append(AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Hour'))
         self.agent.append(AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Day'))
         self.agent.append(AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Week'))
+        self.agent.append(AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Hour'))
 
         #Save the weights of the agents in the q.weights file
         #Save random weights
@@ -166,21 +188,31 @@ class DeepQTrading:
     def run(self):
 
         currentStartingPointTemp = self.currentStartingPoint
-        numFile = getNumFile(self.agent[0], self.currentStartingPoint, self.walkSize, self.endingPoint, self.testSize, self.trainSize, self.validationSize)
+        numFile, trainMin, trainMax, validMin, validMax, testMin, testMax = getNumFile(self.agent[2], 
+                                                                                       self.currentStartingPoint, self.walkSize, 
+                                                                                       self.endingPoint, self.testSize, 
+                                                                                       self.trainSize, self.validationSize)
         numFile = numFile + 1
        
         with open('numFile.txt', 'w', encoding='utf-8') as file:
             file.write(str(numFile-1))
 
+        print(trainMin)
+        print(trainMax)
+        print(validMin)
+        print(validMax)
+        print(testMin)
+        print(testMax)
 
-        trainMin = [None]*(numFile+1)
-        trainMax = [None]*(numFile+1)
+        
+        # trainMin = [None]*(numFile+1)
+        # trainMax = [None]*(numFile+1)
 
-        validMin = [None]*(numFile+1)
-        validMax = [None]*(numFile+1)
+        # validMin = [None]*(numFile+1)
+        # validMax = [None]*(numFile+1)
 
-        testMin = [None]*(numFile+1)
-        testMax = [None]*(numFile+1)
+        # testMin = [None]*(numFile+1)
+        # testMax = [None]*(numFile+1)
 
 
         datesFrame = pd.read_csv('./datasets/'+MK+"Hour"+'.csv')
@@ -188,7 +220,7 @@ class DeepQTrading:
         daysFrame = pd.read_csv('./datasets/'+MK+"Day"+'.csv')
 
         count = 0
-        print("=======================")
+
         for i in range(len(self.agent)):
             #Initiates the environments,
             trainEnv=validEnv=testEnv=" "
@@ -271,8 +303,8 @@ class DeepQTrading:
                                 break
                             except:
                                 self.currentStartingPoint+=datetime.timedelta(hours=1)
-                        if name == "Hour":
-                            trainMin[count] = trainMinLimit
+                        # if name == "Hour":
+                        #     trainMin[count] = trainMinLimit
 
                         #The TrainMaxLimit will be loaded as the interval between the initial date plus the training size.
                         #If the initial date cannot be used, add 1 hour to the initial date and consider it the initial date
@@ -282,14 +314,14 @@ class DeepQTrading:
                                 trainMaxLimit = self.agent[index].sp.get_loc(self.currentStartingPoint+self.trainSize)
                             except:
                                 self.currentStartingPoint+=datetime.timedelta(hours=1)
-                        if name == "Hour":
-                            trainMax[count] = trainMaxLimit
+                        # if name == "Hour":
+                        #     trainMax[count] = trainMaxLimit
 
                         ########################################VALIDATION STAGE#######################################################
                         #The ValidMinLimit will be loaded as the next element of the TrainMax limit
                         validMinLimit=trainMaxLimit
-                        if name == "Hour":
-                            validMin[count] = validMinLimit
+                        # if name == "Hour":
+                        #     validMin[count] = validMinLimit
 
                         #The ValidMaxLimit will be loaded as the interval after the begin + train size +validation size
                         #If the initial date cannot be used, add 1 hour to the initial date and consider it the initial date
@@ -299,14 +331,14 @@ class DeepQTrading:
                                 validMaxLimit = self.agent[index].sp.get_loc(self.currentStartingPoint+self.trainSize+self.validationSize)
                             except:
                                 self.currentStartingPoint+=datetime.timedelta(hours=1)
-                        if name == "Hour":
-                            validMax[count] = validMaxLimit
+                        # if name == "Hour":
+                        #     validMax[count] = validMaxLimit
 
                         ########################################TESTING STAGE########################################################
                         #The TestMinLimit will be loaded as the next element of ValidMaxlimit
                         testMinLimit=validMaxLimit
-                        if name == "Hour":
-                            testMin[count] = testMinLimit
+                        # if name == "Hour":
+                        #     testMin[count] = testMinLimit
                         #The testMaxLimit will be loaded as the interval after the begin + train size +validation size + Testsize
                         #If the initial date cannot be used, add 1 hour to the initial date and consider it the initial date
                         testMaxLimit=None
@@ -315,8 +347,8 @@ class DeepQTrading:
                                 testMaxLimit = self.agent[index].sp.get_loc(self.currentStartingPoint+self.trainSize+self.validationSize+self.testSize)
                             except:
                                 self.currentStartingPoint+=datetime.timedelta(hours=1)
-                        if name == "Hour":
-                            testMax[count] = testMaxLimit
+                        # if name == "Hour":
+                        #     testMax[count] = testMaxLimit
 
                         if count<(numFile):
                             count = count +1
@@ -365,13 +397,13 @@ class DeepQTrading:
                                 del(trainEnv)
 
                                 #Define the training, validation and testing environments with their respective callbacks
-                                trainEnv = SpEnv(operationCost=self.operationCost,minLimit=trainMinLimit,maxLimit=trainMaxLimit,callback=self.trainer,isOnlyShort=self.isOnlyShort, ensamble=ensambleTrain,columnName="iteration"+str(i), name=name)
+                                trainEnv = SpEnv(operationCost=self.operationCost,type="train", iteration = iteration,minLimit=trainMinLimit,maxLimit=trainMaxLimit,callback=self.trainer,isOnlyShort=self.isOnlyShort, ensamble=ensambleTrain,columnName="iteration"+str(i), name=name)
                                 del(validEnv)
 
-                                validEnv=SpEnv(operationCost=self.operationCost, minLimit=validMinLimit,maxLimit=validMaxLimit,callback=self.validator,isOnlyShort=self.isOnlyShort,ensamble=ensambleValid,columnName="iteration"+str(i), name=name)
+                                validEnv=SpEnv(operationCost=self.operationCost,type="valid", iteration = iteration,minLimit=validMinLimit,maxLimit=validMaxLimit,callback=self.validator,isOnlyShort=self.isOnlyShort,ensamble=ensambleValid,columnName="iteration"+str(i), name=name)
                                 del(testEnv)
 
-                                testEnv=SpEnv(operationCost=self.operationCost,minLimit=testMinLimit,maxLimit=testMaxLimit,callback=self.tester,isOnlyShort=self.isOnlyShort,ensamble=ensambleTest,columnName="iteration"+str(i), name=name)
+                                testEnv=SpEnv(operationCost=self.operationCost,type="test", iteration = iteration,minLimit=testMinLimit,maxLimit=testMaxLimit,callback=self.tester,isOnlyShort=self.isOnlyShort,ensamble=ensambleTest,columnName="iteration"+str(i), name=name)
 
                                 #Reset the callback
                                 self.trainer.reset()
@@ -448,6 +480,14 @@ class DeepQTrading:
                         ensambleValid.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_valid.csv")
                         ensambleTest.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_test.csv")
                     else:
+                        # Find trend with MACD
+                        train = MACD(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
+                        train.writeFile()
+                        valid = MACD(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
+                        valid.writeFile()
+                        test  = MACD(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
+                        test.writeFile()
+                        
                         # Find trend with TrendWA
                         # train = Trend(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
                         # train.writeFile()
@@ -455,14 +495,6 @@ class DeepQTrading:
                         # valid.writeFile()
                         # test  = Trend(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
                         # test.writeFile()
-                        
-                        # Find trend with MACD
-                        train = Trend(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
-                        train.writeFile()
-                        valid = Trend(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
-                        valid.writeFile()
-                        test  = Trend(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
-                        test.writeFile()
                        
                     #For the next walk, the current starting point will be the current starting point + the test size
                     #It means that, for the next walk, the training data will start 6 months after the training data of

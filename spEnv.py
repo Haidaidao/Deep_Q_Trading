@@ -10,12 +10,22 @@ import numpy
 import pandas
 #datetime is the library used to manipulate time and date
 from datetime import datetime
-
+from mergedDataStructure import MergedDataStructure
 from decimal import Decimal
 import global_config
 #This is the prefix of the files that will be opened. It is related to the s&p500 stock market datasets
 MK = global_config.MK
+ensembleFolder = global_config.ensembleFolder
 
+def getActionWeek(Frame, date):
+
+    date = datetime.strptime(date,"%m/%d/%Y")
+
+    for i in range(0, len(Frame)):
+        week =  datetime.strptime(str(Frame.index[i]),"%m/%d/%Y")
+        if week>=date:
+            return  Frame['ensemble'][i]
+    return 0
 
 class SpEnv(gym.Env):
     #Just for the gym library. In a continuous environment, you can do infinite decisions.
@@ -24,13 +34,17 @@ class SpEnv(gym.Env):
 
     #Observation window is the time window regarding the "hourly" dataset
     #ensemble variable tells to save or not the decisions at each walk
-    def __init__(self, minLimit=None, maxLimit=None, operationCost = 0, observationWindow = 20, ensamble = None, callback = None, isOnlyShort=False, columnName = "iteration-1", name="Day"):
+    def __init__(self, type = "train" , iteration = 0, minLimit=None, maxLimit=None, operationCost = 0, observationWindow = 20, ensamble = None, callback = None, isOnlyShort=False, columnName = "iteration-1", name="Day"):
         #Declare the episode as the first episode
         self.episode=1
 
         self.isOnlyShort=isOnlyShort
 
         self.name = name
+
+        self.type = type
+
+        self.iteration = iteration
         #Open the time series as the hourly dataset of S&P500
         #the input feature vector is composed of data from hours, weeks and days
         #20 from days, 8 from weeks and 40 hours, ending with 40 dimensional feature vectors
@@ -44,7 +58,12 @@ class SpEnv(gym.Env):
         Low = spTimeserie.loc[:, 'Low'].tolist()
         Close = spTimeserie.loc[:, 'Close'].tolist()
 
-
+        self.weekData = pandas.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(iteration) + "ensemble_" + type + ".csv")
+        self.weekData.index = pandas.to_datetime(self.weekData.index)
+        self.weekData.index = self.weekData.index.strftime('%m/%d/%Y')
+        self.weekData.rename(columns={'trend': 'ensemble'}, inplace=True)
+        # self.weekData = MergedDataStructure(filename=f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(iteration) + "ensemble_" + type + ".csv")
+        self.dayData = MergedDataStructure(filename=f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(iteration) + "ensemble_" + type + ".csv")
         #Load the data
         self.output=False
 
@@ -213,14 +232,28 @@ class SpEnv(gym.Env):
 
 
         #The state is prepared by the environment, which is simply the feature vector
-
         if self.name != "Week":
             array = numpy.array(
                 [list(
                     map(
                         lambda x: (x["Close"]-x["Open"])/x["Open"],
-                            self.history[self.currentObservation-self.observationWindow:self.currentObservation]
+                            self.history[self.currentObservation-self.observationWindow:self.currentObservation] 
                             ))])
+            arrayDay = numpy.array(
+                [list(
+                    map(
+                        lambda x: self.dayData.get(date)['Trend'],
+                            self.history[self.currentObservation-self.observationWindow:self.currentObservation] 
+                            ))])
+            array = numpy.append(array, arrayDay, axis=0)
+            arrayWeek = numpy.array(
+                [list(
+                    map(
+                        lambda x: getActionWeek(self.weekData, date),
+                            self.history[self.currentObservation-self.observationWindow:self.currentObservation] 
+                            ))])
+            array = numpy.append(array, arrayWeek, axis=0)
+
         return  array
 
     def resetEnv(self):
