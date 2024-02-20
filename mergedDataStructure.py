@@ -10,18 +10,18 @@ import global_config
 #This is the prefix of the files that will be opened. It is related to the s&p500 stock market datasets
 MK = global_config.MK
 
-def getDate_Index(Frame, date):
-    datesFrame = pandas.read_csv('./datasets/'+MK+"Hour"+'.csv')
-    Frame['Date'] = pandas.to_datetime(Frame['Date'], format='%m/%d/%Y')
-    specific_date = datesFrame.loc[date,'Date']
+# def getDate_Index(Frame, date):
+#     datesFrame = pandas.read_csv('./datasets/'+MK+"Hour"+'.csv')
+#     Frame['Date'] = pandas.to_datetime(Frame['Date'], format='%m/%d/%Y')
+#     specific_date = datesFrame.loc[date,'Date']
 
-    specific_date = pandas.to_datetime(specific_date, format='%m/%d/%Y')
-    next_date = Frame[Frame['Date'] >= specific_date].iloc[0]['Date']
+#     specific_date = pandas.to_datetime(specific_date, format='%m/%d/%Y')
+#     next_date = Frame[Frame['Date'] >= specific_date].iloc[0]['Date']
 
-    date_to_find = pandas.to_datetime(next_date)
-    index = Frame.index[Frame['Date'] == date_to_find].tolist()
+#     date_to_find = pandas.to_datetime(next_date)
+#     index = Frame.index[Frame['Date'] == date_to_find].tolist()
 
-    return index[0]
+#     return index[0]
 
 class MergedDataStructure():
 
