@@ -13,10 +13,16 @@ from sklearn.model_selection import train_test_split
 import global_config
 import xgboost as xgb
 from sklearn.preprocessing import LabelEncoder
+import global_config
+import json
 
+config = json.load(open('plotResultsConf.json', 'r'))
 
 ensembleFolder = global_config.ensembleFolder
 threshold = global_config.label_threshold
+
+iteration = 'iteration' + str(config['epoch']-1)
+print(iteration)
 
 
 # Get the results in the log file of the week that contains that day.
@@ -113,6 +119,8 @@ def ensemble_y_true(feature, stats, threshold):
 
 # ================================================ XGBoots
 def XGBoostEnsemble(numWalks,type,numDel):
+    print(iteration)
+    
     dollSum = 0
     rewSum = 0
     posSum = 0
@@ -145,8 +153,8 @@ def XGBoostEnsemble(numWalks,type,numDel):
             del df2['iteration' + str(deleted)]
             del df3['iteration' + str(deleted)]
 
-        df1 = pd.DataFrame(df1['iteration49'])
-        df1.rename(columns={'iteration49': 'ensemble'}, inplace=True)
+        df1 = pd.DataFrame(df1[iteration])
+        df1.rename(columns={iteration: 'ensemble'}, inplace=True)
 
         df2.index = pd.to_datetime(df2.index)
         df2.index = df2.index.strftime('%m/%d/%Y')
@@ -194,8 +202,8 @@ def XGBoostEnsemble(numWalks,type,numDel):
             del df2_result['iteration' + str(deleted)]
             del df3_result['iteration' + str(deleted)]
 
-        df1_result = pd.DataFrame(df1_result['iteration49'])
-        df1_result.rename(columns={'iteration49': 'ensemble'}, inplace=True)
+        df1_result = pd.DataFrame(df1_result[iteration])
+        df1_result.rename(columns={iteration: 'ensemble'}, inplace=True)
 
         df2_result.index = pd.to_datetime(df2_result.index)
         df2_result.index = df2_result.index.strftime('%m/%d/%Y')
@@ -284,8 +292,8 @@ def RandomForestEnsemble(numWalks,type,numDel):
             del df2['iteration' + str(deleted)]
             del df3['iteration' + str(deleted)]
 
-        df1 = pd.DataFrame(df1['iteration49'])
-        df1.rename(columns={'iteration49': 'ensemble'}, inplace=True)
+        df1 = pd.DataFrame(df1[iteration])
+        df1.rename(columns={iteration: 'ensemble'}, inplace=True)
 
         df2.index = pd.to_datetime(df2.index)
         df2.index = df2.index.strftime('%m/%d/%Y')
@@ -331,8 +339,8 @@ def RandomForestEnsemble(numWalks,type,numDel):
             del df2_result['iteration' + str(deleted)]
             del df3_result['iteration' + str(deleted)]
 
-        df1_result = pd.DataFrame(df1_result['iteration49'])
-        df1_result.rename(columns={'iteration49': 'ensemble'}, inplace=True)
+        df1_result = pd.DataFrame(df1_result[iteration])
+        df1_result.rename(columns={iteration: 'ensemble'}, inplace=True)
     
         df2_result.index = pd.to_datetime(df2_result.index)
         df2_result.index = df2_result.index.strftime('%m/%d/%Y')
@@ -420,8 +428,8 @@ def SimpleEnsemble(numWalks,type,numDel):
             del df3['iteration'+str(deleted)]
 
             
-        df1 = pd.DataFrame(df1['iteration49'])
-        df1.rename(columns={'iteration49': 'ensemble'}, inplace=True)
+        df1 = pd.DataFrame(df1[iteration])
+        df1.rename(columns={iteration: 'ensemble'}, inplace=True)
 
         df2.index = pd.to_datetime(df2.index)
         df2.index = df2.index.strftime('%m/%d/%Y')
