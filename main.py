@@ -31,6 +31,11 @@ from rl.policy import EpsGreedyQPolicy
 #Library used for showing the exception in the case of error 
 import sys
 
+import global_config
+import json
+
+config = json.load(open('plotResultsConf.json', 'r'))
+
 #import tensorflow as tf
 #from keras.backend.tensorflow_backend import set_session
 #config = tf.ConfigProto()
@@ -80,7 +85,7 @@ model.add(Activation('linear'))
 
 dqt = DeepQTrading(
     model=model,
-    explorations=[(0.2,50)],
+    explorations=[(0.2,config['epoch'])],
     trainSize=datetime.timedelta(days=360*5),
     validationSize=datetime.timedelta(days=30*6),
     testSize=datetime.timedelta(days=30*6),

@@ -3,5 +3,6 @@
     "num_files": 4,
     "MK": "dax",
     "ensemble_folder": "ensembleFolder",
-    "label_threshold": 0.005
+    "label_threshold": 0.005,
+    "epoch": 2
 }
