@@ -210,19 +210,47 @@ class Trend:
         self.iteration = iteration
         self.type = type
 
+    def findIndexDifferentLabel(self, trendArr, begin):
+        for i in range (begin, len(trendArr)):
+            if ((i+1 <= len(trendArr)-1) and (trendArr[i] != trendArr[i+1])) or ( i == len(trendArr)-1):
+                return i
+        return begin   
 
-    def trend(self):
-        trendResult = []
-        macd , signal = self.calculate_MACD()
-        for i in range(0,len(self.Date)):
-            trendResult.append(self.analyze_market_trend(macd[i], signal[i]))
-        return pd.DataFrame({'ensemble': trendResult}, index=pd.to_datetime(self.Date))
+    def trendAddDelta(self, trendArr):
+
+        begin = 0
+
+        while begin < len(trendArr):
+            end = self.findIndexDifferentLabel(trendArr, begin)
+
+            if trendArr[begin] != 0:
+                if end - begin != 0:
+                    delta = (self.Close[end]-self.Close[begin])/(end-begin)
+                    for i in range(begin,end+1):
+                        if trendArr[i] == 1:
+                            trendArr[i] = trendArr[i] + delta
+                        elif trendArr[i] == 2:
+                            trendArr[i] = -1 - delta
+                            if trendArr[i] > 0: 
+                                trendArr[i] = - trendArr[i]
+                else:
+                    if trendArr[begin] == 2:
+                        trendArr[begin] = -1
+ 
+            begin = end + 1
+        return trendArr
+
 
     def writeFile(self):
         ensambleValid=pd.DataFrame()
         ensambleValid.index.name='Date'
         self.spTimeserie.set_index('Date', inplace=True)
         trendResult = identify_df_trends(df = self.spTimeserie, column = 'Close',  window_size=5, identify='both')
+        print(trendResult['trend'].tolist())
+        
+        trendResult['trend'] = self.trendAddDelta(trendResult['trend'].tolist())
+        print(trendResult['trend'].tolist())
+        print("===============")
         for i in range(0,len(self.Date)):
             ensambleValid.at[trendResult.index[i],self.columnName]=trendResult['trend'][i]
         ensambleValid.to_csv("./Output/ensemble/"+"ensembleFolder"+"/walk"+self.name+str(self.iteration)+"ensemble_"+self.type+".csv")

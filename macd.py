@@ -56,11 +56,45 @@ class MACD:
         else:
             return 0
 
+    def findIndexDifferentLabel(self, trendArr, begin):
+        for i in range (begin, len(trendArr)):
+            if ((i+1 <= len(trendArr)-1) and (trendArr[i] != trendArr[i+1])) or ( i == len(trendArr)-1):
+                return i
+        return begin   
+
+    def trendAddDelta(self, trendArr):
+
+        begin = 0
+
+        while begin < len(trendArr):
+            end = self.findIndexDifferentLabel(trendArr, begin)
+
+            if trendArr[begin] != 0:
+                if end - begin != 0:
+                    delta = (self.Close[end]-self.Close[begin])/(end-begin)
+                    for i in range(begin,end+1):
+                        if trendArr[i] == 1:
+                            trendArr[i] = trendArr[i] + delta
+                        elif trendArr[i] == 2:
+                            trendArr[i] = -1 - delta
+                            if trendArr[i] > 0: 
+                                trendArr[i] = - trendArr[i]
+                else:
+                    if trendArr[begin] == 2:
+                        trendArr[begin] = -1
+ 
+            begin = end + 1
+        return trendArr
+
+
+
     def trend(self):
         trendResult = [] 
         macd , signal = self.calculate_MACD()
         for i in range(0,len(self.Date)):
             trendResult.append(self.analyze_market_trend(macd[i], signal[i]))
+        # self.trendAddDelta(trendResult)
+        trendResult = self.trendAddDelta(trendResult)
         df = pd.DataFrame({'ensemble': trendResult}, index=pd.to_datetime(self.Date))
         df.index = pd.to_datetime(df.index)
         df.index = df.index.strftime('%m/%d/%Y')
@@ -72,6 +106,7 @@ class MACD:
         ensambleValid=pd.DataFrame()
         ensambleValid.index.name='Date'
         trendResult = self.trend()
+
         for i in range(0,len(self.Date)):
             ensambleValid.at[trendResult.index[i],self.columnName]=trendResult['ensemble'][i]
         ensambleValid.to_csv("./Output/ensemble/"+"ensembleFolder"+"/walk"+self.name+str(self.iteration)+"ensemble_"+self.type+".csv") 

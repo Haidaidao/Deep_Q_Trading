@@ -51,7 +51,7 @@ startingTime=datetime.datetime.now()
 #Hold(id 0): do nothing.
 #Long(id 1): It predicts that the stock market value will raise at the end of the day. 
 #So, the action performed in this case is buying at the beginning of the day and sell it at the end of the day (aka long).
-#Short(id 2): It predicts that the stock market value will decrease at the end of the day.
+#Short(id -1): It predicts that the stock market value will decrease at the end of the day.
 #So, the action that must be done is selling at the beginning of the day and buy it at the end of the day (aka short). 
 nb_actions = int(sys.argv[1])
 

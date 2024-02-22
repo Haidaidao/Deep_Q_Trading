@@ -15,7 +15,7 @@ outputFile=str(sys.argv[1]) + ".pdf"
 pdf=PdfPages(outputFile)
 
 func_map = {
-    "RandForest": RandomForestEnsemble,
+    "RandomForest": RandomForestEnsemble,
     "Base": SimpleEnsemble,
     "XGBoost": XGBoostEnsemble
 }

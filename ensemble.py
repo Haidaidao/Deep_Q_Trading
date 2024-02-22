@@ -22,7 +22,6 @@ ensembleFolder = global_config.ensembleFolder
 threshold = global_config.label_threshold
 
 iteration = 'iteration' + str(config['epoch']-1)
-print(iteration)
 
 
 # Get the results in the log file of the week that contains that day.
@@ -81,10 +80,10 @@ def ensemble_y_true(feature, stats, threshold):
         action = 0
         changes = (close - open) / open
 
-        if changes >= threshold or (last_action == 1 and changes >= 0 and changes < threshold):
+        if changes >= threshold or (last_action >= 1 and changes >= 0 and changes < threshold):
             last_action = 1
             action = 1
-        elif changes < -threshold or (last_action == 2 and changes < 0 and changes >= -threshold):
+        elif changes < -threshold or (last_action <= -1 and changes < 0 and changes >= -threshold):
             last_action = 2
             action = 2
         else:
@@ -119,7 +118,6 @@ def ensemble_y_true(feature, stats, threshold):
 
 # ================================================ XGBoots
 def XGBoostEnsemble(numWalks,type,numDel):
-    print(iteration)
     
     dollSum = 0
     rewSum = 0
@@ -261,6 +259,7 @@ def XGBoostEnsemble(numWalks,type,numDel):
     return values,columns
 # ================================================ Random Forest
 def RandomForestEnsemble(numWalks,type,numDel):
+    
     dollSum = 0
     rewSum = 0
     posSum = 0

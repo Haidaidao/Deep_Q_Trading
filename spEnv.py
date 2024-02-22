@@ -151,6 +151,8 @@ class SpEnv(gym.Env):
         #File of the ensamble (file containing each epoch decisions at each walk) will contain the action for that
         #day (observation, line) at each epoch (column)
         if(self.output):
+            if action == 2: 
+                action = -1
             self.ensamble.at[self.history[self.currentObservation]['Date'],self.columnName]=action
 
 
