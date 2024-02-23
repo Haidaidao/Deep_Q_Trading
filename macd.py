@@ -18,8 +18,10 @@ class MACD:
     def __init__(self, iteration = None, minLimit=None, maxLimit=None, name = "Week", type = "test", columnName = "trend"):
         self.name = name
         self.spTimeserie = pd.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit+1]
+        
         self.minlimit = minLimit
         self.maxLimit = maxLimit
+        
         self.Date = self.spTimeserie.loc[:, 'Date'].tolist()
         self.Time = self.spTimeserie.loc[:, 'Time'].tolist()
         self.Open = self.spTimeserie.loc[:, 'Open'].tolist()

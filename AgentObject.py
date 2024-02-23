@@ -36,7 +36,6 @@ class AgentObject:
                                     enable_double_dqn=True,enable_dueling_network=True)
         self.dates = pd.DataFrame()
         self.sp = pd.DataFrame()
-
         self.name = name
 
 

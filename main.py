@@ -83,15 +83,31 @@ model.add(Activation('linear'))
 #end: where the walks will finish. We are defining February 22nd of 2011
 #nOutput:number of walks
 
+# dqt = DeepQTrading(
+#     model=model,
+#     explorations=[(0.2,config['epoch'])],
+#     trainSize=datetime.timedelta(days=360*5),
+#     validationSize=datetime.timedelta(days=30*6),
+#     testSize=datetime.timedelta(days=30*6),
+#     outputFile="./Output/csv/walks/walks",
+#     begin=datetime.datetime(2001,1,1,0,0,0,0),
+#     end=datetime.datetime(2011,2,28,0,0,0,0),
+#     nbActions=nb_actions,
+#     isOnlyShort=isOnlyShort,
+#     ensembleFolderName=sys.argv[3]
+#     )
+
+
+
 dqt = DeepQTrading(
     model=model,
     explorations=[(0.2,config['epoch'])],
-    trainSize=datetime.timedelta(days=360*5),
-    validationSize=datetime.timedelta(days=30*6),
-    testSize=datetime.timedelta(days=30*6),
+    trainSize=datetime.timedelta(minutes=900),
+    validationSize=datetime.timedelta(minutes=700),
+    testSize=datetime.timedelta(minutes=700),
     outputFile="./Output/csv/walks/walks",
-    begin=datetime.datetime(2001,1,1,0,0,0,0),
-    end=datetime.datetime(2011,2,28,0,0,0,0),
+    begin=datetime.datetime(2024,2,15,0,0,0,0),
+    end=datetime.datetime(2024,2,22,0,0,0,0),
     nbActions=nb_actions,
     isOnlyShort=isOnlyShort,
     ensembleFolderName=sys.argv[3]
@@ -99,13 +115,13 @@ dqt = DeepQTrading(
 
 # dqt = DeepQTrading(
 #     model=model,
-#     explorations=[(0.2,1)],
-#     trainSize=datetime.timedelta(days=272),
-#     validationSize=datetime.timedelta(days=72),
-#     testSize=datetime.timedelta(days=72),
+#     explorations=[(0.2,config['epoch'])],
+#     trainSize=datetime.timedelta(minutes=900),
+#     validationSize=datetime.timedelta(minutes=500),
+#     testSize=datetime.timedelta(minutes=500),
 #     outputFile="./Output/csv/walks/walks",
-#     begin=datetime.datetime(2022,2,5,0,0,0,0),
-#     end=datetime.datetime(2024,1,26,0,0,0,0),
+#     begin=datetime.datetime(2024,2,15,0,0,0,0),
+#     end=datetime.datetime(2024,2,22,0,0,0,0),
 #     nbActions=nb_actions,
 #     isOnlyShort=isOnlyShort,
 #     ensembleFolderName=sys.argv[3]

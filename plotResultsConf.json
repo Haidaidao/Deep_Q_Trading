@@ -1,8 +1,11 @@
 {
     "type": "XGBoost",
     "num_files": 9,
-    "MK": "dax",
+    "MK": "BTX-USD",
     "ensemble_folder": "ensembleFolder",
     "label_threshold": 0.005,
+    "Short": "1min",
+    "Middle": "5min",
+    "Long": "1Hour",
     "epoch": 2
 }

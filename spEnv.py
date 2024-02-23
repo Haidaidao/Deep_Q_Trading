@@ -13,6 +13,9 @@ from datetime import datetime
 
 from decimal import Decimal
 import global_config
+import json
+
+config = json.load(open('plotResultsConf.json', 'r'))
 #This is the prefix of the files that will be opened. It is related to the s&p500 stock market datasets
 MK = global_config.MK
 
@@ -35,7 +38,7 @@ class SpEnv(gym.Env):
         #the input feature vector is composed of data from hours, weeks and days
         #20 from days, 8 from weeks and 40 hours, ending with 40 dimensional feature vectors
         spTimeserie = pandas.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit+1] # opening the dataset
-        # print(spTimeserie)
+        print(spTimeserie)
         #Converts each column to a list
         Date = spTimeserie.loc[:, 'Date'].tolist()
         Time = spTimeserie.loc[:, 'Time'].tolist()
@@ -76,9 +79,10 @@ class SpEnv(gym.Env):
         self.history=[]
         #Set observationWindow = 40
         self.observationWindow = observationWindow
-
+        
         #Set the current observation as 40
         self.currentObservation = observationWindow
+        # print(self.currentObservation)
         #The operation cost is defined as
         self.operationCost=operationCost
         #Defines that the environment is not done yet
@@ -91,17 +95,21 @@ class SpEnv(gym.Env):
 
         #Next observation starts
         self.nextObservation=0
-
+        print(self.history[self.currentObservation]['Date'])
+        print(self.history[(self.currentObservation+self.nextObservation+1)%self.limit]['Date'])
         #self.history contains all the hour data. Here we search for the next day
-        while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
-            self.nextObservation+=1
-
+        
+        # while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
+        #     self.nextObservation+=1
+        #     print(self.nextObservation)
+        # print("---------")
         #Initiates the values to be returned by the environment
         self.reward = None
         self.possibleGain = 0
         self.openValue = 0
         self.closeValue = 0
         self.callback=callback
+        
 
 
     #This is the action that is done in the environment.
@@ -213,14 +221,15 @@ class SpEnv(gym.Env):
 
 
         #The state is prepared by the environment, which is simply the feature vector
-
-        if self.name != "Week":
+        
+        if self.name != config['Long']:
             array = numpy.array(
                 [list(
                     map(
                         lambda x: (x["Close"]-x["Open"])/x["Open"],
                             self.history[self.currentObservation-self.observationWindow:self.currentObservation]
                             ))])
+        print(array)
         return  array
 
     def resetEnv(self):
