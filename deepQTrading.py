@@ -457,11 +457,11 @@ class DeepQTrading:
                         # test.writeFile()
                         
                         # Find trend with MACD
-                        train = Trend(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
+                        train = MACD(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
                         train.writeFile()
-                        valid = Trend(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
+                        valid = MACD(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
                         valid.writeFile()
-                        test  = Trend(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
+                        test  = MACD(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
                         test.writeFile()
                        
                     #For the next walk, the current starting point will be the current starting point + the test size
