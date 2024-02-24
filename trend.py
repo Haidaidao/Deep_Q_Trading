@@ -226,13 +226,14 @@ class Trend:
             if trendArr[begin] != 0:
                 if end - begin != 0:
                     delta = (self.Close[end]-self.Close[begin])/(end-begin)
+                    delta = abs(delta)
                     for i in range(begin,end+1):
                         if trendArr[i] == 1:
                             trendArr[i] = trendArr[i] + delta
                         elif trendArr[i] == 2:
                             trendArr[i] = -1 - delta
-                            if trendArr[i] > 0: 
-                                trendArr[i] = - trendArr[i]
+                            # if trendArr[i] > 0: 
+                            #     trendArr[i] = - trendArr[i]
                 else:
                     if trendArr[begin] == 2:
                         trendArr[begin] = -1
@@ -249,8 +250,7 @@ class Trend:
         print(trendResult['trend'].tolist())
         
         trendResult['trend'] = self.trendAddDelta(trendResult['trend'].tolist())
-        print(trendResult['trend'].tolist())
-        print("===============")
+
         for i in range(0,len(self.Date)):
             ensambleValid.at[trendResult.index[i],self.columnName]=trendResult['trend'][i]
         ensambleValid.to_csv("./Output/ensemble/"+"ensembleFolder"+"/walk"+self.name+str(self.iteration)+"ensemble_"+self.type+".csv")
