@@ -12,10 +12,13 @@ import callback
 import global_config
 from decimal import Decimal
 
+from sklearn.linear_model import LinearRegression
+
+
 MK = global_config.MK
 
 class MACD:
-    def __init__(self, iteration = None, minLimit=None, maxLimit=None, name = "Week", type = "test", columnName = "trend"):
+    def __init__(self, iteration = None, minLimit=None, maxLimit=None, name = "Week", type = "test", columnName = "trend", frame = "Long"):
         self.name = name
         self.spTimeserie = pd.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit+1]
         self.minlimit = minLimit
@@ -31,6 +34,7 @@ class MACD:
         self.name = name
         self.iteration = iteration
         self.type = type
+        self.frame = frame 
 
     def EMA(self, period=12):
         # print(pd.Series(self.Close).ewm(span=period, adjust=False).mean())
@@ -55,6 +59,22 @@ class MACD:
         # SIDEWAY
         else:
             return 0
+        
+    def findDelta(self):
+        X = numpy.arange(1, len(self.Date)+1).reshape(-1, 1) 
+        
+        if self.frame == "Long":
+            y = self.Close  
+            model_term = LinearRegression().fit(X, y)
+            slope_term = model_term.coef_[0]
+            return slope_term
+        else: 
+            X_mid_term = X[:int(len(X)/2)]
+            y_mid_term = self.Close[:int(len(X)/2)]
+            model_term = LinearRegression().fit(X_mid_term, y_mid_term)
+            slope_term = model_term.coef_[0]
+            return slope_term
+
 
     def findIndexDifferentLabel(self, trendArr, begin):
         for i in range (begin, len(trendArr)):
@@ -71,7 +91,7 @@ class MACD:
 
             if trendArr[begin] != 0:
                 if end - begin != 0:
-                    delta = (self.Close[end]-self.Close[begin])/(end-begin)
+                    delta = self.findDelta()
                     delta = abs(delta)
                     for i in range(begin,end+1):
                         if trendArr[i] == 1:

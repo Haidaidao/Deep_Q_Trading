@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from statistics import mean
-
+import numpy
 from unidecode import unidecode
 
 import gym
@@ -17,7 +17,7 @@ from gym import spaces
 from datetime import datetime
 
 from decimal import Decimal
-
+from sklearn.linear_model import LinearRegression
 import string
 import global_config
 
@@ -193,7 +193,7 @@ def identify_df_trends(df, column, window_size=5, identify='both'):
     
 
 class Trend:
-    def __init__(self, iteration = None, minLimit=None, maxLimit=None, name = "Week", type = "test", columnName = "trend"):
+    def __init__(self, iteration = None, minLimit=None, maxLimit=None, name = "Week", type = "test", columnName = "trend", frame = "Long"):
         self.name = name
         self.spTimeserie = pd.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit+1]
         self.minlimit = minLimit
@@ -209,6 +209,22 @@ class Trend:
         self.name = name
         self.iteration = iteration
         self.type = type
+        self.frame = frame 
+
+    def findDelta(self):
+        X = numpy.arange(1, len(self.Date)+1).reshape(-1, 1) 
+        
+        if self.frame == "Long":
+            y = self.Close  
+            model_term = LinearRegression().fit(X, y)
+            slope_term = model_term.coef_[0]
+            return slope_term
+        else: 
+            X_mid_term = X[:int(len(X)/2)]
+            y_mid_term = self.Close[:int(len(X)/2)]
+            model_term = LinearRegression().fit(X_mid_term, y_mid_term)
+            slope_term = model_term.coef_[0]
+            return slope_term
 
     def findIndexDifferentLabel(self, trendArr, begin):
         for i in range (begin, len(trendArr)):
@@ -225,7 +241,7 @@ class Trend:
 
             if trendArr[begin] != 0:
                 if end - begin != 0:
-                    delta = (self.Close[end]-self.Close[begin])/(end-begin)
+                    delta = self.findDelta()
                     delta = abs(delta)
                     for i in range(begin,end+1):
                         if trendArr[i] == 1:
@@ -247,8 +263,7 @@ class Trend:
         ensambleValid.index.name='Date'
         self.spTimeserie.set_index('Date', inplace=True)
         trendResult = identify_df_trends(df = self.spTimeserie, column = 'Close',  window_size=5, identify='both')
-        print(trendResult['trend'].tolist())
-        
+
         trendResult['trend'] = self.trendAddDelta(trendResult['trend'].tolist())
 
         for i in range(0,len(self.Date)):
