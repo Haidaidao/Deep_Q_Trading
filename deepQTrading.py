@@ -31,6 +31,7 @@ import datetime
 
 from trend import Trend
 from macd import MACD
+from trendML import TrendML
 from AgentObject import AgentObject
 import global_config
 
@@ -451,13 +452,13 @@ class DeepQTrading:
                         ensambleValid.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_valid.csv")
                         ensambleTest.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_test.csv")
                     else:
-                        # Find trend with TrendWA
-                        train = Trend(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train", frame = frameName)
-                        train.writeFile()
-                        valid = Trend(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid", frame = frameName)
-                        valid.writeFile()
-                        test  = Trend(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test", frame = frameName)
-                        test.writeFile()
+                        # # Find trend with TrendWA
+                        # train = Trend(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train", frame = frameName)
+                        # train.writeFile()
+                        # valid = Trend(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid", frame = frameName)
+                        # valid.writeFile()
+                        # test  = Trend(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test", frame = frameName)
+                        # test.writeFile()
                         
                         # Find trend with MACD
                         # train = MACD(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train", frame = frameName)
@@ -466,6 +467,14 @@ class DeepQTrading:
                         # valid.writeFile()
                         # test  = MACD(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test", frame = frameName)
                         # test.writeFile()
+
+                        # # Find trend with TrendML
+                        train = TrendML(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train", frame = frameName)
+                        train.writeFile()
+                        valid = TrendML(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid", frame = frameName)
+                        valid.writeFile()
+                        test  = TrendML(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test", frame = frameName)
+                        test.writeFile()
                        
                     #For the next walk, the current starting point will be the current starting point + the test size
                     #It means that, for the next walk, the training data will start 6 months after the training data of
