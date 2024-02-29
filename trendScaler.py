@@ -192,7 +192,7 @@ def identify_df_trends(df, column, window_size=5, identify='both'):
         return df_result
     
 
-class Trend:
+class TrendScaler:
     def __init__(self, iteration = None, minLimit=None, maxLimit=None, name = "Week", type = "test", columnName = "trend", frame = "Long"):
         self.name = name
         self.spTimeserie = pd.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit+1]
@@ -213,35 +213,21 @@ class Trend:
 
     def findDelta(self, begin, end):
         X = numpy.arange(1, 6).reshape(-1, 1) 
-
-        
         y = self.Close[begin:end]
         model_term = LinearRegression().fit(X, y)
         slope_term = model_term.coef_[0]
         return slope_term
 
-
-    def findIndexDifferentLabel(self, trendArr, begin):
-        for i in range (begin, len(trendArr)):
-            if ((i+1 <= len(trendArr)-1) and (trendArr[i] != trendArr[i+1])) or ( i == len(trendArr)-1):
-                return i
-        return begin   
-
     def trendAddDelta(self, trendArr):
 
-        for i in range(0,len(self.Date)):
-            if trendArr[i]!=0:
-                if i-5>=0:
-                    delta = self.findDelta(i-5,i)
-                    delta = abs(delta)
-
-                    if(trendArr[i]==1):
-                        trendArr[i] = trendArr[i] + delta
-                    elif trendArr[i] == 2:
-                        trendArr[i] = -1 - delta
-                else:
-                    if trendArr[i] == 2:
-                        trendArr[i] = -1
+        for i in range(0,len(self.Date)):  
+            if i-5>=0:
+                delta = self.findDelta(i-5,i)
+                normalized_m = np.arctan(delta) / (np.pi / 2)
+                trendArr[i] = normalized_m
+            else:
+                if trendArr[i] == 2:
+                    trendArr[i] = -1
 
         return trendArr
 

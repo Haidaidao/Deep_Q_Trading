@@ -80,10 +80,10 @@ def ensemble_y_true(feature, stats, threshold):
         action = 0
         changes = (close - open) / open
 
-        if changes >= threshold or (last_action >= 1 and changes >= 0 and changes < threshold):
+        if changes >= threshold or (last_action > 0 and changes >= 0 and changes < threshold):
             last_action = 1
             action = 1
-        elif changes < -threshold or (last_action <= -1 and changes < 0 and changes >= -threshold):
+        elif changes < -threshold or (last_action < 0 and changes < 0 and changes >= -threshold):
             last_action = 2
             action = 2
         else:

@@ -29,9 +29,10 @@ import pandas as pd
 #Library used to manipulate time
 import datetime
 
-from trend import Trend
+from trendAddBaseLine import TrendAddBaseline
+from trendSlope import TrendSlope
+from trendScaler import TrendScaler 
 from macd import MACD
-from trendML import TrendML
 from AgentObject import AgentObject
 import global_config
 
@@ -197,9 +198,6 @@ class DeepQTrading:
             iteration=-1
             self.currentStartingPoint = currentStartingPointTemp
             name = self.agent[i].name
-            frameName = "Long"
-            if name == "Day":
-                frameName = "Middle"
             index = i
 
             #While we did not pass through all the dates (i.e., while all the walks were not finished)
@@ -247,35 +245,21 @@ class DeepQTrading:
                             "testShortPrec\n")
 
 
-                    # #Empty the memory and agent
-                    # del(self.agent[index].memory)
-                    # del(self.agent[index].agent)  # #Empty the memory and agent
-                    # del(self.agent[index].memory)
-                    # del(self.agent[index].agent)
+                    #Empty the memory and agent
+                    del(self.agent[index].memory)
+                    del(self.agent[index].agent)
 
-                    # #Define the memory and agent
-                    # #Memory is Sequential
-                    # self.agent[index].memory = SequentialMemory(limit=10000, window_length=1)
-                    # #Agent is initiated as passed through parameters
-                    # self.agent[index].agent = DQNAgent(model=self.model, policy=self.policy,  nb_actions=self.nbActions, memory=self.memory, nb_steps_warmup=200, target_model_update=1e-1,
-                    #                         enable_double_dqn=True,enable_dueling_network=True)
-                    # #Compile the agent with Adam initialization
-                    # self.agent[index].agent.compile(Adam(lr=1e-3), metrics=['mae'])
+                    #Define the memory and agent
+                    #Memory is Sequential
+                    self.agent[index].memory = SequentialMemory(limit=10000, window_length=1)
+                    #Agent is initiated as passed through parameters
+                    self.agent[index].agent = DQNAgent(model=self.model, policy=self.policy,  nb_actions=self.nbActions, memory=self.memory, nb_steps_warmup=200, target_model_update=1e-1,
+                                            enable_double_dqn=True,enable_dueling_network=True)
+                    #Compile the agent with Adam initialization
+                    self.agent[index].agent.compile(Adam(lr=1e-3), metrics=['mae'])
 
-                    # #Load the weights saved before in a random way if it is the first time
-                    # self.agent[index].agent.load_weights("q.weights")
-
-                    # #Define the memory and agent
-                    # #Memory is Sequential
-                    # self.agent[index].memory = SequentialMemory(limit=10000, window_length=1)
-                    # #Agent is initiated as passed through parameters
-                    # self.agent[index].agent = DQNAgent(model=self.model, policy=self.policy,  nb_actions=self.nbActions, memory=self.memory, nb_steps_warmup=200, target_model_update=1e-1,
-                    #                         enable_double_dqn=True,enable_dueling_network=True)
-                    # #Compile the agent with Adam initialization
-                    # self.agent[index].agent.compile(Adam(lr=1e-3), metrics=['mae'])
-
-                    # #Load the weights saved before in a random way if it is the first time
-                    # self.agent[index].agent.load_weights("q.weights")
+                    #Load the weights saved before in a random way if it is the first time
+                    self.agent[index].agent.load_weights("q.weights")
 
                     ########################################TRAINING STAGE########################################################
 
@@ -466,28 +450,28 @@ class DeepQTrading:
                         ensambleValid.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_valid.csv")
                         ensambleTest.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_test.csv")
                     else:
-                        # # Find trend with TrendWA
-                        train = Trend(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train", frame = frameName)
-                        train.writeFile()
-                        valid = Trend(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid", frame = frameName)
-                        valid.writeFile()
-                        test  = Trend(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test", frame = frameName)
-                        test.writeFile()
-                        
-                        # Find trend with MACD
-                        # train = MACD(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train", frame = frameName)
+                        # Find trend with TrendWA and add Baseline
+                        # train = TrendAddBaseline(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
                         # train.writeFile()
-                        # valid = MACD(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid", frame = frameName)
+                        # valid = TrendAddBaseline(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
                         # valid.writeFile()
-                        # test  = MACD(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test", frame = frameName)
+                        # test  = TrendAddBaseline(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
                         # test.writeFile()
+                        
+                        # Find trend with TrendWA and Slope
+                        train = TrendSlope(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
+                        train.writeFile()
+                        valid = TrendSlope(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
+                        valid.writeFile()
+                        test  = TrendSlope(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
+                        test.writeFile()
 
-                        # # Find trend with TrendML
-                        # train = TrendML(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train", frame = frameName)
+                        # Find trend with TrendWA and Scaler
+                        # train = TrendScaler(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
                         # train.writeFile()
-                        # valid = TrendML(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid", frame = frameName)
+                        # valid = TrendScaler(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
                         # valid.writeFile()
-                        # test  = TrendML(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test", frame = frameName)
+                        # test  = TrendScaler(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
                         # test.writeFile()
                        
                     #For the next walk, the current starting point will be the current starting point + the test size
