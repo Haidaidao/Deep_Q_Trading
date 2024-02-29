@@ -1,5 +1,5 @@
 {
-    "type": "XGBoost",
+    "type": "RandomForest",
     "num_files": 9,
     "MK": "sp500",
     "ensemble_folder": "ensembleFolder",
