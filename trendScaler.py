@@ -221,13 +221,14 @@ class TrendScaler:
     def trendAddDelta(self, trendArr):
 
         for i in range(0,len(self.Date)):  
-            if i-5>=0:
-                delta = self.findDelta(i-5,i)
-                normalized_m = np.arctan(delta) / (np.pi / 2)
-                trendArr[i] = normalized_m
-            else:
-                if trendArr[i] == 2:
-                    trendArr[i] = -1
+            if trendArr[i]!=0:
+                if i-5>=0:
+                    delta = self.findDelta(i-5,i)
+                    normalized_m = np.arctan(delta) / (np.pi / 2)
+                    trendArr[i] = normalized_m
+                else:
+                    if trendArr[i] == 2:
+                        trendArr[i] = -1
 
         return trendArr
 

@@ -221,12 +221,13 @@ class TrendSlope:
     def trendAddDelta(self, trendArr):
 
         for i in range(0,len(self.Date)):  
-            if i-5>=0:
-                delta = self.findDelta(i-5,i)
-                trendArr[i] = delta
-            else:
-                if trendArr[i] == 2:
-                    trendArr[i] = -1
+            if trendArr[i]!=0:
+                if i-5>=0:
+                    delta = self.findDelta(i-5,i)
+                    trendArr[i] = delta
+                else:
+                    if trendArr[i] == 2:
+                        trendArr[i] = -1
 
         return trendArr
 
