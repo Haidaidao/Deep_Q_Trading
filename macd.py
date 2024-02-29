@@ -113,7 +113,7 @@ class MACD:
         for i in range(0,len(self.Date)):
             trendResult.append(self.analyze_market_trend(macd[i], signal[i]))
         # self.trendAddDelta(trendResult)
-        trendResult = self.trendAddDelta(trendResult)
+        # trendResult = self.trendAddDelta(trendResult)
         df = pd.DataFrame({'ensemble': trendResult}, index=pd.to_datetime(self.Date))
         df.index = pd.to_datetime(df.index)
         df.index = df.index.strftime('%m/%d/%Y')

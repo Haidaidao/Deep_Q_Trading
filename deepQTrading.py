@@ -459,20 +459,23 @@ class DeepQTrading:
                         # test.writeFile()
                         
                         # Find trend with TrendWA and Slope
-                        train = TrendSlope(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
-                        train.writeFile()
-                        valid = TrendSlope(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
-                        valid.writeFile()
-                        test  = TrendSlope(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
-                        test.writeFile()
+                        # train = TrendSlope(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
+                        # train.writeFile()
+                        # valid = TrendSlope(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
+                        # valid.writeFile()
+                        # test  = TrendSlope(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
+                        # test.writeFile()
 
                         # Find trend with TrendWA and Scaler
-                        # train = TrendScaler(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
-                        # train.writeFile()
-                        # valid = TrendScaler(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
-                        # valid.writeFile()
-                        # test  = TrendScaler(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
-                        # test.writeFile()
+                        train = TrendScaler(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
+                        train.writeFile()
+                        valid = TrendScaler(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
+                        valid.writeFile()
+                        test  = TrendScaler(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
+                        test.writeFile()
+
+                        
+
                        
                     #For the next walk, the current starting point will be the current starting point + the test size
                     #It means that, for the next walk, the training data will start 6 months after the training data of
