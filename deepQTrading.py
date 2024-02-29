@@ -189,7 +189,7 @@ class DeepQTrading:
         daysFrame = pd.read_csv('./datasets/'+MK+"Day"+'.csv')
 
         count = 0
-        print("=======================")
+        
         for i in range(len(self.agent)):
             #Initiates the environments,
             trainEnv=validEnv=testEnv=" "
@@ -247,21 +247,35 @@ class DeepQTrading:
                             "testShortPrec\n")
 
 
-                    #Empty the memory and agent
-                    del(self.agent[index].memory)
-                    del(self.agent[index].agent)
+                    # #Empty the memory and agent
+                    # del(self.agent[index].memory)
+                    # del(self.agent[index].agent)  # #Empty the memory and agent
+                    # del(self.agent[index].memory)
+                    # del(self.agent[index].agent)
 
-                    #Define the memory and agent
-                    #Memory is Sequential
-                    self.agent[index].memory = SequentialMemory(limit=10000, window_length=1)
-                    #Agent is initiated as passed through parameters
-                    self.agent[index].agent = DQNAgent(model=self.model, policy=self.policy,  nb_actions=self.nbActions, memory=self.memory, nb_steps_warmup=200, target_model_update=1e-1,
-                                            enable_double_dqn=True,enable_dueling_network=True)
-                    #Compile the agent with Adam initialization
-                    self.agent[index].agent.compile(Adam(lr=1e-3), metrics=['mae'])
+                    # #Define the memory and agent
+                    # #Memory is Sequential
+                    # self.agent[index].memory = SequentialMemory(limit=10000, window_length=1)
+                    # #Agent is initiated as passed through parameters
+                    # self.agent[index].agent = DQNAgent(model=self.model, policy=self.policy,  nb_actions=self.nbActions, memory=self.memory, nb_steps_warmup=200, target_model_update=1e-1,
+                    #                         enable_double_dqn=True,enable_dueling_network=True)
+                    # #Compile the agent with Adam initialization
+                    # self.agent[index].agent.compile(Adam(lr=1e-3), metrics=['mae'])
 
-                    #Load the weights saved before in a random way if it is the first time
-                    self.agent[index].agent.load_weights("q.weights")
+                    # #Load the weights saved before in a random way if it is the first time
+                    # self.agent[index].agent.load_weights("q.weights")
+
+                    # #Define the memory and agent
+                    # #Memory is Sequential
+                    # self.agent[index].memory = SequentialMemory(limit=10000, window_length=1)
+                    # #Agent is initiated as passed through parameters
+                    # self.agent[index].agent = DQNAgent(model=self.model, policy=self.policy,  nb_actions=self.nbActions, memory=self.memory, nb_steps_warmup=200, target_model_update=1e-1,
+                    #                         enable_double_dqn=True,enable_dueling_network=True)
+                    # #Compile the agent with Adam initialization
+                    # self.agent[index].agent.compile(Adam(lr=1e-3), metrics=['mae'])
+
+                    # #Load the weights saved before in a random way if it is the first time
+                    # self.agent[index].agent.load_weights("q.weights")
 
                     ########################################TRAINING STAGE########################################################
 
@@ -408,7 +422,7 @@ class DeepQTrading:
                                 (_,testCoverage,testAccuracy,testReward,testLongPerc,testShortPerc,testLongAcc,testShortAcc,testLongPrec,testShortPrec)=self.tester.getInfo()
                                 #Print callback values on the screen
                                 print(str(i) + " TEST:  acc: " + str(testAccuracy)+ " cov: " + str(testCoverage)+ " rew: " + str(testReward))
-
+                                print("=======================")
                                 #write the walk data on the text file
                                 if name == "Hour":
                                     self.outputFile.write(
@@ -453,12 +467,12 @@ class DeepQTrading:
                         ensambleTest.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_test.csv")
                     else:
                         # # Find trend with TrendWA
-                        # train = Trend(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train", frame = frameName)
-                        # train.writeFile()
-                        # valid = Trend(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid", frame = frameName)
-                        # valid.writeFile()
-                        # test  = Trend(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test", frame = frameName)
-                        # test.writeFile()
+                        train = Trend(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train", frame = frameName)
+                        train.writeFile()
+                        valid = Trend(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid", frame = frameName)
+                        valid.writeFile()
+                        test  = Trend(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test", frame = frameName)
+                        test.writeFile()
                         
                         # Find trend with MACD
                         # train = MACD(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train", frame = frameName)
@@ -469,12 +483,12 @@ class DeepQTrading:
                         # test.writeFile()
 
                         # # Find trend with TrendML
-                        train = TrendML(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train", frame = frameName)
-                        train.writeFile()
-                        valid = TrendML(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid", frame = frameName)
-                        valid.writeFile()
-                        test  = TrendML(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test", frame = frameName)
-                        test.writeFile()
+                        # train = TrendML(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train", frame = frameName)
+                        # train.writeFile()
+                        # valid = TrendML(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid", frame = frameName)
+                        # valid.writeFile()
+                        # test  = TrendML(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test", frame = frameName)
+                        # test.writeFile()
                        
                     #For the next walk, the current starting point will be the current starting point + the test size
                     #It means that, for the next walk, the training data will start 6 months after the training data of

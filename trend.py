@@ -211,20 +211,15 @@ class Trend:
         self.type = type
         self.frame = frame 
 
-    def findDelta(self):
-        X = numpy.arange(1, len(self.Date)+1).reshape(-1, 1) 
+    def findDelta(self, begin, end):
+        X = numpy.arange(1, 6).reshape(-1, 1) 
+
         
-        if self.frame == "Long":
-            y = self.Close  
-            model_term = LinearRegression().fit(X, y)
-            slope_term = model_term.coef_[0]
-            return slope_term
-        else: 
-            X_mid_term = X[:int(len(X)/2)]
-            y_mid_term = self.Close[:int(len(X)/2)]
-            model_term = LinearRegression().fit(X_mid_term, y_mid_term)
-            slope_term = model_term.coef_[0]
-            return slope_term
+        y = self.Close[begin:end]
+        model_term = LinearRegression().fit(X, y)
+        slope_term = model_term.coef_[0]
+        return slope_term
+
 
     def findIndexDifferentLabel(self, trendArr, begin):
         for i in range (begin, len(trendArr)):
@@ -234,27 +229,20 @@ class Trend:
 
     def trendAddDelta(self, trendArr):
 
-        begin = 0
-
-        while begin < len(trendArr):
-            end = self.findIndexDifferentLabel(trendArr, begin)
-
-            if trendArr[begin] != 0:
-                if end - begin != 0:
-                    delta = self.findDelta()
+        for i in range(0,len(self.Date)):
+            if trendArr[i]!=0:
+                if i-5>=0:
+                    delta = self.findDelta(i-5,i)
                     delta = abs(delta)
-                    for i in range(begin,end+1):
-                        if trendArr[i] == 1:
-                            trendArr[i] = trendArr[i] + delta
-                        elif trendArr[i] == 2:
-                            trendArr[i] = -1 - delta
-                            # if trendArr[i] > 0: 
-                            #     trendArr[i] = - trendArr[i]
+
+                    if(trendArr[i]==1):
+                        trendArr[i] = trendArr[i] + delta
+                    elif trendArr[i] == 2:
+                        trendArr[i] = -1 - delta
                 else:
-                    if trendArr[begin] == 2:
-                        trendArr[begin] = -1
- 
-            begin = end + 1
+                    if trendArr[i] == 2:
+                        trendArr[i] = -1
+
         return trendArr
 
 

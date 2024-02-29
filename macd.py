@@ -14,7 +14,6 @@ from decimal import Decimal
 
 from sklearn.linear_model import LinearRegression
 
-
 MK = global_config.MK
 
 class MACD:
@@ -98,8 +97,7 @@ class MACD:
                             trendArr[i] = trendArr[i] + delta
                         elif trendArr[i] == 2:
                             trendArr[i] = -1 - delta
-                            # if trendArr[i] > 0: 
-                            #     trendArr[i] = - trendArr[i]
+
                 else:
                     if trendArr[begin] == 2:
                         trendArr[begin] = -1
