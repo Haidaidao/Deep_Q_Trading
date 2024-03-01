@@ -86,15 +86,18 @@ model.add(Activation('linear'))
 dqt = DeepQTrading(
     model=model,
     explorations=[(0.2,config['epoch'])],
-    trainSize=datetime.timedelta(days=360*5),
-    validationSize=datetime.timedelta(days=30*6),
-    testSize=datetime.timedelta(days=30*6),
+    trainSize=datetime.timedelta(minutes=60*(24 + 10)),
+    validationSize=datetime.timedelta(minutes=60*7),
+    testSize=datetime.timedelta(minutes=60*7),
     outputFile="./Output/csv/walks/walks",
-    begin=datetime.datetime(2001,1,1,0,0,0,0),
-    end=datetime.datetime(2011,2,28,0,0,0,0),
+    begin=datetime.datetime(2024,2,23,0,0,0,0), 
+    end=datetime.datetime(2024,2,25,23,58,0,0),
     nbActions=nb_actions,
     isOnlyShort=isOnlyShort,
-    ensembleFolderName=sys.argv[3]
+    ensembleFolderName=sys.argv[3],
+    short_file_name="BTC-USD1min", short_mins=1, 
+    medium_file_name="BTC-USD30min", medium_mins=30, 
+    long_file_name="BTC-USDHour", long_mins=60
     )
 
 # dqt = DeepQTrading(

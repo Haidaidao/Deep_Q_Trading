@@ -34,11 +34,10 @@ class SpEnv(gym.Env):
         #Open the time series as the hourly dataset of S&P500
         #the input feature vector is composed of data from hours, weeks and days
         #20 from days, 8 from weeks and 40 hours, ending with 40 dimensional feature vectors
-        spTimeserie = pandas.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit+1] # opening the dataset
+        spTimeserie = pandas.read_csv('./datasets/'+ self.name+'.csv')[minLimit:maxLimit+1] # opening the dataset
         # print(spTimeserie)
         #Converts each column to a list
-        Date = spTimeserie.loc[:, 'Date'].tolist()
-        Time = spTimeserie.loc[:, 'Time'].tolist()
+        Date = spTimeserie.loc[:, 'Datetime'].tolist()
         Open = spTimeserie.loc[:, 'Open'].tolist()
         High = spTimeserie.loc[:, 'High'].tolist()
         Low = spTimeserie.loc[:, 'Low'].tolist()
@@ -87,13 +86,13 @@ class SpEnv(gym.Env):
         self.limit = len(Open)
         #organizing the dataset as a list of dictionaries
         for i in range(0,self.limit):
-            self.history.append({'Date' : Date[i],'Time' : Time[i], 'Open': Open[i], 'High': High[i], 'Low': Low[i], 'Close': Close[i]})
+            self.history.append({'Datetime' : Date[i], 'Open': Open[i], 'High': High[i], 'Low': Low[i], 'Close': Close[i]})
 
         #Next observation starts
         self.nextObservation=0
 
         #self.history contains all the hour data. Here we search for the next day
-        while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
+        while(self.history[self.currentObservation]['Datetime']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Datetime']):
             self.nextObservation+=1
 
         #Initiates the values to be returned by the environment
@@ -115,11 +114,10 @@ class SpEnv(gym.Env):
         if(self.isOnlyShort):
             action *= 2
 
-
         #set the next observation to zero
         self.nextObservation=0
         #Search for the close value for tommorow
-        while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
+        while(self.history[self.currentObservation]['Datetime']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Datetime']):
             #Search for the close error for today
             self.closeValue=self.history[(self.currentObservation+self.nextObservation)%self.limit]['Close']
             self.nextObservation+=1
@@ -153,28 +151,21 @@ class SpEnv(gym.Env):
         if(self.output):
             if action == 2: 
                 action = -1
-            self.ensamble.at[self.history[self.currentObservation]['Date'],self.columnName]=action
-
-
+            self.ensamble.at[self.history[self.currentObservation]['Datetime'],self.columnName]=action
 
         #Return the state, reward and if its done or not
-        return self.getObservation(self.history[self.currentObservation]['Date']), self.reward, self.done, {}
+        return self.getObservation(self.history[self.currentObservation]['Datetime']), self.reward, self.done, {}
 
     #function done when the episode finishes
     #reset will prepare the next state (feature vector) and give it to the agent
     def reset(self):
-
         if(self.currentObservation<self.observationWindow):
             self.currentObservation=self.observationWindow
-
-
-
         self.episode+=1
-
 
         #Shiftting the index for the first hour of the next day
         self.nextObservation=0
-        while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
+        while(self.history[self.currentObservation]['Datetime']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Datetime']):
             self.nextObservation+=1
             #check if the index exceeds the limits
             if((self.currentObservation+self.nextObservation)>=self.limit):
@@ -192,7 +183,7 @@ class SpEnv(gym.Env):
         if(self.currentObservation>=self.limit):
             self.currentObservation=self.observationWindow
 
-        return self.getObservation(self.history[self.currentObservation]['Date'])
+        return self.getObservation(self.history[self.currentObservation]['Datetime'])
 
 
     def getObservation(self, date):
@@ -216,8 +207,8 @@ class SpEnv(gym.Env):
 
         #The state is prepared by the environment, which is simply the feature vector
 
-        if self.name != "Week":
-            array = numpy.array(
+      
+        array = numpy.array(
                 [list(
                     map(
                         lambda x: (x["Close"]-x["Open"])/x["Open"],

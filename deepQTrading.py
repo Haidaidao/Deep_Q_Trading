@@ -38,24 +38,22 @@ from AgentObject import AgentObject
 import global_config
 
 MK= global_config.MK
-# MK="dax"
-
 
 # Find the index of the same day or next day in the dataframe
 def getDate_Index(Frame, datesFrame, date):
-    Frame['Date'] = pd.to_datetime(Frame['Date'], format='%m/%d/%Y')
-    specific_date = datesFrame.loc[date,'Date']
+    Frame['Datetime'] = pd.to_datetime(Frame['Datetime'], format='%m/%d/%Y %H:%M')
+    specific_date = datesFrame.loc[date,'Datetime']
 
-    specific_date = pd.to_datetime(specific_date, format='%m/%d/%Y')
-    next_date = Frame[Frame['Date'] >= specific_date].iloc[0]['Date']
+    specific_date = pd.to_datetime(specific_date, format='%m/%d/%Y %H:%M')
+    next_date = Frame[Frame['Datetime'] >= specific_date].iloc[0]['Datetime']
 
     date_to_find = pd.to_datetime(next_date)
-    index = Frame.index[Frame['Date'] == date_to_find].tolist()
+    index = Frame.index[Frame['Datetime'] == date_to_find].tolist()
 
     return index[0]
 
 # Count the total number of walks
-def getNumFile(agent,currentStartingPoint, walkSize, endingPoint, testSize, trainSize, validationSize):   
+def getNumFile(agent,currentStartingPoint, walkSize, endingPoint, testSize, trainSize, validationSize, minutes):   
     iteration=-1
     while(currentStartingPoint+walkSize <= endingPoint):
 
@@ -67,35 +65,36 @@ def getNumFile(agent,currentStartingPoint, walkSize, endingPoint, testSize, trai
                 trainMinLimit = agent.sp.get_loc(currentStartingPoint)
                 break
             except:
-                currentStartingPoint+=datetime.timedelta(hours=1)
+                currentStartingPoint+=datetime.timedelta(minutes=minutes)
 
         trainMaxLimit=None
         while(trainMaxLimit is None):
             try:
                 trainMaxLimit = agent.sp.get_loc(currentStartingPoint+trainSize)
             except:
-                currentStartingPoint+=datetime.timedelta(hours=1)
+                currentStartingPoint+=datetime.timedelta(minutes=minutes)
 
         validMaxLimit=None
         while(validMaxLimit is None):
             try:
                 validMaxLimit = agent.sp.get_loc(currentStartingPoint+trainSize+validationSize)
             except:
-                currentStartingPoint+=datetime.timedelta(hours=1)
+                currentStartingPoint+=datetime.timedelta(minutes=minutes)
 
         testMaxLimit=None
         while(testMaxLimit is None):
             try:
                 testMaxLimit = agent.sp.get_loc(currentStartingPoint+trainSize+validationSize+testSize)
             except:
-                currentStartingPoint+=datetime.timedelta(hours=1)
+                currentStartingPoint+=datetime.timedelta(minutes=minutes)
 
         currentStartingPoint+=testSize
     return iteration
 
 class DeepQTrading:
 
-    def __init__(self, model, explorations, trainSize, validationSize, testSize, outputFile, begin, end, nbActions, isOnlyShort, ensembleFolderName, operationCost=0):
+    def __init__(self, model, explorations, trainSize, validationSize, testSize, outputFile, begin, end, nbActions, isOnlyShort, ensembleFolderName, 
+                 short_file_name, short_mins, medium_file_name, medium_mins, long_file_name, long_mins, operationCost=0):
         
         self.isOnlyShort=isOnlyShort
         self.ensembleFolderName=ensembleFolderName
@@ -112,9 +111,9 @@ class DeepQTrading:
         self.memory = SequentialMemory(limit=10000, window_length=1)
 
         #Instantiate the agent with parameters received
-        self.agent.append(AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Hour'))
-        self.agent.append(AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Day'))
-        self.agent.append(AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Week'))
+        self.agent.append(AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Short'))
+        self.agent.append(AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Medium'))
+        self.agent.append(AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Long'))
 
         #Save the weights of the agents in the q.weights file
         #Save random weights
@@ -140,19 +139,31 @@ class DeepQTrading:
         #Define the ending point as the final date (January 1st of 2010)
         self.endingPoint=end
 
+        self.short_file_name = short_file_name
+        self.short_mins = short_mins
+        self.medium_file_name = medium_file_name
+        self.medium_mins = medium_mins
+        self.long_file_name = long_file_name
+        self.long_mins = long_mins
+
+        file_map = {
+            "Short": short_file_name,
+            "Medium": medium_file_name,
+            "Long": long_file_name
+
+        }
+
         for i in range(len(self.agent)):
-            self.agent[i].dates= pd.read_csv('./datasets/'+MK+self.agent[i].name+'.csv')
-            self.agent[i].sp = pd.read_csv('./datasets/'+MK+self.agent[i].name+'.csv')
-            #Convert the pandas format to date and time format
-            self.agent[i].sp['Datetime'] = pd.to_datetime(self.agent[i].sp['Date'] + ' ' + self.agent[i].sp['Time'])
+            self.agent[i].dates= pd.read_csv('./datasets/'+ file_map[self.agent[i].name] +'.csv')
+            self.agent[i].sp = pd.read_csv('./datasets/'+ file_map[self.agent[i].name] +'.csv')
             #Set an index to Datetime on the pandas loaded dataset. Registers will be indexes through these values
             self.agent[i].sp = self.agent[i].sp.set_index('Datetime')
-            #Drop Time and Date from the Dataset
-            self.agent[i].sp = self.agent[i].sp.drop(['Time','Date'], axis=1)
+            self.agent
             #Just the index considering date and time will be important, because date and time will be used to define the train,
             #validation and test for each walk
-            self.agent[i].sp = self.agent[i].sp.index
-
+            self.agent[i].sp.index = pd.to_datetime(self.agent[i].sp.index, format='%m/%d/%Y %H:%M')
+            self.agent[i].sp = self.agent[i].sp.index 
+    
 
         #Receives the operation cost, which is 0
         #Operation cost is the cost for long and short. It is defined as zero
@@ -169,7 +180,7 @@ class DeepQTrading:
     def run(self):
 
         currentStartingPointTemp = self.currentStartingPoint
-        numFile = getNumFile(self.agent[0], self.currentStartingPoint, self.walkSize, self.endingPoint, self.testSize, self.trainSize, self.validationSize)
+        numFile = getNumFile(self.agent[0], self.currentStartingPoint, self.walkSize, self.endingPoint, self.testSize, self.trainSize, self.validationSize, self.short_mins)
         numFile = numFile + 1
        
         with open('numFile.txt', 'w', encoding='utf-8') as file:
@@ -186,9 +197,9 @@ class DeepQTrading:
         testMax = [None]*(numFile+1)
 
 
-        datesFrame = pd.read_csv('./datasets/'+MK+"Hour"+'.csv')
-        weeksFrame = pd.read_csv('./datasets/'+MK+"Week"+'.csv')
-        daysFrame = pd.read_csv('./datasets/'+MK+"Day"+'.csv')
+        shortFrame = pd.read_csv('./datasets/'+ self.short_file_name + '.csv')
+        longFrame = pd.read_csv('./datasets/'+ self.long_file_name + '.csv')
+        mediumFrame = pd.read_csv('./datasets/'+ self.medium_file_name +'.csv')
 
         count = 0
         
@@ -209,7 +220,7 @@ class DeepQTrading:
                 #Iteration is the current walk
                 iteration+=1
                 if iteration < (numFile):
-                    if name == "Hour":
+                    if name == "Short":
                         #Initiate the output file
                         self.outputFile=open(self.outputFileName+name+str(iteration+1)+".csv", "w+")
                         #write the first row of the csv
@@ -265,16 +276,16 @@ class DeepQTrading:
                     ########################################TRAINING STAGE########################################################
 
                     #The TrainMinLimit will be loaded as the initial date at the beginning, and will be updated later.
-                    #If the initial date cannot be used, add 1 hour to the initial date and consider it the initial date
-                    if name =="Hour":
+                    #If the initial date cannot be used, add 1 Short to the initial date and consider it the initial date
+                    if name =="Short":
                         trainMinLimit=None
                         while(trainMinLimit is None):
                             try:
                                 trainMinLimit = self.agent[index].sp.get_loc(self.currentStartingPoint)
                                 break
                             except:
-                                self.currentStartingPoint+=datetime.timedelta(hours=1)
-                        if name == "Hour":
+                                self.currentStartingPoint+=datetime.timedelta(minutes=self.short_mins)
+                        if name == "Short":
                             trainMin[count] = trainMinLimit
 
                         #The TrainMaxLimit will be loaded as the interval between the initial date plus the training size.
@@ -284,14 +295,14 @@ class DeepQTrading:
                             try:
                                 trainMaxLimit = self.agent[index].sp.get_loc(self.currentStartingPoint+self.trainSize)
                             except:
-                                self.currentStartingPoint+=datetime.timedelta(hours=1)
-                        if name == "Hour":
+                                self.currentStartingPoint+=datetime.timedelta(minutes=self.short_mins)
+                        if name == "Short":
                             trainMax[count] = trainMaxLimit
 
                         ########################################VALIDATION STAGE#######################################################
                         #The ValidMinLimit will be loaded as the next element of the TrainMax limit
                         validMinLimit=trainMaxLimit
-                        if name == "Hour":
+                        if name == "Short":
                             validMin[count] = validMinLimit
 
                         #The ValidMaxLimit will be loaded as the interval after the begin + train size +validation size
@@ -301,14 +312,14 @@ class DeepQTrading:
                             try:
                                 validMaxLimit = self.agent[index].sp.get_loc(self.currentStartingPoint+self.trainSize+self.validationSize)
                             except:
-                                self.currentStartingPoint+=datetime.timedelta(hours=1)
-                        if name == "Hour":
+                                self.currentStartingPoint+=datetime.timedelta(minutes=self.short_mins)
+                        if name == "Short":
                             validMax[count] = validMaxLimit
 
                         ########################################TESTING STAGE########################################################
                         #The TestMinLimit will be loaded as the next element of ValidMaxlimit
                         testMinLimit=validMaxLimit
-                        if name == "Hour":
+                        if name == "Short":
                             testMin[count] = testMinLimit
                         #The testMaxLimit will be loaded as the interval after the begin + train size +validation size + Testsize
                         #If the initial date cannot be used, add 1 hour to the initial date and consider it the initial date
@@ -318,44 +329,44 @@ class DeepQTrading:
                                 testMaxLimit = self.agent[index].sp.get_loc(self.currentStartingPoint+self.trainSize+self.validationSize+self.testSize)
                             except:
                                 self.currentStartingPoint+=datetime.timedelta(hours=1)
-                        if name == "Hour":
+                        if name == "Short":
                             testMax[count] = testMaxLimit
 
                         if count<(numFile):
                             count = count +1
                     else:
                         
-                        if name == "Week":
-                            trainMinLimit = getDate_Index(weeksFrame, datesFrame, trainMin[iteration])
-                            trainMaxLimit = getDate_Index(weeksFrame, datesFrame, trainMax[iteration])
+                        if name == "Long":
+                            trainMinLimit = getDate_Index(longFrame, shortFrame, trainMin[iteration])
+                            trainMaxLimit = getDate_Index(longFrame, shortFrame, trainMax[iteration])
 
-                            validMinLimit = getDate_Index(weeksFrame, datesFrame, validMin[iteration])
-                            validMaxLimit = getDate_Index(weeksFrame, datesFrame, validMax[iteration])
+                            validMinLimit = getDate_Index(longFrame, shortFrame, validMin[iteration])
+                            validMaxLimit = getDate_Index(longFrame, shortFrame, validMax[iteration])
                         
-                            testMinLimit = getDate_Index(weeksFrame, datesFrame, testMin[iteration])
-                            testMaxLimit = getDate_Index(weeksFrame, datesFrame, testMax[iteration])
+                            testMinLimit = getDate_Index(longFrame, shortFrame, testMin[iteration])
+                            testMaxLimit = getDate_Index(longFrame, shortFrame, testMax[iteration])
                         else:
-                            trainMinLimit = getDate_Index(daysFrame, datesFrame, trainMin[iteration])
-                            trainMaxLimit = getDate_Index(daysFrame, datesFrame, trainMax[iteration])
+                            trainMinLimit = getDate_Index(mediumFrame, shortFrame, trainMin[iteration])
+                            trainMaxLimit = getDate_Index(mediumFrame, shortFrame, trainMax[iteration])
 
-                            validMinLimit = getDate_Index(daysFrame, datesFrame, validMin[iteration])
-                            validMaxLimit = getDate_Index(daysFrame, datesFrame, validMax[iteration])
+                            validMinLimit = getDate_Index(mediumFrame, shortFrame, validMin[iteration])
+                            validMaxLimit = getDate_Index(mediumFrame, shortFrame, validMax[iteration])
                         
-                            testMinLimit = getDate_Index(daysFrame, datesFrame, testMin[iteration])
-                            testMaxLimit = getDate_Index(daysFrame, datesFrame, testMax[iteration])                   
+                            testMinLimit = getDate_Index(mediumFrame, shortFrame, testMin[iteration])
+                            testMaxLimit = getDate_Index(mediumFrame, shortFrame, testMax[iteration])                   
 
                     #Separate the Validation and testing data according to the limits found before
                     #Prepare the training and validation files for saving them later
-                    ensambleTrain=pd.DataFrame(index=self.agent[index].dates[trainMinLimit:trainMaxLimit].loc[:,'Date'].drop_duplicates().tolist())
-                    ensambleValid=pd.DataFrame(index=self.agent[index].dates[validMinLimit:validMaxLimit].loc[:,'Date'].drop_duplicates().tolist())
-                    ensambleTest=pd.DataFrame(index=self.agent[index].dates[testMinLimit:testMaxLimit].loc[:,'Date'].drop_duplicates().tolist())
+                    ensambleTrain=pd.DataFrame(index=self.agent[index].dates[trainMinLimit:trainMaxLimit].loc[:,'Datetime'].drop_duplicates().tolist())
+                    ensambleValid=pd.DataFrame(index=self.agent[index].dates[validMinLimit:validMaxLimit].loc[:,'Datetime'].drop_duplicates().tolist())
+                    ensambleTest=pd.DataFrame(index=self.agent[index].dates[testMinLimit:testMaxLimit].loc[:,'Datetime'].drop_duplicates().tolist())
 
                     #Put the name of the index for validation and testing
-                    ensambleTrain.index.name='Date'
-                    ensambleValid.index.name='Date'
-                    ensambleTest.index.name='Date'
+                    ensambleTrain.index.name='Datetime'
+                    ensambleValid.index.name='Datetime'
+                    ensambleTest.index.name='Datetime'
 
-                    if name == "Hour":
+                    if name == "Short":
                         #Explorations are epochs considered, or how many times the agent will play the game.
                         for eps in self.explorations:
 
@@ -368,13 +379,13 @@ class DeepQTrading:
                                 del(trainEnv)
 
                                 #Define the training, validation and testing environments with their respective callbacks
-                                trainEnv = SpEnv(operationCost=self.operationCost,minLimit=trainMinLimit,maxLimit=trainMaxLimit,callback=self.trainer,isOnlyShort=self.isOnlyShort, ensamble=ensambleTrain,columnName="iteration"+str(i), name=name)
+                                trainEnv = SpEnv(operationCost=self.operationCost,minLimit=trainMinLimit,maxLimit=trainMaxLimit,callback=self.trainer,isOnlyShort=self.isOnlyShort, ensamble=ensambleTrain,columnName="iteration"+str(i), name=self.short_file_name)
                                 del(validEnv)
 
-                                validEnv=SpEnv(operationCost=self.operationCost, minLimit=validMinLimit,maxLimit=validMaxLimit,callback=self.validator,isOnlyShort=self.isOnlyShort,ensamble=ensambleValid,columnName="iteration"+str(i), name=name)
+                                validEnv=SpEnv(operationCost=self.operationCost, minLimit=validMinLimit,maxLimit=validMaxLimit,callback=self.validator,isOnlyShort=self.isOnlyShort,ensamble=ensambleValid,columnName="iteration"+str(i), name=self.short_file_name)
                                 del(testEnv)
 
-                                testEnv=SpEnv(operationCost=self.operationCost,minLimit=testMinLimit,maxLimit=testMaxLimit,callback=self.tester,isOnlyShort=self.isOnlyShort,ensamble=ensambleTest,columnName="iteration"+str(i), name=name)
+                                testEnv=SpEnv(operationCost=self.operationCost,minLimit=testMinLimit,maxLimit=testMaxLimit,callback=self.tester,isOnlyShort=self.isOnlyShort,ensamble=ensambleTest,columnName="iteration"+str(i), name=self.short_file_name)
 
                                 #Reset the callback
                                 self.trainer.reset()
@@ -384,7 +395,7 @@ class DeepQTrading:
                                 #Reset the training environment
                                 trainEnv.resetEnv()
                                 #Train the agent
-                                self.agent[index].agent.fit(trainEnv,nb_steps=floor(self.trainSize.days-self.trainSize.days*0.2),visualize=False,verbose=0)
+                                self.agent[index].agent.fit(trainEnv,nb_steps=floor(self.trainSize.seconds // 60 -self.trainSize.seconds // 60 *0.2),visualize=False,verbose=0)
                                 #Get the info from the train callback
                                 (_,trainCoverage,trainAccuracy,trainReward,trainLongPerc,trainShortPerc,trainLongAcc,trainShortAcc,trainLongPrec,trainShortPrec)=self.trainer.getInfo()
                                 #Print Callback values on the screen
@@ -393,7 +404,7 @@ class DeepQTrading:
                                 #Reset the validation environment
                                 validEnv.resetEnv()
                                 #Test the agent on validation data
-                                self.agent[index].agent.test(validEnv,nb_episodes=floor(self.validationSize.days-self.validationSize.days*0.2),visualize=False,verbose=0)
+                                self.agent[index].agent.test(validEnv,nb_episodes=floor(self.validationSize.seconds // 60-self.validationSize.seconds // 60*0.2),visualize=False,verbose=0)
                                 #Get the info from the validation callback
                                 (_,validCoverage,validAccuracy,validReward,validLongPerc,validShortPerc,validLongAcc,validShortAcc,validLongPrec,validShortPrec)=self.validator.getInfo()
                                 #Print callback values on the screen
@@ -402,14 +413,14 @@ class DeepQTrading:
                                 #Reset the testing environment
                                 testEnv.resetEnv()
                                 #Test the agent on testing data
-                                self.agent[index].agent.test(testEnv,nb_episodes=floor(self.validationSize.days-self.validationSize.days*0.2),visualize=False,verbose=0)
+                                self.agent[index].agent.test(testEnv,nb_episodes=floor(self.validationSize.seconds // 60 -self.validationSize.seconds // 60*0.2),visualize=False,verbose=0)
                                 #Get the info from the testing callback
                                 (_,testCoverage,testAccuracy,testReward,testLongPerc,testShortPerc,testLongAcc,testShortAcc,testLongPrec,testShortPrec)=self.tester.getInfo()
                                 #Print callback values on the screen
                                 print(str(i) + " TEST:  acc: " + str(testAccuracy)+ " cov: " + str(testCoverage)+ " rew: " + str(testReward))
                                 print("=======================")
                                 #write the walk data on the text file
-                                if name == "Hour":
+                                if name == "Short":
                                     self.outputFile.write(
                                         str(i)+","+
                                         str(trainAccuracy)+","+
@@ -450,41 +461,24 @@ class DeepQTrading:
                         ensambleTrain.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_train.csv")
                         ensambleValid.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_valid.csv")
                         ensambleTest.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_test.csv")
+                    elif name == "Long":
+                        # Base
+                        train = TrendBase(self.ensembleFolderName, self.long_file_name, name, iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit ,type = "train")
+                        train.process()
+                        valid = TrendBase(self.ensembleFolderName, self.long_file_name, name, iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit,type = "valid")
+                        valid.process()
+                        test  = TrendBase(self.ensembleFolderName, self.long_file_name, name, iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, type = "test")
+                        test.process()
                     else:
                         # Base
-                        train = TrendBase(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
-                        train.writeFile()
-                        valid = TrendBase(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
-                        valid.writeFile()
-                        test  = TrendBase(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
-                        test.writeFile()
+                        train = TrendBase(self.ensembleFolderName, self.medium_file_name, name, iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit,type = "train")
+                        train.process()
+                        valid = TrendBase(self.ensembleFolderName, self.medium_file_name, name, iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit,type = "valid")
+                        valid.process()
+                        test  = TrendBase(self.ensembleFolderName, self.medium_file_name, name, iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit,type = "test")
+                        test.process()
 
-                        # Find trend with TrendWA and add Baseline
-                        # train = TrendAddBaseline(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
-                        # train.writeFile()
-                        # valid = TrendAddBaseline(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
-                        # valid.writeFile()
-                        # test  = TrendAddBaseline(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
-                        # test.writeFile()
-                        
-                        # Find trend with TrendWA and Slope
-                        # train = TrendSlope(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
-                        # train.writeFile()
-                        # valid = TrendSlope(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
-                        # valid.writeFile()
-                        # test  = TrendSlope(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
-                        # test.writeFile()
-
-                        # Find trend with TrendWA and Scaler
-                        # train = TrendScaler(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
-                        # train.writeFile()
-                        # valid = TrendScaler(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
-                        # valid.writeFile()
-                        # test  = TrendScaler(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
-                        # test.writeFile()
-
-                        
-
+                    
                        
                     #For the next walk, the current starting point will be the current starting point + the test size
                     #It means that, for the next walk, the training data will start 6 months after the training data of
