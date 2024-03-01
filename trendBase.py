@@ -8,9 +8,8 @@ import trendStrengthIdentifier
 MK = global_config.MK
 
 identify_df_trends = trendIdentifier.use_TrendWA
-trend_add_delta = trendStrengthIdentifier.two_point_slope
 
-class TrendAddBaseline:
+class TrendBase:
     def __init__(self, iteration = None, minLimit=None, maxLimit=None, name = "Week", type = "test", columnName = "trend", frame = "Long"):
         self.name = name
         self.spTimeserie = pd.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit+1]
@@ -29,26 +28,12 @@ class TrendAddBaseline:
         self.type = type
         self.frame = frame 
 
-    def trendAddDelta(self, trendArr):
-        for i in range(0,len(self.Date)):
-            if trendArr[i]!=0:
-                if i-4>=0:
-                    delta = trend_add_delta(self.Close, i - 4, i, False)
-                    trendArr[i] = trendArr[i] + delta
-                else:
-                    if trendArr[i] != 0:
-                        trendArr[i] = 0
-
-        return trendArr
-
     def writeFile(self):
         ensambleValid=pd.DataFrame()
         ensambleValid.index.name='Date'
         self.spTimeserie.set_index('Date', inplace=True)
         self.spTimeserie.index = pd.to_datetime(self.spTimeserie.index, format='%m/%d/%Y') 
         trendResult = identify_df_trends(df = self.spTimeserie, window_size=5)
-
-        trendResult['trend'] = self.trendAddDelta(trendResult['trend'].tolist())
 
         for i in range(0,len(self.Date)):
             ensambleValid.at[trendResult.index[i],self.columnName]=trendResult['trend'][i]

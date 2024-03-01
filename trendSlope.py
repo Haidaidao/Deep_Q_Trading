@@ -8,7 +8,7 @@ import trendStrengthIdentifier
 MK = global_config.MK
 
 identify_df_trends = trendIdentifier.use_trendet
-trend_add_delta = trendStrengthIdentifier.linear_regression_slope
+trend_add_delta = trendStrengthIdentifier.two_point_slope
 
 class TrendSlope:
     def __init__(self, iteration = None, minLimit=None, maxLimit=None, name = "Week", type = "test", columnName = "trend", frame = "Long"):
