@@ -102,16 +102,19 @@ dqt = DeepQTrading(
 
 # dqt = DeepQTrading(
 #     model=model,
-#     explorations=[(0.2,1)],
-#     trainSize=datetime.timedelta(days=272),
-#     validationSize=datetime.timedelta(days=72),
-#     testSize=datetime.timedelta(days=72),
+#     explorations=[(0.2,config['epoch'])],
+#     trainSize=datetime.timedelta(minutes=60 * 24 * 360 * 5),
+#     validationSize=datetime.timedelta(minutes=60 * 24 * 30 * 6),
+#     testSize=datetime.timedelta(minutes=60 * 24 * 30 * 6),
 #     outputFile="./Output/csv/walks/walks",
-#     begin=datetime.datetime(2022,2,5,0,0,0,0),
-#     end=datetime.datetime(2024,1,26,0,0,0,0),
+#     begin=datetime.datetime(2001,1,1,0,0,0,0), 
+#     end=datetime.datetime(2011,2,28,0,0,0,0),
 #     nbActions=nb_actions,
 #     isOnlyShort=isOnlyShort,
-#     ensembleFolderName=sys.argv[3]
+#     ensembleFolderName=sys.argv[3],
+#     short_file_name="sp500HourTest", short_mins=60, 
+#     medium_file_name="sp500DayTest", medium_mins=60 * 24, 
+#     long_file_name="sp500WeekTest", long_mins= 60 * 24 * 7
 #     )
 
 dqt.run()

@@ -134,7 +134,8 @@ class DeepQTrading:
         self.testSize=testSize
 
         #The walk size is simply summing up the train, validation and test sizes
-        self.walkSize=trainSize+validationSize+testSize
+        self.walkSize=trainSize+validationSize+testSize 
+       
 
         #Define the ending point as the final date (January 1st of 2010)
         self.endingPoint=end
@@ -216,7 +217,6 @@ class DeepQTrading:
             #walk size is train+validation+test size
             #currentStarting point begins with begin date
             while(self.currentStartingPoint+self.walkSize <= self.endingPoint):
-
                 #Iteration is the current walk
                 iteration+=1
                 if iteration < (numFile):
@@ -392,10 +392,13 @@ class DeepQTrading:
                                 self.validator.reset()
                                 self.tester.reset()
 
+                                train_step = self.trainSize.days // 24 // 60
+                                valid_step = self.validationSize.days // 24 // 60
+
                                 #Reset the training environment
                                 trainEnv.resetEnv()
                                 #Train the agent
-                                self.agent[index].agent.fit(trainEnv,nb_steps=floor(self.trainSize.seconds // 60 -self.trainSize.seconds // 60 *0.2),visualize=False,verbose=0)
+                                self.agent[index].agent.fit(trainEnv,nb_steps=floor(train_step - train_step * 0.2),visualize=False,verbose=0)
                                 #Get the info from the train callback
                                 (_,trainCoverage,trainAccuracy,trainReward,trainLongPerc,trainShortPerc,trainLongAcc,trainShortAcc,trainLongPrec,trainShortPrec)=self.trainer.getInfo()
                                 #Print Callback values on the screen
@@ -404,7 +407,7 @@ class DeepQTrading:
                                 #Reset the validation environment
                                 validEnv.resetEnv()
                                 #Test the agent on validation data
-                                self.agent[index].agent.test(validEnv,nb_episodes=floor(self.validationSize.seconds // 60-self.validationSize.seconds // 60*0.2),visualize=False,verbose=0)
+                                self.agent[index].agent.test(validEnv,nb_episodes=floor(valid_step - valid_step * 0.2),visualize=False,verbose=0)
                                 #Get the info from the validation callback
                                 (_,validCoverage,validAccuracy,validReward,validLongPerc,validShortPerc,validLongAcc,validShortAcc,validLongPrec,validShortPrec)=self.validator.getInfo()
                                 #Print callback values on the screen
@@ -413,7 +416,7 @@ class DeepQTrading:
                                 #Reset the testing environment
                                 testEnv.resetEnv()
                                 #Test the agent on testing data
-                                self.agent[index].agent.test(testEnv,nb_episodes=floor(self.validationSize.seconds // 60 -self.validationSize.seconds // 60*0.2),visualize=False,verbose=0)
+                                self.agent[index].agent.test(testEnv,nb_episodes=floor(valid_step - valid_step * 0.2),visualize=False,verbose=0)
                                 #Get the info from the testing callback
                                 (_,testCoverage,testAccuracy,testReward,testLongPerc,testShortPerc,testLongAcc,testShortAcc,testLongPrec,testShortPrec)=self.tester.getInfo()
                                 #Print callback values on the screen
@@ -478,8 +481,6 @@ class DeepQTrading:
                         test  = TrendBase(self.ensembleFolderName, self.medium_file_name, name, iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit,type = "test")
                         test.process()
 
-                    
-                       
                     #For the next walk, the current starting point will be the current starting point + the test size
                     #It means that, for the next walk, the training data will start 6 months after the training data of
                     #the previous walk
