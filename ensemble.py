@@ -467,6 +467,8 @@ def SimpleEnsemble(numWalks,type,numDel):
                     elif Sh == -1: 
                         if Sw + Sd <= -1:
                             df.loc[df1.index[k]] = -1
+                    else:
+                        df.loc[df1.index[k]] = 0
  
         num=0
         rew=0
