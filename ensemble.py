@@ -255,7 +255,7 @@ def XGBoostEnsemble(numWalks,type,numDel):
 
 
     values.append([' ','Sum',str(round(rewSum,2)),str(round(posSum,2)),str(round(negSum,2)),str(round(dollSum,2)),str(round(covSum/numSum,2)),(str(round(posSum/covSum,2)) if (covSum>0) else "None")])
-    # print(values)
+    
     return values,columns
 # ================================================ Random Forest
 def RandomForestEnsemble(numWalks,type,numDel):
@@ -444,26 +444,7 @@ def SimpleEnsemble(numWalks,type,numDel):
         df = pd.DataFrame(columns=['ensemble'])
         df = df.set_index(pd.Index([], name='date'))
 
-        for k in range(0,len(df1)):
-            if(df1.index[k] in df2.index):
-                if df1['ensemble'][k] == 0:
-                    df.loc[df1.index[k]] = 0
-                else:
-                    if df1['ensemble'][k] == getActionWeek(df3, df2.index[k]) or df1['ensemble'][k] == df2.loc[df1.index[k],'ensemble']: 
-                        if  getActionWeek(df3, df2.index[k]) == df2.loc[df1.index[k],'ensemble']  and df2.loc[df1.index[k],'ensemble'] != df1['ensemble'][k] :
-                            df.loc[df1.index[k]] = 0
-                        elif df2.loc[df1.index[k],'ensemble'] == 0 and getActionWeek(df3, df2.index[k]) !=0:
-                            df.loc[df1.index[k]] = getActionWeek(df3, df2.index[k])
-                        elif df2.loc[df1.index[k],'ensemble'] != 0 and getActionWeek(df3, df2.index[k]) ==0:
-                            df.loc[df1.index[k]] = df2.loc[df1.index[k],'ensemble']
-                        elif getActionWeek(df3, df2.index[k]) != df2.loc[df1.index[k],'ensemble']:
-                            df.loc[df1.index[k]] = 0
-                        elif getActionWeek(df3, df2.index[k]) == df2.loc[df1.index[k],'ensemble']:
-                            df.loc[df1.index[k]] = df2.loc[df1.index[k],'ensemble']
-                        else:
-                            df.loc[df1.index[k]] = 0
-                    else: 
-                        df.loc[df1.index[k]] = 0
+        df['ensemble'] = ensemble_y_true(df1, dax, threshold)
 
         num=0
         rew=0
@@ -475,6 +456,9 @@ def SimpleEnsemble(numWalks,type,numDel):
             num+=1
 
             if date in dax.index:
+                print(date)
+                print(i)
+                print("========")
                 if (i['ensemble']==1):
                     pos+= 1 if (dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
 
@@ -501,6 +485,6 @@ def SimpleEnsemble(numWalks,type,numDel):
 
 
     values.append([' ','Sum',str(round(rewSum,2)),str(round(posSum,2)),str(round(negSum,2)),str(round(dollSum,2)),str(round(covSum/numSum,2)),(str(round(posSum/covSum,2)) if (covSum>0) else "None")])
-    # print(values)
+    print(values)
     return values,columns
 

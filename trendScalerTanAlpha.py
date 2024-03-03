@@ -28,21 +28,16 @@ def identify_df_trends(df, prices, window_size = 5):
 
     df_result = pd.DataFrame(index=df.index, columns=['trend'])
 
-    trends = []  # Danh sách để lưu trữ xu hướng của mỗi cửa sổ
+    trends = []  
     
-    # Duyệt qua mỗi cửa sổ con trong tập dữ liệu
     for i in range(len(prices) - window_size + 1):
-        # Lấy cửa sổ con hiện tại
         window = prices[i:i+window_size]
         
-        
-        # Kiểm tra xu hướng tăng
         if all(window[j] < window[j+1] for j in range(window_size - 1)):
             trends.append(1)
-        # Kiểm tra xu hướng giảm
+        
         elif all(window[j] > window[j+1] for j in range(window_size - 1)):
             trends.append(-1)
-        # Nếu không phải tăng hoặc giảm, xu hướng là Sideway
         else:
             trends.append(0)
 
