@@ -398,6 +398,14 @@ def RandomForestEnsemble(numWalks,type,numDel):
     # print(values)
     return values,columns
 # ================================================ Base-rule
+
+def normalized(a):
+    if a > 0:
+        return 1
+    elif a < 0:
+        return -1
+    return 0
+
 def SimpleEnsemble(numWalks,type,numDel):
     dollSum=0
     rewSum=0
@@ -444,8 +452,22 @@ def SimpleEnsemble(numWalks,type,numDel):
         df = pd.DataFrame(columns=['ensemble'])
         df = df.set_index(pd.Index([], name='date'))
 
-        df['ensemble'] = ensemble_y_true(df1, dax, threshold)
-
+        for k in range(0,len(df1)):
+            if(df1.index[k] in df2.index):
+                if df1['ensemble'][k] == 0:
+                    df.loc[df1.index[k]] = 0
+                else:
+                    Sh = normalized(df1['ensemble'][k])
+                    Sw = normalized(getActionWeek(df3, df2.index[k]))
+                    Sd = normalized(df2.loc[df1.index[k],'ensemble'])
+                    
+                    if Sh == 1:
+                        if Sw + Sd >= 1:
+                            df.loc[df1.index[k]] = 1
+                    elif Sh == -1: 
+                        if Sw + Sd <= -1:
+                            df.loc[df1.index[k]] = -1
+ 
         num=0
         rew=0
         pos=0
@@ -456,9 +478,6 @@ def SimpleEnsemble(numWalks,type,numDel):
             num+=1
 
             if date in dax.index:
-                print(date)
-                print(i)
-                print("========")
                 if (i['ensemble']==1):
                     pos+= 1 if (dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
 
@@ -466,7 +485,7 @@ def SimpleEnsemble(numWalks,type,numDel):
                     rew+=(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
                     doll+=(dax.at[date,'Close']-dax.at[date,'Open'])*50
                     cov+=1
-                elif (i['ensemble']==2):
+                elif (i['ensemble']==-1):
 
                     neg+= 0 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
                     pos+= 1 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
@@ -485,6 +504,6 @@ def SimpleEnsemble(numWalks,type,numDel):
 
 
     values.append([' ','Sum',str(round(rewSum,2)),str(round(posSum,2)),str(round(negSum,2)),str(round(dollSum,2)),str(round(covSum/numSum,2)),(str(round(posSum/covSum,2)) if (covSum>0) else "None")])
-    print(values)
+    # print(values)
     return values,columns
 
