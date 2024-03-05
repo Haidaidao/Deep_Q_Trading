@@ -100,12 +100,12 @@ model.add(Activation('linear'))
 dqt = DeepQTrading(
     model=model,
     explorations=[(0.2,config['epoch'])],
-    trainSize=datetime.timedelta(days=272),
+    trainSize=datetime.timedelta(days=100),
     validationSize=datetime.timedelta(days=72),
     testSize=datetime.timedelta(days=72),
     outputFile="./Output/csv/walks/walks",
-    begin=datetime.datetime(2022,2,5,0,0,0,0),
-    end=datetime.datetime(2024,1,26,0,0,0,0),
+    begin=datetime.datetime(2022,9,3,0,0,0,0),
+    end=datetime.datetime(2024,2,26,0,0,0,0),
     nbActions=nb_actions,
     isOnlyShort=isOnlyShort,
     ensembleFolderName=sys.argv[3]

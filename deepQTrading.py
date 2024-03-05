@@ -454,12 +454,12 @@ class DeepQTrading:
                     else:
                         
                         # Find trend with TrendWA and Slope
-                        train = TrendSlope(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
-                        train.writeFile()
-                        valid = TrendSlope(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
-                        valid.writeFile()
-                        test  = TrendSlope(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
-                        test.writeFile()
+                        # train = TrendSlope(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
+                        # train.writeFile()
+                        # valid = TrendSlope(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
+                        # valid.writeFile()
+                        # test  = TrendSlope(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
+                        # test.writeFile()
 
                         # Find trend with TrendWA and Scaler
                         # train = TrendScaler(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
@@ -478,12 +478,12 @@ class DeepQTrading:
                         # test.writeFile()       
 
                         # Find trend with TrendWA and Scaler with Tan alpha
-                        # train = TrendScalerTanAlpha(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
-                        # train.writeFile()
-                        # valid = TrendScalerTanAlpha(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
-                        # valid.writeFile()
-                        # test  = TrendScalerTanAlpha(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
-                        # test.writeFile()      
+                        train = TrendScalerTanAlpha(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
+                        train.writeFile()
+                        valid = TrendScalerTanAlpha(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
+                        valid.writeFile()
+                        test  = TrendScalerTanAlpha(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
+                        test.writeFile()      
 
                        
                     #For the next walk, the current starting point will be the current starting point + the test size
