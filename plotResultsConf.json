@@ -1,7 +1,7 @@
 {
-    "type": "RandomForest",
+    "type": "XGBoost",
     "num_files": 9,
-    "MK": "BTC-USD",
+    "MK": "msft",
     "ensemble_folder": "ensembleFolder",
     "label_threshold": 0.005,
     "epoch": 50
