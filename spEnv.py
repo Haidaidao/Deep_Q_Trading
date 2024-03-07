@@ -35,9 +35,11 @@ class SpEnv(gym.Env):
         #the input feature vector is composed of data from hours, weeks and days
         #20 from days, 8 from weeks and 40 hours, ending with 40 dimensional feature vectors
         spTimeserie = pandas.read_csv('./datasets/'+ self.name+'.csv')[minLimit:maxLimit+1] # opening the dataset
-        # print(spTimeserie)
+
         #Converts each column to a list
-        Date = spTimeserie.loc[:, 'Datetime'].tolist()
+        Date_temp = spTimeserie.loc[:, 'Datetime'].tolist()
+        Date = [datetime.strptime(time_str, '%m/%d/%Y %H:%M') for time_str in Date_temp]
+       
         Open = spTimeserie.loc[:, 'Open'].tolist()
         High = spTimeserie.loc[:, 'High'].tolist()
         Low = spTimeserie.loc[:, 'Low'].tolist()
@@ -87,14 +89,18 @@ class SpEnv(gym.Env):
         #organizing the dataset as a list of dictionaries
         for i in range(0,self.limit):
             self.history.append({'Datetime' : Date[i], 'Open': Open[i], 'High': High[i], 'Low': Low[i], 'Close': Close[i]})
+        # print(self.history)
 
         #Next observation starts
         self.nextObservation=0
-
+        
+        
         #self.history contains all the hour data. Here we search for the next day
         while(self.history[self.currentObservation]['Datetime']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Datetime']):
             self.nextObservation+=1
-
+            print(self.history[self.currentObservation]['Datetime'])
+            print(self.history[(self.currentObservation+self.nextObservation)%self.limit]['Datetime'])
+        print("======")
         #Initiates the values to be returned by the environment
         self.reward = None
         self.possibleGain = 0
@@ -187,7 +193,7 @@ class SpEnv(gym.Env):
 
 
     def getObservation(self, date):
-
+        print("*****************")
         #Get the dayly information and week information
         #get all the data
         # dayList=self.dayData.get(date)
@@ -214,6 +220,8 @@ class SpEnv(gym.Env):
                         lambda x: (x["Close"]-x["Open"])/x["Open"],
                             self.history[self.currentObservation-self.observationWindow:self.currentObservation]
                             ))])
+        print(array)
+        print("===========")
         return  array
 
     def resetEnv(self):

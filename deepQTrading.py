@@ -49,7 +49,8 @@ def getDate_Index(Frame, datesFrame, date):
 
     date_to_find = pd.to_datetime(next_date)
     index = Frame.index[Frame['Datetime'] == date_to_find].tolist()
-
+    # print(specific_date)
+    # print(next_date)
     return index[0]
 
 # Count the total number of walks
@@ -203,7 +204,8 @@ class DeepQTrading:
         mediumFrame = pd.read_csv('./datasets/'+ self.medium_file_name +'.csv')
 
         count = 0
-        
+        # print(getDate_Index(mediumFrame, shortFrame, 1974))
+        # return
         for i in range(len(self.agent)):
             #Initiates the environments,
             trainEnv=validEnv=testEnv=" "
@@ -335,7 +337,9 @@ class DeepQTrading:
                         if count<(numFile):
                             count = count +1
                     else:
-                        
+                        # print(trainMin)
+                        # print(trainMax)
+                        # print("===========")
                         if name == "Long":
                             trainMinLimit = getDate_Index(longFrame, shortFrame, trainMin[iteration])
                             trainMaxLimit = getDate_Index(longFrame, shortFrame, trainMax[iteration])
@@ -357,9 +361,9 @@ class DeepQTrading:
 
                     #Separate the Validation and testing data according to the limits found before
                     #Prepare the training and validation files for saving them later
-                    ensambleTrain=pd.DataFrame(index=self.agent[index].dates[trainMinLimit:trainMaxLimit].loc[:,'Datetime'].drop_duplicates().tolist())
-                    ensambleValid=pd.DataFrame(index=self.agent[index].dates[validMinLimit:validMaxLimit].loc[:,'Datetime'].drop_duplicates().tolist())
-                    ensambleTest=pd.DataFrame(index=self.agent[index].dates[testMinLimit:testMaxLimit].loc[:,'Datetime'].drop_duplicates().tolist())
+                    ensambleTrain=pd.DataFrame(index=self.agent[index].dates[trainMinLimit:trainMaxLimit+1].loc[:,'Datetime'].drop_duplicates().tolist())
+                    ensambleValid=pd.DataFrame(index=self.agent[index].dates[validMinLimit:validMaxLimit+1].loc[:,'Datetime'].drop_duplicates().tolist())
+                    ensambleTest=pd.DataFrame(index=self.agent[index].dates[testMinLimit:testMaxLimit+1].loc[:,'Datetime'].drop_duplicates().tolist())
 
                     #Put the name of the index for validation and testing
                     ensambleTrain.index.name='Datetime'
