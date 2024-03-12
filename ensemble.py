@@ -552,7 +552,7 @@ def ResultNewState(numWalks,type,numDel):
                     rew+=(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
                     doll+=(dax.at[date,'Close']-dax.at[date,'Open'])*50
                     cov+=1
-                elif (i['ensemble']==2):
+                elif (i['ensemble']==-1):
 
                     neg+= 0 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
                     pos+= 1 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0

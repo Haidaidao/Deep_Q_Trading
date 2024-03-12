@@ -375,9 +375,9 @@ class DeepQTrading:
 
                     #Separate the Validation and testing data according to the limits found before
                     #Prepare the training and validation files for saving them later
-                    ensambleTrain=pd.DataFrame(index=self.agent[index].dates[trainMinLimit:trainMaxLimit].loc[:,'Date'].drop_duplicates().tolist())
-                    ensambleValid=pd.DataFrame(index=self.agent[index].dates[validMinLimit:validMaxLimit].loc[:,'Date'].drop_duplicates().tolist())
-                    ensambleTest=pd.DataFrame(index=self.agent[index].dates[testMinLimit:testMaxLimit].loc[:,'Date'].drop_duplicates().tolist())
+                    ensambleTrain=pd.DataFrame(index=self.agent[index].dates[trainMinLimit:trainMaxLimit+1].loc[:,'Date'].drop_duplicates().tolist())
+                    ensambleValid=pd.DataFrame(index=self.agent[index].dates[validMinLimit:validMaxLimit+1].loc[:,'Date'].drop_duplicates().tolist())
+                    ensambleTest=pd.DataFrame(index=self.agent[index].dates[testMinLimit:testMaxLimit+1].loc[:,'Date'].drop_duplicates().tolist())
 
                     #Put the name of the index for validation and testing
                     ensambleTrain.index.name='Date'
@@ -480,21 +480,14 @@ class DeepQTrading:
                         ensambleValid.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_valid.csv")
                         ensambleTest.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_test.csv")
                     else:
-                        # Find trend with MACD
-                        train = MACD(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
-                        train.writeFile()
-                        valid = MACD(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
-                        valid.writeFile()
-                        test  = MACD(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
-                        test.writeFile()
                         
                         # Find trend with TrendWA
-                        # train = Trend(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
-                        # train.writeFile()
-                        # valid = Trend(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
-                        # valid.writeFile()
-                        # test  = Trend(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
-                        # test.writeFile()
+                        train = Trend(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
+                        train.writeFile()
+                        valid = Trend(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
+                        valid.writeFile()
+                        test  = Trend(iteration = iteration, minLimit=testMinLimit,maxLimit=testMaxLimit, name = name ,type = "test")
+                        test.writeFile()
                        
                     #For the next walk, the current starting point will be the current starting point + the test size
                     #It means that, for the next walk, the training data will start 6 months after the training data of
