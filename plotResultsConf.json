@@ -1,7 +1,7 @@
 {
     "type": "XGBoost",
     "num_files": 9,
-    "MK": "dax",
+    "MK": "sp500",
     "ensemble_folder": "ensembleFolder",
     "label_threshold": 0.005,
     "epoch": 1
