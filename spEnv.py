@@ -234,7 +234,12 @@ class SpEnv(gym.Env):
 
 
         #The state is prepared by the environment, which is simply the feature vector
-        if self.name != "Week":
+        
+        
+        if self.name == "Hour":
+            print(date)
+            print(self.dayData.get(date)['Trend'])
+            print(getActionWeek(self.weekData, date))
             array = numpy.array(
                 [list(
                     map(
@@ -255,7 +260,9 @@ class SpEnv(gym.Env):
                             self.history[self.currentObservation-self.observationWindow:self.currentObservation] 
                             ))])
             array = numpy.append(array, arrayWeek, axis=0)
-
+            print(array)
+            return
+        print("==================")
         return  array
 
     def resetEnv(self):

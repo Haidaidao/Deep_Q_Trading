@@ -481,7 +481,7 @@ class DeepQTrading:
                         ensambleTest.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_test.csv")
                     else:
                         
-                        # Find trend with TrendWA
+                      
                         train = Trend(iteration = iteration, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = name ,type = "train")
                         train.writeFile()
                         valid = Trend(iteration = iteration, minLimit=validMinLimit,maxLimit=validMaxLimit, name = name ,type = "valid")
@@ -493,6 +493,8 @@ class DeepQTrading:
                     #It means that, for the next walk, the training data will start 6 months after the training data of
                     #the previous walk
                 self.currentStartingPoint+=self.testSize
+                if name == "Hour":
+                    return
 
 
 
