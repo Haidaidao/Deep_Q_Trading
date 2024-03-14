@@ -29,9 +29,10 @@ class MergedDataStructure():
 
         #Read the CSV
         self.timeserie = pandas.read_csv(filename)
-        
+
         #Transform each column into a list
         Date = self.timeserie.loc[:, 'Date'].tolist()
+        
         Trend = self.timeserie.loc[:, 'trend'].tolist()
 
         #Create empty list and dictionary
@@ -53,11 +54,23 @@ class MergedDataStructure():
                 dateString=date.strftime("%m/%d/%Y")
                 #Contains dates and indexes for the list self.list
                 self.dict[dateString]=i
+        # print(self.list)
 
-    def get(self, date, name = "Day"):
-        if name == "Day":
-            #Converts the date to string
-            dateString=str(date)
-            #given the date, you get an interval of past days or weeks
-            return self.list[self.dict[dateString]]
+    def get(self, date, delta = 5, name = "Day"):
+        result = []
+
+        dateString=str(date)
+
+        start = self.dict[dateString] + 1
+        if self.dict[dateString]-(delta) + 1 < 0: 
+            for i in range (0, delta - start):
+                result.append(0)
+            # print(self.list[:self.dict[dateString] + 1])
+            result.extend([item['Trend'] for item in self.list[0:self.dict[dateString]+1]])
+        else:
+            # print(self.list[self.dict[dateString]-(delta) + 1:self.dict[dateString]+1])
+            result.extend([item['Trend'] for item in self.list[self.dict[dateString]-(delta) + 1:self.dict[dateString]+1]])
+
+
+        return result
       

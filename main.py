@@ -64,7 +64,7 @@ isOnlyShort=sys.argv[2]==1
 #the input is 20 observation days from the past, 8 observations from the past week and 
 #40 observations from the past hours
 model = Sequential()
-model.add(Flatten(input_shape=(1,3,20)))
+model.add(Flatten(input_shape=(1,1,30)))
 model.add(Dense(35,activation='linear'))
 model.add(LeakyReLU(alpha=.001))
 model.add(Dense(nb_actions))

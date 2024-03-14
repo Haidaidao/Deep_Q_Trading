@@ -26,6 +26,7 @@ MK = global_config.MK
 def identify_df_trends(df, prices, window_size = 5):
 
     df_result = pd.DataFrame(index=df.index, columns=['trend'])
+    # df_result['close'] = prices
 
     trends = []  # Danh sách để lưu trữ xu hướng của mỗi cửa sổ
     
@@ -55,7 +56,6 @@ def identify_df_trends(df, prices, window_size = 5):
             df_result.at[index, 'trend'] = 0
         count = count + 1
 
-    
     return df_result
     
 
@@ -92,4 +92,5 @@ class Trend:
         trendResult = identify_df_trends(df = self.spTimeserie, prices = self.Close , window_size=5)
         for i in range(0,len(self.Date)):
             ensambleValid.at[trendResult.index[i],self.columnName]=trendResult['trend'][i]
+        ensambleValid['close'] = self.Close
         ensambleValid.to_csv("./Output/ensemble/"+"ensembleFolder"+"/walk"+self.name+str(self.iteration)+"ensemble_"+self.type+".csv")
