@@ -77,7 +77,7 @@ class TrendScaler:
         self.iteration = iteration
         self.type = type
         self.frame = frame 
-
+    
     def findDelta(self, begin, end):
         X = numpy.arange(1, 5).reshape(-1, 1) 
         y = self.Close[begin:end]
