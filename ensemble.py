@@ -16,7 +16,7 @@ from sklearn.preprocessing import LabelEncoder
 import global_config
 import json
 
-config = json.load(open('plotResultsConf.json', 'r'))
+config = json.load(open('config.json', 'r'))
 
 iteration = 'iteration' + str(config['epoch']-1)
 

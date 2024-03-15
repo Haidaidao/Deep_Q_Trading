@@ -21,7 +21,7 @@ func_map = {
     "NewState": ResultNewState
 }
 
-config = json.load(open('plotResultsConf.json', 'r'))
+config = json.load(open('config.json', 'r'))
 
 # numFiles = config['num_files']
 with open('numFile.txt', 'r', encoding='utf-8') as file:

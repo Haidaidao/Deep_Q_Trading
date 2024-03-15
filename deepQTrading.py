@@ -119,8 +119,6 @@ class DeepQTrading:
         self.isOnlyShort=isOnlyShort
         self.ensembleFolderName=ensembleFolderName
 
-        self.agent=[]
-
         #Define the policy, explorations, actions and model as received by parameters
         self.policy = EpsGreedyQPolicy()
         self.explorations=explorations
@@ -129,18 +127,9 @@ class DeepQTrading:
 
         #Define the memory
         self.memory = SequentialMemory(limit=10000, window_length=1)
-
+     
         #Instantiate the agent with parameters received
-        # self.agent.append(AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Day'))
-        # self.agent.append(AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Week'))
-        self.agent.append(AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Hour'))
-
-        #Save the weights of the agents in the q.weights file
-        #Save random weights
-        for i in range(len(self.agent)):
-            #Compile the agent with the adam optimizer and with the mean absolute error metric
-            self.agent[i].agent.compile(Adam(lr=1e-3), metrics=['mae'])
-            self.agent[i].agent.save_weights("q.weights", overwrite=True)
+        self.agent = AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Hour')
 
         #Define the current starting point as the initial date
         self.currentStartingPoint = begin
@@ -159,19 +148,17 @@ class DeepQTrading:
         #Define the ending point as the final date (January 1st of 2010)
         self.endingPoint=end
 
-        for i in range(len(self.agent)):
-            self.agent[i].dates= pd.read_csv('./datasets/'+MK+self.agent[i].name+'.csv')
-            self.agent[i].sp = pd.read_csv('./datasets/'+MK+self.agent[i].name+'.csv')
-            #Convert the pandas format to date and time format
-            self.agent[i].sp['Datetime'] = pd.to_datetime(self.agent[i].sp['Date'] + ' ' + self.agent[i].sp['Time'])
-            #Set an index to Datetime on the pandas loaded dataset. Registers will be indexes through these values
-            self.agent[i].sp = self.agent[i].sp.set_index('Datetime')
-            #Drop Time and Date from the Dataset
-            self.agent[i].sp = self.agent[i].sp.drop(['Time','Date'], axis=1)
-            #Just the index considering date and time will be important, because date and time will be used to define the train,
-            #validation and test for each walk
-            self.agent[i].sp = self.agent[i].sp.index
-
+        self.agent.dates= pd.read_csv('./datasets/'+MK+self.agent.name+'.csv')
+        self.agent.sp = pd.read_csv('./datasets/'+MK+self.agent.name+'.csv')
+        #Convert the pandas format to date and time format
+        self.agent.sp['Datetime'] = pd.to_datetime(self.agent.sp['Date'] + ' ' + self.agent.sp['Time'])
+        #Set an index to Datetime on the pandas loaded dataset. Registers will be indexes through these values
+        self.agent.sp = self.agent.sp.set_index('Datetime')
+        #Drop Time and Date from the Dataset
+        self.agent.sp = self.agent.sp.drop(['Time','Date'], axis=1)
+        #Just the index considering date and time will be important, because date and time will be used to define the train,
+        #validation and test for each walk
+        self.agent.sp = self.agent.sp.index
 
         #Receives the operation cost, which is 0
         #Operation cost is the cost for long and short. It is defined as zero
@@ -188,7 +175,7 @@ class DeepQTrading:
     def run(self):
 
         currentStartingPointTemp = self.currentStartingPoint
-        numFile, trainMin, trainMax, validMin, validMax, testMin, testMax = getNumFile(self.agent[0], 
+        numFile, trainMin, trainMax, validMin, validMax, testMin, testMax = getNumFile(self.agent, 
                                                                                        self.currentStartingPoint, self.walkSize, 
                                                                                        self.endingPoint, self.testSize, 
                                                                                        self.trainSize, self.validationSize)
@@ -197,31 +184,12 @@ class DeepQTrading:
         with open('numFile.txt', 'w', encoding='utf-8') as file:
             file.write(str(numFile-1))
 
-        # print(trainMin)
-        # print(trainMax)
-        # print(validMin)
-        # print(validMax)
-        # print(testMin)
-        # print(testMax)
-
-        datesFrame = pd.read_csv('./datasets/'+MK+"Hour"+'.csv')
-        weeksFrame = pd.read_csv('./datasets/'+MK+"Week"+'.csv')
-        daysFrame = pd.read_csv('./datasets/'+MK+"Day"+'.csv')
-
-        count = 0
-
-        for i in range(len(self.agent)):
-            pass
-
         #Initiates the environments,
         trainEnv=validEnv=testEnv=" "
 
-        i = 0
-
         iteration=-1
         self.currentStartingPoint = currentStartingPointTemp
-        name = self.agent[i].name
-        index = i
+        name = self.agent.name
 
         #While we did not pass through all the dates (i.e., while all the walks were not finished)
         #walk size is train+validation+test size
@@ -268,20 +236,20 @@ class DeepQTrading:
 
 
                 #Empty the memory and agent
-                del(self.agent[index].memory)
-                del(self.agent[index].agent)
+                del(self.agent.memory)
+                del(self.agent.agent)
 
                 #Define the memory and agent
                 #Memory is Sequential
-                self.agent[index].memory = SequentialMemory(limit=10000, window_length=1)
+                self.agent.memory = SequentialMemory(limit=10000, window_length=1)
                 #Agent is initiated as passed through parameters
-                self.agent[index].agent = DQNAgent(model=self.model, policy=self.policy,  nb_actions=self.nbActions, memory=self.memory, nb_steps_warmup=200, target_model_update=1e-1,
+                self.agent.agent = DQNAgent(model=self.model, policy=self.policy,  nb_actions=self.nbActions, memory=self.memory, nb_steps_warmup=200, target_model_update=1e-1,
                                         enable_double_dqn=True,enable_dueling_network=True)
                 #Compile the agent with Adam initialization
-                self.agent[index].agent.compile(Adam(lr=1e-3), metrics=['mae'])
+                self.agent.agent.compile(Adam(lr=1e-3), metrics=['mae'])
 
                 #Load the weights saved before in a random way if it is the first time
-                self.agent[index].agent.load_weights("q.weights")
+                self.agent.agent.load_weights("q.weights")
 
                 ########################################TRAINING STAGE########################################################
 
@@ -291,7 +259,7 @@ class DeepQTrading:
                 trainMinLimit=None
                 while(trainMinLimit is None):
                     try:
-                        trainMinLimit = self.agent[index].sp.get_loc(self.currentStartingPoint)
+                        trainMinLimit = self.agent.sp.get_loc(self.currentStartingPoint)
                         break
                     except:
                         self.currentStartingPoint+=datetime.timedelta(hours=1)
@@ -302,7 +270,7 @@ class DeepQTrading:
                 trainMaxLimit=None
                 while(trainMaxLimit is None):
                     try:
-                        trainMaxLimit = self.agent[index].sp.get_loc(self.currentStartingPoint+self.trainSize)
+                        trainMaxLimit = self.agent.sp.get_loc(self.currentStartingPoint+self.trainSize)
                     except:
                         self.currentStartingPoint+=datetime.timedelta(hours=1)
 
@@ -316,7 +284,7 @@ class DeepQTrading:
                 validMaxLimit=None
                 while(validMaxLimit is None):
                     try:
-                        validMaxLimit = self.agent[index].sp.get_loc(self.currentStartingPoint+self.trainSize+self.validationSize)
+                        validMaxLimit = self.agent.sp.get_loc(self.currentStartingPoint+self.trainSize+self.validationSize)
                     except:
                         self.currentStartingPoint+=datetime.timedelta(hours=1)
                     
@@ -329,16 +297,16 @@ class DeepQTrading:
                 testMaxLimit=None
                 while(testMaxLimit is None):
                     try:
-                        testMaxLimit = self.agent[index].sp.get_loc(self.currentStartingPoint+self.trainSize+self.validationSize+self.testSize)
+                        testMaxLimit = self.agent.sp.get_loc(self.currentStartingPoint+self.trainSize+self.validationSize+self.testSize)
                     except:
                         self.currentStartingPoint+=datetime.timedelta(hours=1)
 
 
                 #Separate the Validation and testing data according to the limits found before
                 #Prepare the training and validation files for saving them later
-                ensambleTrain=pd.DataFrame(index=self.agent[index].dates[trainMinLimit:trainMaxLimit+1].loc[:,'Date'].drop_duplicates().tolist())
-                ensambleValid=pd.DataFrame(index=self.agent[index].dates[validMinLimit:validMaxLimit+1].loc[:,'Date'].drop_duplicates().tolist())
-                ensambleTest=pd.DataFrame(index=self.agent[index].dates[testMinLimit:testMaxLimit+1].loc[:,'Date'].drop_duplicates().tolist())
+                ensambleTrain=pd.DataFrame(index=self.agent.dates[trainMinLimit:trainMaxLimit+1].loc[:,'Date'].drop_duplicates().tolist())
+                ensambleValid=pd.DataFrame(index=self.agent.dates[validMinLimit:validMaxLimit+1].loc[:,'Date'].drop_duplicates().tolist())
+                ensambleTest=pd.DataFrame(index=self.agent.dates[testMinLimit:testMaxLimit+1].loc[:,'Date'].drop_duplicates().tolist())
 
                 #Put the name of the index for validation and testing
                 ensambleTrain.index.name='Date'
@@ -374,7 +342,7 @@ class DeepQTrading:
                         #Reset the training environment
                         trainEnv.resetEnv()
                         #Train the agent
-                        self.agent[index].agent.fit(trainEnv,nb_steps=floor(self.trainSize.days-self.trainSize.days*0.2),visualize=False,verbose=0)
+                        self.agent.agent.fit(trainEnv,nb_steps=floor(self.trainSize.days-self.trainSize.days*0.2),visualize=False,verbose=0)
                         #Get the info from the train callback
                         (_,trainCoverage,trainAccuracy,trainReward,trainLongPerc,trainShortPerc,trainLongAcc,trainShortAcc,trainLongPrec,trainShortPrec)=self.trainer.getInfo()
                         #Print Callback values on the screen
@@ -383,7 +351,7 @@ class DeepQTrading:
                         #Reset the validation environment
                         validEnv.resetEnv()
                         #Test the agent on validation data
-                        self.agent[index].agent.test(validEnv,nb_episodes=floor(self.validationSize.days-self.validationSize.days*0.2),visualize=False,verbose=0)
+                        self.agent.agent.test(validEnv,nb_episodes=floor(self.validationSize.days-self.validationSize.days*0.2),visualize=False,verbose=0)
                         #Get the info from the validation callback
                         (_,validCoverage,validAccuracy,validReward,validLongPerc,validShortPerc,validLongAcc,validShortAcc,validLongPrec,validShortPrec)=self.validator.getInfo()
                         #Print callback values on the screen
@@ -392,7 +360,7 @@ class DeepQTrading:
                         #Reset the testing environment
                         testEnv.resetEnv()
                         #Test the agent on testing data
-                        self.agent[index].agent.test(testEnv,nb_episodes=floor(self.validationSize.days-self.validationSize.days*0.2),visualize=False,verbose=0)
+                        self.agent.agent.test(testEnv,nb_episodes=floor(self.validationSize.days-self.validationSize.days*0.2),visualize=False,verbose=0)
                         #Get the info from the testing callback
                         (_,testCoverage,testAccuracy,testReward,testLongPerc,testShortPerc,testLongAcc,testShortAcc,testLongPrec,testShortPrec)=self.tester.getInfo()
                         #Print callback values on the screen
@@ -437,9 +405,9 @@ class DeepQTrading:
 
                 #Write validation and Testing data into files
                 #Save the files for processing later with the ensemble considering the 50 epochs
-                ensambleTrain.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_train.csv")
-                ensambleValid.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_valid.csv")
-                ensambleTest.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent[index].name+str(iteration)+"ensemble_test.csv")
+                ensambleTrain.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent.name+str(iteration)+"ensemble_train.csv")
+                ensambleValid.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent.name+str(iteration)+"ensemble_valid.csv")
+                ensambleTest.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent.name+str(iteration)+"ensemble_test.csv")
     
             self.currentStartingPoint+=self.testSize
 

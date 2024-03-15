@@ -1,9 +1,11 @@
 import pandas
 import datetime
+import numpy
 
 class TrendReader:
-    def __init__(self, filename):
+    def __init__(self, filename, fill_interval):
          #Read the CSV
+        self.filename = filename
         self.timeseries = pandas.read_csv(filename)
 
         #Transform each column into a list
@@ -18,26 +20,46 @@ class TrendReader:
         #The limit is the number of dates
         limit = len(Date)
 
+        self.first_date = datetime.datetime.strptime(Date[0], "%m/%d/%Y")
+
+        self.fill_interval = fill_interval
+ 
         #Just converting pandas data to a list
         #lets pick up the csv data and put them in the list (self.list) 
         for i in range(0,limit-1):
             self.list.append({'Date' : Date[i],'Trend' : Trend[i]})
             
             #Fill the gaps with days that do not exist 
-            dateList = [datetime.datetime.strptime(Date[i+1], "%m/%d/%Y") - datetime.timedelta(days=x) for x in range(0, ( datetime.datetime.strptime(Date[i+1], "%m/%d/%Y")- datetime.datetime.strptime(Date[i], "%m/%d/%Y") ).days )]
+            # dateList = [datetime.datetime.strptime(Date[i+1], "%m/%d/%Y") - datetime.timedelta(days=x) for x in range(0, ( datetime.datetime.strptime(Date[i+1], "%m/%d/%Y")- datetime.datetime.strptime(Date[i], "%m/%d/%Y") ).days )]
+            
+            dateList = self.fill_gaps_with_interval(datetime.datetime.strptime(Date[i], "%m/%d/%Y"), datetime.datetime.strptime(Date[i+1], "%m/%d/%Y"), self.fill_interval)
             
             for date in dateList:
                 dateString=date.strftime("%m/%d/%Y")
                 #Contains dates and indexes for the list self.list
                 self.dict[dateString]=i
 
+    # Function to fill gaps with a specified interval
+    def fill_gaps_with_interval(self, start_date, end_date, interval):
+        date_list = []
+        current_date = start_date
+        while current_date < end_date:
+            date_list.append(current_date)
+            current_date += datetime.timedelta(days=interval)
+        return date_list
+
+
     def get(self, date, window_size=5):
         result = []
+
+        # sync the request date with closest possible date before the required date (only get data that already know, not the data in the future)
         start = None
         while(start is None):
             try:
-                dateString=str(date)
+                if date <= self.first_date:
+                    return numpy.zeros(5).tolist()
 
+                dateString= date.strftime("%m/%d/%Y")
                 start = self.dict[dateString] + 1
             except Exception:
                 date = date - datetime.timedelta(days=1)

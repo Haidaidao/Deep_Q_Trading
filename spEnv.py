@@ -80,8 +80,8 @@ class SpEnv(gym.Env):
         # self.dayData = MergedDataStructure(filename=f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(iteration) + "ensemble_" + type + ".csv")
         #Load the data
 
-        self.dayData = TrendReader(f'Output/trend/{MK}Day.csv')
-        self.weekData = TrendReader(f'Output/trend/{MK}Week.csv')
+        self.dayData = TrendReader(f'Output/trend/{MK}Day.csv', 1)
+        self.weekData = TrendReader(f'Output/trend/{MK}Week.csv', 7)
         self.output=False
 
         #ensamble is the table of validation and testing
@@ -251,21 +251,7 @@ class SpEnv(gym.Env):
 
 
         #The state is prepared by the environment, which is simply the feature vector
-        
-        
-        # if self.name == "Hour":
-        #     print(date)
-        #     print(self.history[self.currentObservation-self.observationWindow:self.currentObservation])
-        #     print(len(self.history[self.currentObservation-self.observationWindow:self.currentObservation]))
-        #     print(getTrendsWeek(self.weekData, date))
-        #     array = numpy.array(
-        #         [list(
-        #             map(
-        #                 lambda x: (x["Close"]-x["Open"])/x["Open"],
-        #                     self.history[self.currentObservation-self.observationWindow:self.currentObservation] 
-        #                     )) + self.dayData.get(date) + getTrendsWeek(self.weekData, date)])
-            # print(array)
-            # print("===========================")
+        date = datetime.strptime(date, "%m/%d/%Y")
 
         array = numpy.array(
                 [list(
