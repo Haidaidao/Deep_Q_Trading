@@ -18,31 +18,28 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten
 
 #Activation Layers used in the source code
-from keras.layers import LeakyReLU, PReLU, ReLU
+from keras.layers import LeakyReLU
 
-#Optimizer used in the NN
-from keras.optimizers import Adam
-
-#Libraries used for the Agent considered
-from rl.agents.dqn import DQNAgent
-from rl.memory import SequentialMemory
-from rl.policy import EpsGreedyQPolicy
+from trend import TrendGenerator
 
 #Library used for showing the exception in the case of error 
 import sys
 
 import global_config
-import json
 
-config = json.load(open('plotResultsConf.json', 'r'))
+MK = global_config.MK
+
+trendDay = TrendGenerator(name="Day")
+trendDay.writeFile(f'Output/trend/{MK}Day.csv')
+
+trendWeek = TrendGenerator(name="Week")
+trendWeek.writeFile(f'Output/trend/{MK}Week.csv')
 
 #import tensorflow as tf
 #from keras.backend.tensorflow_backend import set_session
 #config = tf.ConfigProto()
 #config.gpu_options.per_process_gpu_memory_fraction = 0.3
 #set_session(tf.Session(config=config))
-
-
 
 #Let's capture the starting time and send it to the destination in order to tell that the experiment started 
 startingTime=datetime.datetime.now()
@@ -85,7 +82,7 @@ model.add(Activation('linear'))
 
 dqt = DeepQTrading(
     model=model,
-    explorations=[(0.2,config['epoch'])],
+    explorations=[(0.2,global_config.epoch)],
     trainSize=datetime.timedelta(days=360*5),
     validationSize=datetime.timedelta(days=30*6),
     testSize=datetime.timedelta(days=30*6),
@@ -94,7 +91,7 @@ dqt = DeepQTrading(
     end=datetime.datetime(2011,2,28,0,0,0,0),
     nbActions=nb_actions,
     isOnlyShort=isOnlyShort,
-    ensembleFolderName=sys.argv[3]
+    ensembleFolderName=global_config.ensembleFolder
     )
 
 # dqt = DeepQTrading(

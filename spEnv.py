@@ -13,6 +13,8 @@ from datetime import datetime
 from mergedDataStructure import MergedDataStructure
 from decimal import Decimal
 import global_config
+
+from trend_reader import TrendReader
 #This is the prefix of the files that will be opened. It is related to the s&p500 stock market datasets
 MK = global_config.MK
 ensembleFolder = global_config.ensembleFolder
@@ -70,13 +72,16 @@ class SpEnv(gym.Env):
         Low = spTimeserie.loc[:, 'Low'].tolist()
         Close = spTimeserie.loc[:, 'Close'].tolist()
 
-        self.weekData = pandas.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(iteration) + "ensemble_" + type + ".csv",index_col='Date',parse_dates=True)
-        self.weekData.index = pandas.to_datetime(self.weekData.index)
-        self.weekData.index = self.weekData.index.strftime('%m/%d/%Y')
-        self.weekData.rename(columns={'trend': 'trend'}, inplace=True)
-        # self.weekData = MergedDataStructure(filename=f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(iteration) + "ensemble_" + type + ".csv")
-        self.dayData = MergedDataStructure(filename=f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(iteration) + "ensemble_" + type + ".csv")
+        # self.weekData = pandas.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(iteration) + "ensemble_" + type + ".csv",index_col='Date',parse_dates=True)
+        # self.weekData.index = pandas.to_datetime(self.weekData.index)
+        # self.weekData.index = self.weekData.index.strftime('%m/%d/%Y')
+        # self.weekData.rename(columns={'trend': 'trend'}, inplace=True)
+        # # self.weekData = MergedDataStructure(filename=f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(iteration) + "ensemble_" + type + ".csv")
+        # self.dayData = MergedDataStructure(filename=f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(iteration) + "ensemble_" + type + ".csv")
         #Load the data
+
+        self.dayData = TrendReader(f'Output/trend/{MK}Day.csv')
+        self.weekData = TrendReader(f'Output/trend/{MK}Week.csv')
         self.output=False
 
         #ensamble is the table of validation and testing
@@ -248,19 +253,26 @@ class SpEnv(gym.Env):
         #The state is prepared by the environment, which is simply the feature vector
         
         
-        if self.name == "Hour":
-            # print(date)
-            # print(self.history[self.currentObservation-self.observationWindow:self.currentObservation])
-            # print(len(self.history[self.currentObservation-self.observationWindow:self.currentObservation]))
-            # print(getTrendsWeek(self.weekData, date))
-            array = numpy.array(
+        # if self.name == "Hour":
+        #     print(date)
+        #     print(self.history[self.currentObservation-self.observationWindow:self.currentObservation])
+        #     print(len(self.history[self.currentObservation-self.observationWindow:self.currentObservation]))
+        #     print(getTrendsWeek(self.weekData, date))
+        #     array = numpy.array(
+        #         [list(
+        #             map(
+        #                 lambda x: (x["Close"]-x["Open"])/x["Open"],
+        #                     self.history[self.currentObservation-self.observationWindow:self.currentObservation] 
+        #                     )) + self.dayData.get(date) + getTrendsWeek(self.weekData, date)])
+            # print(array)
+            # print("===========================")
+
+        array = numpy.array(
                 [list(
                     map(
                         lambda x: (x["Close"]-x["Open"])/x["Open"],
                             self.history[self.currentObservation-self.observationWindow:self.currentObservation] 
-                            )) + self.dayData.get(date) + getTrendsWeek(self.weekData, date)])
-            # print(array)
-            # print("===========================")
+                            )) + self.dayData.get(date) + self.weekData.get(date)])
 
         return  array
 
