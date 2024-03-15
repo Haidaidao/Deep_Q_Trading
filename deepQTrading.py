@@ -491,8 +491,8 @@ class DeepQTrading:
                     #It means that, for the next walk, the training data will start 6 months after the training data of
                     #the previous walk
                 self.currentStartingPoint+=self.testSize
-                # if name == "Hour":
-                #     return
+                if name == "Hour":
+                    return
 
 
 

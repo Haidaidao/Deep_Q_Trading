@@ -5,7 +5,7 @@
 import pandas
 
 #Library used to manipulate dates
-import datetime
+from datetime import datetime, timedelta
 import global_config
 #This is the prefix of the files that will be opened. It is related to the s&p500 stock market datasets
 MK = global_config.MK
@@ -23,16 +23,46 @@ MK = global_config.MK
 
 #     return index[0]
 
+# def getTrendsWeek(Frame, date):
+#     # result = []
+#     date = datetime.strptime(date, "%m/%d/%Y")  # Chuyển đổi ngày đầu vào sang datetime
+#     print(Frame)
+#     # Đảm bảo rằng index của Frame là datetime để so sánh
+#     # Frame.index = pandas.to_datetime(Frame.index)
+    
+#     print("*********")
+#     for i in range(len(Frame)):
+        
+#         # Giả định rằng Frame.index đã là ngày tháng
+#         if Frame.index[i] >= date:
+#             print("----")
+#             print(Frame.index[i])
+#             print("----")
+#             return Frame.index[i]
+
+def getTrendsWeek(Frame, date):
+    date = datetime.strptime(date, "%m/%d/%Y")  # Convert input date to datetime
+
+    Frame['Date'] = pandas.to_datetime(Frame['Date'])
+
+    # Tìm và in giá trị 'Date' đầu tiên thỏa mãn điều kiện
+    for i in range(len(Frame)):
+        if Frame['Date'].iloc[i] >= date:
+            return Frame['Date'].iloc[i].strftime("%Y-%m-%d")
+
+
+
+
 class MergedDataStructure():
 
     def __init__(self,filename="sp500Week.csv"):
 
         #Read the CSV
         self.timeserie = pandas.read_csv(filename)
-
+        # print(self.timeserie)
         #Transform each column into a list
         Date = self.timeserie.loc[:, 'Date'].tolist()
-        
+        print(Date)
         Trend = self.timeserie.loc[:, 'trend'].tolist()
 
         #Create empty list and dictionary
@@ -48,7 +78,7 @@ class MergedDataStructure():
             self.list.append({'Date' : Date[i],'Trend' : Trend[i]})
             
             #Fill the gaps with days that do not exist 
-            dateList = [datetime.datetime.strptime(Date[i+1], "%m/%d/%Y") - datetime.timedelta(days=x) for x in range(0, ( datetime.datetime.strptime(Date[i+1], "%m/%d/%Y")- datetime.datetime.strptime(Date[i], "%m/%d/%Y") ).days )]
+            dateList = [datetime.strptime(Date[i], "%m/%d/%Y") - timedelta(days=x) for x in range(0, (datetime.strptime(Date[i+1], "%m/%d/%Y") - datetime.strptime(Date[i], "%m/%d/%Y")).days)]
             
             for date in dateList:
                 dateString=date.strftime("%m/%d/%Y")
@@ -58,17 +88,23 @@ class MergedDataStructure():
 
     def get(self, date, delta = 5, name = "Day"):
         result = []
-
+        if name == "Week":
+            date = getTrendsWeek(self.timeserie, date)
+            date = datetime.strptime(date, "%Y-%m-%d")
+            date = date.strftime("%m/%d/%Y")
         dateString=str(date)
-
+        # print(dateString)
+        # # print(self.list)
+        # print("&&&&")
+        print(name)
         start = self.dict[dateString] + 1
         if self.dict[dateString]-(delta) + 1 < 0: 
             for i in range (0, delta - start):
                 result.append(0)
-            # print(self.list[:self.dict[dateString] + 1])
+            print(self.list[:self.dict[dateString] + 1])
             result.extend([item['Trend'] for item in self.list[0:self.dict[dateString]+1]])
         else:
-            # print(self.list[self.dict[dateString]-(delta) + 1:self.dict[dateString]+1])
+            print(self.list[self.dict[dateString]-(delta) + 1:self.dict[dateString]+1])
             result.extend([item['Trend'] for item in self.list[self.dict[dateString]-(delta) + 1:self.dict[dateString]+1]])
 
 

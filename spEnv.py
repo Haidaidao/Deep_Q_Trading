@@ -17,26 +17,26 @@ import global_config
 MK = global_config.MK
 ensembleFolder = global_config.ensembleFolder
 
-def getTrendsWeek(Frame, date):
-    result = []
-    date = datetime.strptime(date, "%m/%d/%Y")  # Chuyển đổi ngày đầu vào sang datetime
+# def getTrendsWeek(Frame, date):
+#     result = []
+#     date = datetime.strptime(date, "%m/%d/%Y")  # Chuyển đổi ngày đầu vào sang datetime
 
-    # Đảm bảo rằng index của Frame là datetime để so sánh
-    Frame.index = pandas.to_datetime(Frame.index)
+#     # Đảm bảo rằng index của Frame là datetime để so sánh
+#     Frame.index = pandas.to_datetime(Frame.index)
 
-    for i in range(len(Frame)):
-        # Giả định rằng Frame.index đã là ngày tháng
-        if Frame.index[i] >= date:
-            # print(Frame.index[i])
-            if i - 4 < 0:
-                result.extend([0] * (4-i)) 
-                result.extend(Frame.iloc[0:i + 1]['trend'].tolist()) 
-            else:
-                result.extend(Frame.iloc[i-4:i+1]['trend'].tolist()) 
+#     for i in range(len(Frame)):
+#         # Giả định rằng Frame.index đã là ngày tháng
+#         if Frame.index[i] >= date:
+#             # print(Frame.index[i])
+#             if i - 4 < 0:
+#                 result.extend([0] * (4-i)) 
+#                 result.extend(Frame.iloc[0:i + 1]['trend'].tolist()) 
+#             else:
+#                 result.extend(Frame.iloc[i-4:i+1]['trend'].tolist()) 
             
-            return result
+#             return result
 
-    return [0, 0, 0, 0, 0]
+#     return [0, 0, 0, 0, 0]
 
 
 class SpEnv(gym.Env):
@@ -70,11 +70,11 @@ class SpEnv(gym.Env):
         Low = spTimeserie.loc[:, 'Low'].tolist()
         Close = spTimeserie.loc[:, 'Close'].tolist()
 
-        self.weekData = pandas.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(iteration) + "ensemble_" + type + ".csv",index_col='Date',parse_dates=True)
-        self.weekData.index = pandas.to_datetime(self.weekData.index)
-        self.weekData.index = self.weekData.index.strftime('%m/%d/%Y')
-        self.weekData.rename(columns={'trend': 'trend'}, inplace=True)
-        # self.weekData = MergedDataStructure(filename=f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(iteration) + "ensemble_" + type + ".csv")
+        # self.weekData = pandas.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(iteration) + "ensemble_" + type + ".csv",index_col='Date',parse_dates=True)
+        # self.weekData.index = pandas.to_datetime(self.weekData.index)
+        # self.weekData.index = self.weekData.index.strftime('%m/%d/%Y')
+        # self.weekData.rename(columns={'trend': 'trend'}, inplace=True)
+        self.weekData = MergedDataStructure(filename=f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(iteration) + "ensemble_" + type + ".csv")
         self.dayData = MergedDataStructure(filename=f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(iteration) + "ensemble_" + type + ".csv")
         #Load the data
         self.output=False
@@ -253,14 +253,22 @@ class SpEnv(gym.Env):
             # print(self.history[self.currentObservation-self.observationWindow:self.currentObservation])
             # print(len(self.history[self.currentObservation-self.observationWindow:self.currentObservation]))
             # print(getTrendsWeek(self.weekData, date))
+            # array = numpy.array(
+            #     [list(
+            #         map(
+            #             lambda x: (x["Close"]-x["Open"])/x["Open"],
+            #                 self.history[self.currentObservation-self.observationWindow:self.currentObservation] 
+            #                 )) + self.dayData.get(date) + getTrendsWeek(self.weekData, date)])
+            print(date)
             array = numpy.array(
                 [list(
                     map(
                         lambda x: (x["Close"]-x["Open"])/x["Open"],
                             self.history[self.currentObservation-self.observationWindow:self.currentObservation] 
-                            )) + self.dayData.get(date) + getTrendsWeek(self.weekData, date)])
-            # print(array)
-            # print("===========================")
+                            )) + self.dayData.get(date, 5,'Day') + self.weekData.get(date, 5, 'Week')])
+
+            print(array)
+            print("===========================")
 
         return  array
 
