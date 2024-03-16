@@ -56,11 +56,10 @@ def identify_df_trends(df, prices, window_size = 5):
     
 
 class TrendSlope:
-    def __init__(self, iteration = None, minLimit=None, maxLimit=None, name = "Week", type = "test", columnName = "trend", frame = "Long"):
+    def __init__(self, name = "Week", columnName = "trend"):
         self.name = name
-        self.spTimeserie = pd.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit+1]
-        self.minlimit = minLimit
-        self.maxLimit = maxLimit
+        self.spTimeserie = pd.read_csv('./datasets/'+MK+self.name+'.csv')
+
         self.Date = self.spTimeserie.loc[:, 'Date'].tolist()
         self.Time = self.spTimeserie.loc[:, 'Time'].tolist()
         self.Open = self.spTimeserie.loc[:, 'Open'].tolist()
@@ -70,9 +69,7 @@ class TrendSlope:
 
         self.columnName = columnName
         self.name = name
-        self.iteration = iteration
-        self.type = type
-        self.frame = frame 
+
 
     def findDelta(self, begin, end):
         price1 = self.Close[begin]

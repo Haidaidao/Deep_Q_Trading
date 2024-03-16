@@ -195,7 +195,7 @@ class DeepQTrading:
         week = TrendSlope(name = "Week")
         week.writeFile()
 
-        
+   
         #Initiates the environments, 
         trainEnv=validEnv=testEnv=" "
         
