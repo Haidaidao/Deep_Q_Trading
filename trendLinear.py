@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from statistics import mean
-
+import numpy
 from unidecode import unidecode
 
 import gym
@@ -17,7 +17,7 @@ from gym import spaces
 from datetime import datetime
 
 from decimal import Decimal
-
+from sklearn.linear_model import LinearRegression
 import string
 import global_config
 
@@ -26,7 +26,6 @@ MK = global_config.MK
 def identify_df_trends(df, prices, window_size = 5):
 
     df_result = pd.DataFrame(index=df.index, columns=['trend'])
-    # df_result['close'] = prices
 
     trends = []  # Danh sách để lưu trữ xu hướng của mỗi cửa sổ
     
@@ -56,14 +55,15 @@ def identify_df_trends(df, prices, window_size = 5):
             df_result.at[index, 'trend'] = 0
         count = count + 1
 
+    
     return df_result
     
 
-class Trend:
+class TrendLinear:
     def __init__(self, name = "Week", columnName = "trend"):
         self.name = name
         self.spTimeserie = pd.read_csv('./datasets/'+MK+self.name+'.csv')
-        
+
         self.Date = self.spTimeserie.loc[:, 'Date'].tolist()
         self.Time = self.spTimeserie.loc[:, 'Time'].tolist()
         self.Open = self.spTimeserie.loc[:, 'Open'].tolist()
@@ -75,12 +75,24 @@ class Trend:
         self.name = name
 
 
-    # def trend(self):
-    #     trendResult = []
-    #     macd , signal = self.calculate_MACD()
-    #     for i in range(0,len(self.Date)):
-    #         trendResult.append(self.analyze_market_trend(macd[i], signal[i]))
-    #     return pd.DataFrame({'ensemble': trendResult}, index=pd.to_datetime(self.Date))
+    def findDelta(self, begin, end):
+        X = numpy.arange(1, 5).reshape(-1, 1) 
+        y = self.Close[begin:end]
+        model_term = LinearRegression().fit(X, y)
+        slope_term = model_term.coef_[0]
+        return slope_term
+
+    def trendAddDelta(self, trendArr):
+
+        for i in range(0,len(self.Date)):  
+            if trendArr[i]!=0:
+                if i-4>=0:
+                    delta = self.findDelta(i-4,i)
+                    normalized_m = np.arctan(delta) / (np.pi / 2)
+                    trendArr[i] = normalized_m
+
+        return trendArr
+
 
     def writeFile(self):
         
@@ -88,6 +100,7 @@ class Trend:
         ensambleValid.index.name='Date'
         self.spTimeserie.set_index('Date', inplace=True)
         trendResult = identify_df_trends(df = self.spTimeserie, prices = self.Close , window_size=5)
+        trendResult['trend'] = self.trendAddDelta(trendResult['trend'].tolist())
         for i in range(0,len(self.Date)):
             ensambleValid.at[trendResult.index[i],self.columnName]=trendResult['trend'][i]
         ensambleValid['close'] = self.Close

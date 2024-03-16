@@ -520,7 +520,7 @@ def ResultNewState(numWalks,type,numDel):
 
     for j in range(0,numWalks):
 
-        df=pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk"+"Hour"+str(j)+"ensemble_"+type+".csv",index_col='Date')
+        df=pd.read_csv(f"./Output/ensemble/walk"+str(j)+"ensemble_"+type+".csv",index_col='Date')
         
         from_date=str(df.index[0])
         to_date=str(df.index[len(df)-1])
@@ -552,7 +552,7 @@ def ResultNewState(numWalks,type,numDel):
                     rew+=(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
                     doll+=(dax.at[date,'Close']-dax.at[date,'Open'])*50
                     cov+=1
-                elif (i['ensemble']==-1):
+                elif (i['ensemble']==2):
 
                     neg+= 0 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
                     pos+= 1 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
