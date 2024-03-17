@@ -21,14 +21,9 @@ func_map = {
     "NewState": ResultNewState
 }
 
-config = json.load(open('config.json', 'r'))
+numFiles=global_config.num_files
 
-# numFiles = config['num_files']
-with open('numFile.txt', 'r', encoding='utf-8') as file:
-    numFile = int(file.read()) 
-numFiles=numFile+1
-
-ensemble = func_map[config['type']]
+ensemble = func_map[global_config.ensemble_type]
 
 i=1
 ###########-------------------------------------------------------------------|Tabella Ensemble|-------------------

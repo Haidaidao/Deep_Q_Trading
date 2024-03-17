@@ -16,12 +16,14 @@ from sklearn.preprocessing import LabelEncoder
 import global_config
 import json
 
+from os import path
+
 config = json.load(open('config.json', 'r'))
 
 iteration = 'iteration' + str(config['epoch']-1)
 
 
-ensembleFolder = global_config.ensembleFolder
+ensembleFolder = global_config.ensemble_folder
 threshold = global_config.label_threshold
 
 
@@ -138,13 +140,14 @@ def XGBoostEnsemble(numWalks,type,numDel):
 
     for j in range(0, numWalks):
 
+        df1_fn = path.join('./Output/ensemble', ensembleFolder, f'walkHour{str(j)}ensemble_{type_train}.csv')
+        df2_fn = path.join('./Output/ensemble', ensembleFolder, f'walkDay{str(j)}ensemble_{type_train}.csv')
+        df3_fn = path.join('./Output/ensemble', ensembleFolder, f'walkWeek{str(j)}ensemble_{type_train}.csv')
+
         # Train
-        df1 = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Hour" + str(j) + "ensemble_" + type_train+ ".csv",
-                          index_col='Date')
-        df2 = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(j) + "ensemble_" + type_train + ".csv",
-                          index_col='Date')
-        df3 = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(j) + "ensemble_" + type_train + ".csv",
-                          index_col='Date')
+        df1 = pd.read_csv(df1_fn, index_col='Date')
+        df2 = pd.read_csv(df2_fn, index_col='Date')
+        df3 = pd.read_csv(df3_fn, index_col='Date')
 
         for deleted in range(1, numDel):
             del df1['iteration' + str(deleted)]
@@ -185,12 +188,13 @@ def XGBoostEnsemble(numWalks,type,numDel):
         df = pd.DataFrame(columns=['ensemble'])
         df = df.set_index(pd.Index([], name='date'))
 
-        df1_result = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Hour" + str(j) + "ensemble_" + type + ".csv",
-                          index_col='Date')
-        df2_result = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(j) + "ensemble_" + type + ".csv",
-                          index_col='Date')
-        df3_result = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(j) + "ensemble_" + type + ".csv",
-                          index_col='Date')
+        df1_res_fn = path.join('./Output/ensemble', ensembleFolder, f'walkHour{str(j)}ensemble_{type}.csv')
+        df2_res_fn = path.join('./Output/ensemble', ensembleFolder, f'walkDay{str(j)}ensemble_{type}.csv')
+        df3_res_fn = path.join('./Output/ensemble', ensembleFolder, f'walkWeek{str(j)}ensemble_{type}.csv')
+
+        df1_result = pd.read_csv(df1_res_fn, index_col='Date')
+        df2_result = pd.read_csv(df2_res_fn, index_col='Date')
+        df3_result = pd.read_csv(df3_res_fn, index_col='Date')
 
         from_date=str(df2_result.index[0])
         to_date=str(df2_result.index[len(df2_result)-1])
@@ -278,12 +282,14 @@ def RandomForestEnsemble(numWalks,type,numDel):
 
     for j in range(0, numWalks):
         # Train
-        df1 = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Hour" + str(j) + "ensemble_" + type_train+ ".csv",
-                          index_col='Date')
-        df2 = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(j) + "ensemble_" + type_train + ".csv",
-                          index_col='Date')
-        df3 = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(j) + "ensemble_" + type_train + ".csv",
-                          index_col='Date')
+        df1_fn = path.join('./Output/ensemble', ensembleFolder, f'walkHour{str(j)}ensemble_{type_train}.csv')
+        df2_fn = path.join('./Output/ensemble', ensembleFolder, f'walkDay{str(j)}ensemble_{type_train}.csv')
+        df3_fn = path.join('./Output/ensemble', ensembleFolder, f'walkWeek{str(j)}ensemble_{type_train}.csv')
+
+        # Train
+        df1 = pd.read_csv(df1_fn, index_col='Date')
+        df2 = pd.read_csv(df2_fn, index_col='Date')
+        df3 = pd.read_csv(df3_fn, index_col='Date')
 
         for deleted in range(1, numDel):
             del df1['iteration' + str(deleted)]
@@ -322,12 +328,13 @@ def RandomForestEnsemble(numWalks,type,numDel):
         df = pd.DataFrame(columns=['ensemble'])
         df = df.set_index(pd.Index([], name='date'))
 
-        df1_result = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Hour" + str(j) + "ensemble_" + type + ".csv",
-                          index_col='Date')
-        df2_result = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(j) + "ensemble_" + type + ".csv",
-                          index_col='Date')
-        df3_result = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(j) + "ensemble_" + type + ".csv",
-                          index_col='Date')
+        df1_res_fn = path.join('./Output/ensemble', ensembleFolder, f'walkHour{str(j)}ensemble_{type}.csv')
+        df2_res_fn = path.join('./Output/ensemble', ensembleFolder, f'walkDay{str(j)}ensemble_{type}.csv')
+        df3_res_fn = path.join('./Output/ensemble', ensembleFolder, f'walkWeek{str(j)}ensemble_{type}.csv')
+
+        df1_result = pd.read_csv(df1_res_fn, index_col='Date')
+        df2_result = pd.read_csv(df2_res_fn, index_col='Date')
+        df3_result = pd.read_csv(df3_res_fn, index_col='Date')
 
         from_date=str(df2_result.index[0])
         to_date=str(df2_result.index[len(df2_result)-1])
@@ -413,9 +420,14 @@ def SimpleEnsemble(numWalks,type,numDel):
 
     for j in range(0,numWalks):
 
-        df1=pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk"+"Hour"+str(j)+"ensemble_"+type+".csv",index_col='Date')
-        df2=pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk"+"Day"+str(j)+"ensemble_"+type+".csv",index_col='Date')
-        df3=pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk"+"Week"+str(j)+"ensemble_"+type+".csv",index_col='Date')
+        df1_fn = path.join('./Output/ensemble', ensembleFolder, f'walkHour{str(j)}ensemble_{type}.csv')
+        df2_fn = path.join('./Output/ensemble', ensembleFolder, f'walkDay{str(j)}ensemble_{type}.csv')
+        df3_fn = path.join('./Output/ensemble', ensembleFolder, f'walkWeek{str(j)}ensemble_{type}.csv')
+
+        # Train
+        df1 = pd.read_csv(df1_fn, index_col='Date')
+        df2 = pd.read_csv(df2_fn, index_col='Date')
+        df3 = pd.read_csv(df3_fn, index_col='Date')
 
         from_date=str(df2.index[0])
         to_date=str(df2.index[len(df2)-1])
@@ -519,8 +531,11 @@ def ResultNewState(numWalks,type,numDel):
     dax = pd.read_csv("./datasets/" + global_config.MK + "Day.csv", index_col='Date')
 
     for j in range(0,numWalks):
+        
+        df_fn = path.join('./Output/ensemble', ensembleFolder, f'walkHour{str(j)}ensemble_{type}.csv')
 
-        df=pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk"+"Hour"+str(j)+"ensemble_"+type+".csv",index_col='Date')
+
+        df=pd.read_csv(df_fn, index_col='Date')
         
         from_date=str(df.index[0])
         to_date=str(df.index[len(df)-1])

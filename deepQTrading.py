@@ -180,9 +180,8 @@ class DeepQTrading:
                                                                                        self.endingPoint, self.testSize, 
                                                                                        self.trainSize, self.validationSize)
         numFile = numFile + 1
-       
-        with open('numFile.txt', 'w', encoding='utf-8') as file:
-            file.write(str(numFile-1))
+         
+        global_config.writeConfig('num_files', numFile-1)
 
         #Initiates the environments,
         trainEnv=validEnv=testEnv=" "

@@ -17,7 +17,7 @@ import global_config
 from trend_reader import TrendReader
 #This is the prefix of the files that will be opened. It is related to the s&p500 stock market datasets
 MK = global_config.MK
-ensembleFolder = global_config.ensembleFolder
+ensembleFolder = global_config.ensemble_folder
 
 def getTrendsWeek(Frame, date):
     result = []

@@ -91,7 +91,7 @@ dqt = DeepQTrading(
     end=datetime.datetime(2011,2,28,0,0,0,0),
     nbActions=nb_actions,
     isOnlyShort=isOnlyShort,
-    ensembleFolderName=global_config.ensembleFolder
+    ensembleFolderName=global_config.ensemble_folder
     )
 
 # dqt = DeepQTrading(
