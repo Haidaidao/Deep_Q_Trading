@@ -49,7 +49,7 @@ class TrendReader:
         return date_list
 
 
-    def get(self, date, window_size=5):
+    def get(self, date, window_size=5, name = "Day"):
         result = []
 
         # sync the request date with closest possible date before the required date (only get data that already know, not the data in the future)
@@ -63,14 +63,26 @@ class TrendReader:
                 start = self.dict[dateString] + 1
             except Exception:
                 date = date - datetime.timedelta(days=1)
-                
+        plus = 0
+        if name == 'Week':
+            plus = 1
+
+        # if self.dict[dateString]-(window_size) + 1 < 0: 
+        #     for i in range (0, window_size - start):
+        #         result.append(0) 
+        #     print(self.list[:self.dict[dateString] + 1])
+        #     result.extend([item['Trend'] for item in self.list[0:self.dict[dateString]+1]])
+        # else:
+        #     print(self.list[self.dict[dateString]-(window_size) +1 :self.dict[dateString] +1])
+        #     result.extend([item['Trend'] for item in self.list[self.dict[dateString]-(window_size) +1 :self.dict[dateString]+1]])
+
         if self.dict[dateString]-(window_size) + 1 < 0: 
             for i in range (0, window_size - start):
                 result.append(0) 
-            # print(self.list[:self.dict[dateString] + 1])
-            result.extend([item['Trend'] for item in self.list[0:self.dict[dateString]+1]])
+            # print(self.list[:self.dict[dateString] + plus])
+            result.extend([item['Trend'] for item in self.list[0:self.dict[dateString]+plus]])
         else:
-            # print(self.list[self.dict[dateString]-(delta) + 1:self.dict[dateString]+1])
-            result.extend([item['Trend'] for item in self.list[self.dict[dateString]-(window_size) + 1:self.dict[dateString]+1]])
+            # print(self.list[self.dict[dateString]-(window_size) +plus :self.dict[dateString] +plus])
+            result.extend([item['Trend'] for item in self.list[self.dict[dateString]-(window_size) +plus :self.dict[dateString]+plus]])
 
         return result

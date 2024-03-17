@@ -19,26 +19,26 @@ from trend_reader import TrendReader
 MK = global_config.MK
 ensembleFolder = global_config.ensemble_folder
 
-def getTrendsWeek(Frame, date):
-    result = []
-    date = datetime.strptime(date, "%m/%d/%Y")  # Chuyển đổi ngày đầu vào sang datetime
+# def getTrendsWeek(Frame, date):
+#     result = []
+#     date = datetime.strptime(date, "%m/%d/%Y")  # Chuyển đổi ngày đầu vào sang datetime
 
-    # Đảm bảo rằng index của Frame là datetime để so sánh
-    Frame.index = pandas.to_datetime(Frame.index)
+#     # Đảm bảo rằng index của Frame là datetime để so sánh
+#     Frame.index = pandas.to_datetime(Frame.index)
 
-    for i in range(len(Frame)):
-        # Giả định rằng Frame.index đã là ngày tháng
-        if Frame.index[i] >= date:
-            # print(Frame.index[i])
-            if i - 4 < 0:
-                result.extend([0] * (4-i)) 
-                result.extend(Frame.iloc[0:i + 1]['trend'].tolist()) 
-            else:
-                result.extend(Frame.iloc[i-4:i+1]['trend'].tolist()) 
+#     for i in range(len(Frame)):
+#         # Giả định rằng Frame.index đã là ngày tháng
+#         if Frame.index[i] >= date:
+#             # print(Frame.index[i])
+#             if i - 4 < 0:
+#                 result.extend([0] * (4-i)) 
+#                 result.extend(Frame.iloc[0:i + 1]['trend'].tolist()) 
+#             else:
+#                 result.extend(Frame.iloc[i-4:i+1]['trend'].tolist()) 
             
-            return result
+#             return result
 
-    return [0, 0, 0, 0, 0]
+#     return [0, 0, 0, 0, 0]
 
 
 class SpEnv(gym.Env):
@@ -258,8 +258,8 @@ class SpEnv(gym.Env):
                     map(
                         lambda x: (x["Close"]-x["Open"])/x["Open"],
                             self.history[self.currentObservation-self.observationWindow:self.currentObservation] 
-                            )) + self.dayData.get(date) + self.weekData.get(date)])
-
+                            )) + self.dayData.get(date,name="Day") + self.weekData.get(date, name="Week")])
+        print("===================")
         return  array
 
     def resetEnv(self):
