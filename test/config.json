@@ -1,8 +1,8 @@
 {
     "ensemble_type": "NewState",
-    "num_files": 9,
+    "num_files": 8,
     "MK": "dax",
     "ensemble_folder": "",
     "label_threshold": 0.005,
-    "epoch": 50
+    "epoch": 1
 }
