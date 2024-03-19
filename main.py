@@ -21,6 +21,8 @@ from keras.layers import Dense, Activation, Flatten
 from keras.layers import LeakyReLU
 
 from trend import TrendGenerator
+from trendLinear import TrendLinearGenerator
+from trendSlope import TrendSlopeGenerator
 
 #Library used for showing the exception in the case of error 
 import sys
@@ -29,10 +31,10 @@ import global_config
 
 MK = global_config.MK
 
-trendDay = TrendGenerator(name="Day")
+trendDay = TrendSlopeGenerator(name="Day")
 trendDay.writeFile(f'Output/trend/{MK}Day.csv')
 
-trendWeek = TrendGenerator(name="Week")
+trendWeek = TrendSlopeGenerator(name="Week")
 trendWeek.writeFile(f'Output/trend/{MK}Week.csv')
 
 #import tensorflow as tf

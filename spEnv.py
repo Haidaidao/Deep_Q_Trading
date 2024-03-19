@@ -9,7 +9,7 @@ import numpy
 #Pandas is the library used to deal with the CSV dataset
 import pandas
 #datetime is the library used to manipulate time and date
-from datetime import datetime
+from datetime import datetime, timedelta
 from mergedDataStructure import MergedDataStructure
 from decimal import Decimal
 import global_config
@@ -252,14 +252,18 @@ class SpEnv(gym.Env):
 
         #The state is prepared by the environment, which is simply the feature vector
         date = datetime.strptime(date, "%m/%d/%Y")
-
+        print(date)
+        print("Day: ")
+        print(self.dayData.get(date))
+        print("Week:")
+        print(self.weekData.get(date))
         array = numpy.array(
                 [list(
                     map(
                         lambda x: (x["Close"]-x["Open"])/x["Open"],
                             self.history[self.currentObservation-self.observationWindow:self.currentObservation] 
-                            )) + self.dayData.get(date) + self.weekData.get(date)])
-
+                            )) + self.dayData.get(date-timedelta(days=1)) + self.weekData.get(date)])
+        print("=================")
         return  array
 
     def resetEnv(self):

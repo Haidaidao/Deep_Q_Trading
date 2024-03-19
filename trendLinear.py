@@ -5,7 +5,7 @@ from investpy import get_stock_historical_data
 
 import numpy as np
 import pandas as pd
-
+import numpy
 from statistics import mean
 
 from unidecode import unidecode
@@ -17,7 +17,7 @@ from gym import spaces
 from datetime import datetime
 
 from decimal import Decimal
-
+from sklearn.linear_model import LinearRegression
 import string
 import global_config
 
@@ -59,7 +59,7 @@ def identify_df_trends(df, prices, window_size = 5):
     return df_result
     
 
-class TrendGenerator:
+class TrendLinearGenerator:
     def __init__(self, name = "Week", type = "test", columnName = "trend"):
         self.name = name
         self.spTimeserie = pd.read_csv('./datasets/'+MK+self.name+'.csv')
@@ -75,19 +75,30 @@ class TrendGenerator:
         self.name = name
         self.type = type
 
+    def findDelta(self, begin, end):
+        X = numpy.arange(1, 5).reshape(-1, 1) 
+        y = self.Close[begin:end]
+        model_term = LinearRegression().fit(X, y)
+        slope_term = model_term.coef_[0]
+        return slope_term
 
-    # def trend(self):
-    #     trendResult = []
-    #     macd , signal = self.calculate_MACD()
-    #     for i in range(0,len(self.Date)):
-    #         trendResult.append(self.analyze_market_trend(macd[i], signal[i]))
-    #     return pd.DataFrame({'ensemble': trendResult}, index=pd.to_datetime(self.Date))
+    def trendAddDelta(self, trendArr):
+
+        for i in range(0,len(self.Date)):  
+            if trendArr[i]!=0:
+                if i-4>=0:
+                    delta = self.findDelta(i-4,i)
+                    normalized_m = np.arctan(delta) / (np.pi / 2)
+                    trendArr[i] = normalized_m
+
+        return trendArr
 
     def writeFile(self, file_name):
         ensambleValid=pd.DataFrame()
         ensambleValid.index.name='Date'
         self.spTimeserie.set_index('Date', inplace=True)
         trendResult = identify_df_trends(df = self.spTimeserie, prices = self.Close , window_size=5)
+        trendResult['trend'] = self.trendAddDelta(trendResult['trend'].tolist())
         for i in range(0,len(self.Date)):
             ensambleValid.at[trendResult.index[i],self.columnName]=trendResult['trend'][i]
         ensambleValid['close'] = self.Close
