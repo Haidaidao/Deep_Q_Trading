@@ -57,6 +57,7 @@ def identify_df_trends(df, prices, window_size = 5):
 
     
     return df_result
+    
 
 class TrendSlope:
     def __init__(self, iteration = None, minLimit=None, maxLimit=None, name = "Week", type = "test", columnName = "trend", frame = "Long"):
@@ -78,11 +79,10 @@ class TrendSlope:
         self.frame = frame 
 
     def findDelta(self, begin, end):
-        X = numpy.arange(1, 5).reshape(-1, 1) 
-        y = self.Close[begin:end]
-        model_term = LinearRegression().fit(X, y)
-        slope_term = model_term.coef_[0]
-        return slope_term
+        price1 = self.Close[begin]
+        price2 = self.Close[end]
+
+        return (price2-price1)/5
 
     def trendAddDelta(self, trendArr):
 
@@ -91,21 +91,18 @@ class TrendSlope:
                 if i-4>=0:
                     delta = self.findDelta(i-4,i)
                     trendArr[i] = delta
-                else:
-                    if trendArr[i] != 0:
-                        trendArr[i] = 0
 
         return trendArr
 
 
     def writeFile(self):
+        
         ensambleValid=pd.DataFrame()
         ensambleValid.index.name='Date'
         self.spTimeserie.set_index('Date', inplace=True)
         trendResult = identify_df_trends(df = self.spTimeserie, prices = self.Close , window_size=5)
-
         trendResult['trend'] = self.trendAddDelta(trendResult['trend'].tolist())
-
         for i in range(0,len(self.Date)):
             ensambleValid.at[trendResult.index[i],self.columnName]=trendResult['trend'][i]
+        ensambleValid['close'] = self.Close
         ensambleValid.to_csv("./Output/ensemble/"+"ensembleFolder"+"/walk"+self.name+str(self.iteration)+"ensemble_"+self.type+".csv")

@@ -1,7 +1,6 @@
 # Copyright 2019-2020 Alvaro Bartolome
 # See LICENSE for details.
 
-import math
 from investpy import get_stock_historical_data
 
 import numpy as np
@@ -28,16 +27,21 @@ def identify_df_trends(df, prices, window_size = 5):
 
     df_result = pd.DataFrame(index=df.index, columns=['trend'])
 
-    trends = []  
+    trends = []  # Danh sách để lưu trữ xu hướng của mỗi cửa sổ
     
+    # Duyệt qua mỗi cửa sổ con trong tập dữ liệu
     for i in range(len(prices) - window_size + 1):
+        # Lấy cửa sổ con hiện tại
         window = prices[i:i+window_size]
         
+        
+        # Kiểm tra xu hướng tăng
         if all(window[j] < window[j+1] for j in range(window_size - 1)):
             trends.append(1)
-        
+        # Kiểm tra xu hướng giảm
         elif all(window[j] > window[j+1] for j in range(window_size - 1)):
             trends.append(-1)
+        # Nếu không phải tăng hoặc giảm, xu hướng là Sideway
         else:
             trends.append(0)
 
@@ -53,9 +57,8 @@ def identify_df_trends(df, prices, window_size = 5):
 
     
     return df_result
-    
 
-class TrendScalerTanAlpha:
+class TrendLinear:
     def __init__(self, iteration = None, minLimit=None, maxLimit=None, name = "Week", type = "test", columnName = "trend", frame = "Long"):
         self.name = name
         self.spTimeserie = pd.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit+1]
@@ -75,10 +78,11 @@ class TrendScalerTanAlpha:
         self.frame = frame 
 
     def findDelta(self, begin, end):
-        price1 = self.Close[begin]
-        price2 = self.Close[end]
-
-        return (price2-price1)/5
+        X = numpy.arange(1, 5).reshape(-1, 1) 
+        y = self.Close[begin:end]
+        model_term = LinearRegression().fit(X, y)
+        slope_term = model_term.coef_[0]
+        return slope_term
 
     def trendAddDelta(self, trendArr):
 
@@ -86,19 +90,22 @@ class TrendScalerTanAlpha:
             if trendArr[i]!=0:
                 if i-4>=0:
                     delta = self.findDelta(i-4,i)
-                    trendArr[i] = math.tanh(delta)
+                    trendArr[i] = delta
+                else:
+                    if trendArr[i] != 0:
+                        trendArr[i] = 0
 
         return trendArr
 
 
     def writeFile(self):
+        
         ensambleValid=pd.DataFrame()
         ensambleValid.index.name='Date'
         self.spTimeserie.set_index('Date', inplace=True)
         trendResult = identify_df_trends(df = self.spTimeserie, prices = self.Close , window_size=5)
-
         trendResult['trend'] = self.trendAddDelta(trendResult['trend'].tolist())
-
         for i in range(0,len(self.Date)):
             ensambleValid.at[trendResult.index[i],self.columnName]=trendResult['trend'][i]
+        ensambleValid['close'] = self.Close
         ensambleValid.to_csv("./Output/ensemble/"+"ensembleFolder"+"/walk"+self.name+str(self.iteration)+"ensemble_"+self.type+".csv")

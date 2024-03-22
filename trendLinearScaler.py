@@ -59,7 +59,7 @@ def identify_df_trends(df, prices, window_size = 5):
     return df_result
     
 
-class TrendScaler:
+class TrendLinearScaler:
     def __init__(self, iteration = None, minLimit=None, maxLimit=None, name = "Week", type = "test", columnName = "trend", frame = "Long"):
         self.name = name
         self.spTimeserie = pd.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit+1]
@@ -98,13 +98,13 @@ class TrendScaler:
 
 
     def writeFile(self):
+        
         ensambleValid=pd.DataFrame()
         ensambleValid.index.name='Date'
         self.spTimeserie.set_index('Date', inplace=True)
         trendResult = identify_df_trends(df = self.spTimeserie, prices = self.Close , window_size=5)
-
         trendResult['trend'] = self.trendAddDelta(trendResult['trend'].tolist())
-
         for i in range(0,len(self.Date)):
             ensambleValid.at[trendResult.index[i],self.columnName]=trendResult['trend'][i]
+        ensambleValid['close'] = self.Close
         ensambleValid.to_csv("./Output/ensemble/"+"ensembleFolder"+"/walk"+self.name+str(self.iteration)+"ensemble_"+self.type+".csv")
