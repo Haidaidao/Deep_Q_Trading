@@ -22,42 +22,33 @@ func_map = {
 
 config = json.load(open('plotResultsConf.json', 'r'))
 
-# numFiles = config['num_files']
 with open('numFile.txt', 'r', encoding='utf-8') as file:
     numFile = int(file.read()) 
 numFiles=numFile+1
 ensemble = func_map[config['type']]
 
-i=1
-###########-------------------------------------------------------------------|Tabella Ensemble|-------------------
-x=2
-y=1
-plt.figure(figsize=(x*5,y*5))
+plt.figure(figsize=(8, 12)) # Điều chỉnh kích thước cho 2 hàng
 
-#for i in range(1,floor(x*y/2)+1):
-plt.subplot(y,x,i)
+# Bảng Valid
+plt.subplot(2, 1, 1) # Hàng 1, cột 1
 plt.axis('off')
-
-val,col = ensemble(numFiles,"valid",0)
-t=plt.table(cellText=val, colLabels=col, fontsize=100, loc='center')
+val, col = ensemble(numFiles,"valid",0)
+t=plt.table(cellText=val, colLabels=col, loc='center')
 t.auto_set_font_size(False)
 t.set_fontsize(6)
 t.auto_set_column_width(col=list(range(len(col))))
 plt.title("Valid")
 
-
-plt.subplot(y,x,i+1)
+# Bảng Test
+plt.subplot(2, 1, 2) # Hàng 2, cột 1
 plt.axis('off')
-
-val,col=ensemble(numFiles,"test",0)
-
-t=plt.table(cellText=val, colLabels=col, fontsize=30, loc='center')
+val, col = ensemble(numFiles,"test",0)
+t=plt.table(cellText=val, colLabels=col, loc='center')
 t.auto_set_font_size(False)
 t.set_fontsize(6)
 t.auto_set_column_width(col=list(range(len(col))))
 plt.title("Test")
 
-plt.suptitle("RESULT")
+plt.suptitle("RESULT", fontsize=10)
 pdf.savefig()
-
 pdf.close()

@@ -15,6 +15,7 @@ import xgboost as xgb
 from sklearn.preprocessing import LabelEncoder
 import global_config
 import json
+from Evaluation import Evaluation
 
 config = json.load(open('plotResultsConf.json', 'r'))
 
@@ -84,8 +85,8 @@ def ensemble_y_true(feature, stats, threshold):
             last_action = 1
             action = 1
         elif changes < -threshold or (last_action < 0 and changes < 0 and changes >= -threshold):
-            last_action = 2
-            action = 2
+            last_action = -1
+            action = -1
         else:
             last_action = 0
 
@@ -119,14 +120,15 @@ def ensemble_y_true(feature, stats, threshold):
 # ================================================ XGBoots
 def XGBoostEnsemble(numWalks,type,numDel):
     
-    dollSum = 0
-    rewSum = 0
-    posSum = 0
-    negSum = 0
-    covSum = 0
-    numSum = 0
+    current_balance_sum=0
+    net_profit_sum=0
+    winning_trade_number_sum=0
+    losing_trade_number_sum=0
+    profit_factor_sum=0
+    percent_profitable_sum=0
+    average_profit_per_trade_sum=0
 
-    columns = ["From","To", "Reward%", "#Wins", "#Losses", "Dollars", "Coverage", "Accuracy"]
+    columns = ["From","To", "Final balance", "Net Profit", "Wins", "Closes", "Profit factor", "Percent Profitable", "Average Profit per trade"]
 
     values = []
 
@@ -221,53 +223,38 @@ def XGBoostEnsemble(numWalks,type,numDel):
                 predicted_result = xgb_model.predict(new_data)
                 df.loc[df1_result.index[k]] = predicted_result[0]
 
-        num=0
-        rew=0
-        pos=0
-        neg=0
-        doll=0
-        cov=0
-        for date, i in df.iterrows():
-            num+=1
+        df['close'] = 0
+        df['close'] = df.index.map(dax['Close'])
 
-            if date in dax.index:
-                if (i['ensemble']==1):
-                    pos+= 1 if (dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
-                    neg+= 0 if (dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
-                    rew+=(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
-                    doll+=(dax.at[date,'Close']-dax.at[date,'Open'])*50
-                    cov+=1
-                elif (i['ensemble']==2):
-                    neg+= 0 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
-                    pos+= 1 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
-                    rew+=-(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
-                    cov+=1
-                    doll+=-(dax.at[date,'Close']-dax.at[date,'Open'])*50
+        test = Evaluation(df,'ensemble',f'./Output/result/'+config['MK']+type+'-'+str(j))
+       
+        current_balance, net_profit, winning_trade_number, losing_trade_number, profit_factor, percent_profitable, average_profit_per_trade = test.evaluate()
+       
+        values.append([from_date, to_date,str(round(current_balance,2)),str(round(net_profit,2)),str(round(winning_trade_number,2)),str(round(losing_trade_number,2)),str(round(profit_factor,2)),str(round(percent_profitable,2)) + '%', str(round(average_profit_per_trade,2))])
 
-        values.append([from_date, to_date,str(round(rew,2)),str(round(pos,2)),str(round(neg,2)),str(round(doll,2)),str(round(cov/num,2)),(str(round(pos/cov,2)) if (cov>0) else "None")])
+        current_balance_sum+=current_balance
+        net_profit_sum+=net_profit
+        winning_trade_number_sum+=winning_trade_number
+        losing_trade_number_sum+=losing_trade_number
+        profit_factor_sum+=profit_factor
+        percent_profitable_sum+=percent_profitable
+        average_profit_per_trade_sum+=average_profit_per_trade
 
-        dollSum+=doll
-        rewSum+=rew
-        posSum+=pos
-        negSum+=neg
-        covSum+=cov
-        numSum+=num
-
-
-    values.append([' ','Sum',str(round(rewSum,2)),str(round(posSum,2)),str(round(negSum,2)),str(round(dollSum,2)),str(round(covSum/numSum,2)),(str(round(posSum/covSum,2)) if (covSum>0) else "None")])
-    
+    values.append([' ','Sum',str(round(current_balance_sum,2)),str(round(net_profit_sum,2)),str(round(winning_trade_number_sum,2)),str(round(losing_trade_number_sum,2)),str(round(profit_factor_sum,2)),str(round(percent_profitable_sum,2)) + '%',str(round(average_profit_per_trade_sum,2))])
+    # print(values)
     return values,columns
 # ================================================ Random Forest
 def RandomForestEnsemble(numWalks,type,numDel):
     
-    dollSum = 0
-    rewSum = 0
-    posSum = 0
-    negSum = 0
-    covSum = 0
-    numSum = 0
+    current_balance_sum=0
+    net_profit_sum=0
+    winning_trade_number_sum=0
+    losing_trade_number_sum=0
+    profit_factor_sum=0
+    percent_profitable_sum=0
+    average_profit_per_trade_sum=0
 
-    columns = ["From","To", "Reward%", "#Wins", "#Losses", "Dollars", "Coverage", "Accuracy"]
+    columns = ["From","To", "Final balance", "Net Profit", "Wins", "Closes", "Profit factor", "Percent Profitable", "Average Profit per trade"]
 
     values = []
 
@@ -359,42 +346,25 @@ def RandomForestEnsemble(numWalks,type,numDel):
                 predicted_result = rf_model.predict(new_data)
                 df.loc[df1_result.index[k]] = predicted_result[0]
 
-        num=0
-        rew=0
-        pos=0
-        neg=0
-        doll=0
-        cov=0
-        for date, i in df.iterrows():
-            num+=1
 
-            if date in dax.index:
-                if (i['ensemble']==1):
-                    pos+= 1 if (dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
+        df['close'] = 0
+        df['close'] = df.index.map(dax['Close'])
 
-                    neg+= 0 if (dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
-                    rew+=(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
-                    doll+=(dax.at[date,'Close']-dax.at[date,'Open'])*50
-                    cov+=1
-                elif (i['ensemble']==2):
+        test = Evaluation(df,'ensemble',f'./Output/result/'+config['MK']+type+'-'+str(j))
+       
+        current_balance, net_profit, winning_trade_number, losing_trade_number, profit_factor, percent_profitable, average_profit_per_trade = test.evaluate()
+       
+        values.append([from_date, to_date,str(round(current_balance,2)),str(round(net_profit,2)),str(round(winning_trade_number,2)),str(round(losing_trade_number,2)),str(round(profit_factor,2)),str(round(percent_profitable,2)) + '%', str(round(average_profit_per_trade,2))])
 
-                    neg+= 0 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
-                    pos+= 1 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
-                    rew+=-(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
-                    cov+=1
-                    doll+=-(dax.at[date,'Close']-dax.at[date,'Open'])*50
+        current_balance_sum+=current_balance
+        net_profit_sum+=net_profit
+        winning_trade_number_sum+=winning_trade_number
+        losing_trade_number_sum+=losing_trade_number
+        profit_factor_sum+=profit_factor
+        percent_profitable_sum+=percent_profitable
+        average_profit_per_trade_sum+=average_profit_per_trade
 
-        values.append([from_date, to_date,str(round(rew,2)),str(round(pos,2)),str(round(neg,2)),str(round(doll,2)),str(round(cov/num,2)),(str(round(pos/cov,2)) if (cov>0) else "None")])
-
-        dollSum+=doll
-        rewSum+=rew
-        posSum+=pos
-        negSum+=neg
-        covSum+=cov
-        numSum+=num
-
-
-    values.append([' ','Sum',str(round(rewSum,2)),str(round(posSum,2)),str(round(negSum,2)),str(round(dollSum,2)),str(round(covSum/numSum,2)),(str(round(posSum/covSum,2)) if (covSum>0) else "None")])
+    values.append([' ','Sum',str(round(current_balance_sum,2)),str(round(net_profit_sum,2)),str(round(winning_trade_number_sum,2)),str(round(losing_trade_number_sum,2)),str(round(profit_factor_sum,2)),str(round(percent_profitable_sum,2)) + '%',str(round(average_profit_per_trade_sum,2))])
     # print(values)
     return values,columns
 # ================================================ Base-rule
