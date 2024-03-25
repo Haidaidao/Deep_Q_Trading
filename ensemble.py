@@ -30,8 +30,8 @@ def getActionWeek(weeksFrame, date):
 
     for i in range(0, len(weeksFrame)):
         week =  datetime.strptime(str(weeksFrame.index[i]),"%m/%d/%Y")
-        if week>=date:
-            return  weeksFrame['ensemble'][i]
+        if week>date:
+            return  weeksFrame['ensemble'][i-1]
     return 0
 
 # def ensemble_y_true(df1, df2, df3):

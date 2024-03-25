@@ -250,7 +250,7 @@ class DeepQTrading:
 
 
         
-
+        
 
         #Initiates the environments,
         trainEnv=validEnv=testEnv=" "
