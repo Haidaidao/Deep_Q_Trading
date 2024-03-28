@@ -35,34 +35,6 @@ def getActionWeek(weeksFrame, date):
             return  weeksFrame['ensemble'][i-1]
     return 0
 
-# def ensemble_y_true(df1, df2, df3):
-
-#     df = pd.DataFrame(columns=['ensemble'])
-#     df = df.set_index(pd.Index([], name='date'))
-
-#     for k in range(0,len(df1)):
-#         if(df1.index[k] in df2.index):
-#             if df1['ensemble'][k] == 0:
-#                 df.loc[df1.index[k]] = 0
-#             else:
-#                 if df1['ensemble'][k] == getActionWeek(df3, df2.index[k]) or df1['ensemble'][k] == df2.loc[df1.index[k],'ensemble']: 
-#                     if  getActionWeek(df3, df2.index[k]) == df2.loc[df1.index[k],'ensemble']  and df2.loc[df1.index[k],'ensemble'] != df1['ensemble'][k] :
-#                         df.loc[df1.index[k]] = 0
-#                     elif df2.loc[df1.index[k],'ensemble'] == 0 and getActionWeek(df3, df2.index[k]) !=0:
-#                         df.loc[df1.index[k]] = getActionWeek(df3, df2.index[k])
-#                     elif df2.loc[df1.index[k],'ensemble'] != 0 and getActionWeek(df3, df2.index[k]) ==0:
-#                         df.loc[df1.index[k]] = df2.loc[df1.index[k],'ensemble']
-#                     elif getActionWeek(df3, df2.index[k]) != df2.loc[df1.index[k],'ensemble']:
-#                         df.loc[df1.index[k]] = 0
-#                     elif getActionWeek(df3, df2.index[k]) == df2.loc[df1.index[k],'ensemble']:
-#                         df.loc[df1.index[k]] = df2.loc[df1.index[k],'ensemble']
-#                     else:
-#                         df.loc[df1.index[k]] = 0
-#                 else: 
-#                     df.loc[df1.index[k]] = 0
-
-#     return df['ensemble'].tolist()
-
 def ensemble_y_true(feature, stats, threshold):
 
     labels = []
@@ -85,32 +57,12 @@ def ensemble_y_true(feature, stats, threshold):
             last_action = 1
             action = 1
         elif changes < -threshold or (last_action < 0 and changes < 0 and changes >= -threshold):
-            last_action = -1
-            action = -1
+            last_action = 2
+            action = 2
         else:
             last_action = 0
 
         labels.append(action)
-
-    # for index, row in stats.iterrows():
-    #     if index not in feature1.index and index not in feature2.index and index not in feature3.index:
-    #         continue
-    #     action = 0
-    #     changes = (row['Close'] - row['Open']) / row['Open']
-
-    #     if changes >= threshold or (last_action == 1 and changes >= 0 and changes < threshold):
-    #         last_action = 1
-    #         action = 1
-    #     elif changes < -threshold or (last_action == 2 and changes < 0 and changes >= -threshold):
-    #         last_action = 2
-    #         action = 2
-    #     else:
-    #         last_action = 0
-            
-    #     labels.append(action)
-
-    # with open('test.txt', 'w') as f:
-    #     f.write('\n'.join(map(str, labels)))
             
     return labels
 
@@ -128,7 +80,7 @@ def XGBoostEnsemble(numWalks,type,numDel):
     percent_profitable_sum=0
     average_profit_per_trade_sum=0
 
-    columns = ["From","To", "Final balance", "Net Profit", "Wins", "Closes", "Profit factor", "Percent Profitable", "Average Profit per trade"]
+    columns = ["From","To", "Wins", "Closes", "Profit"]
 
     values = []
 
@@ -217,6 +169,13 @@ def XGBoostEnsemble(numWalks,type,numDel):
         for k in range(0,len(df3_temp)):
             df3_temp['ensemble'][k] = getActionWeek(df3_result,df3_temp.index[k])
 
+        # print(df1)
+        # print("=======")
+        # print(df2)
+        # print("=======")
+        # print(df3)
+        # print("--------------")
+
         for k in range(0,len(df1_result)):
             if(df1_result.index[k] in df2_result.index):
                 new_data = np.array([[df1_result['ensemble'][k], df2_result['ensemble'][k], df3_temp['ensemble'][k]]])
@@ -225,22 +184,25 @@ def XGBoostEnsemble(numWalks,type,numDel):
 
         df['close'] = 0
         df['close'] = df.index.map(dax['Close'])
-
-        test = Evaluation(df,'ensemble',f'./Output/result/'+config['MK']+type+'-'+str(j))
+        df['high'] = df.index.map(dax['High'])
+        df['low'] = df.index.map(dax['Low'])
+        # print(df)
+        # print("=================")
+        test = Evaluation(df)
        
-        current_balance, net_profit, winning_trade_number, losing_trade_number, profit_factor, percent_profitable, average_profit_per_trade = test.evaluate()
+        wins, loses, profit = test.evaluate()
        
-        values.append([from_date, to_date,str(round(current_balance,2)),str(round(net_profit,2)),str(round(winning_trade_number,2)),str(round(losing_trade_number,2)),str(round(profit_factor,2)),str(round(percent_profitable,2)) + '%', str(round(average_profit_per_trade,2))])
+        #values.append([from_date, to_date,str(round(current_balance,2)),str(round(net_profit,2)),str(round(winning_trade_number,2)),str(round(losing_trade_number,2)),str(round(profit_factor,2)),str(round(percent_profitable,2)) + '%', str(round(average_profit_per_trade,2))])
 
-        current_balance_sum+=current_balance
-        net_profit_sum+=net_profit
-        winning_trade_number_sum+=winning_trade_number
-        losing_trade_number_sum+=losing_trade_number
-        profit_factor_sum+=profit_factor
-        percent_profitable_sum+=percent_profitable
-        average_profit_per_trade_sum+=average_profit_per_trade
+        # current_balance_sum+=current_balance
+        # net_profit_sum+=net_profit
+        # winning_trade_number_sum+=winning_trade_number
+        # losing_trade_number_sum+=losing_trade_number
+        # profit_factor_sum+=profit_factor
+        # percent_profitable_sum+=percent_profitable
+        # average_profit_per_trade_sum+=average_profit_per_trade
 
-    values.append([' ','Sum',str(round(current_balance_sum,2)),str(round(net_profit_sum,2)),str(round(winning_trade_number_sum,2)),str(round(losing_trade_number_sum,2)),str(round(profit_factor_sum,2)),str(round(percent_profitable_sum,2)) + '%',str(round(average_profit_per_trade_sum,2))])
+    values.append([' ','Sum',str(round(wins,2)),str(round(loses,2)),str(round(profit,2))])
     # print(values)
     return values,columns
 # ================================================ Random Forest
@@ -349,23 +311,25 @@ def RandomForestEnsemble(numWalks,type,numDel):
 
         df['close'] = 0
         df['close'] = df.index.map(dax['Close'])
-
-        test = Evaluation(df,'ensemble',f'./Output/result/'+config['MK']+type+'-'+str(j))
+        df['high'] = df.index.map(dax['High'])
+        df['low'] = df.index.map(dax['Low'])
+        # print(df)
+        # print("=================")
+        test = Evaluation(df)
        
-        current_balance, net_profit, winning_trade_number, losing_trade_number, profit_factor, percent_profitable, average_profit_per_trade = test.evaluate()
+        wins, loses, profit = test.evaluate()
        
-        values.append([from_date, to_date,str(round(current_balance,2)),str(round(net_profit,2)),str(round(winning_trade_number,2)),str(round(losing_trade_number,2)),str(round(profit_factor,2)),str(round(percent_profitable,2)) + '%', str(round(average_profit_per_trade,2))])
+        #values.append([from_date, to_date,str(round(current_balance,2)),str(round(net_profit,2)),str(round(winning_trade_number,2)),str(round(losing_trade_number,2)),str(round(profit_factor,2)),str(round(percent_profitable,2)) + '%', str(round(average_profit_per_trade,2))])
 
-        current_balance_sum+=current_balance
-        net_profit_sum+=net_profit
-        winning_trade_number_sum+=winning_trade_number
-        losing_trade_number_sum+=losing_trade_number
-        profit_factor_sum+=profit_factor
-        percent_profitable_sum+=percent_profitable
-        average_profit_per_trade_sum+=average_profit_per_trade
+        # current_balance_sum+=current_balance
+        # net_profit_sum+=net_profit
+        # winning_trade_number_sum+=winning_trade_number
+        # losing_trade_number_sum+=losing_trade_number
+        # profit_factor_sum+=profit_factor
+        # percent_profitable_sum+=percent_profitable
+        # average_profit_per_trade_sum+=average_profit_per_trade
 
-    values.append([' ','Sum',str(round(current_balance_sum,2)),str(round(net_profit_sum,2)),str(round(winning_trade_number_sum,2)),str(round(losing_trade_number_sum,2)),str(round(profit_factor_sum,2)),str(round(percent_profitable_sum,2)) + '%',str(round(average_profit_per_trade_sum,2))])
-    # print(values)
+    values.append([' ','Sum',str(round(wins,2)),str(round(loses,2)),str(round(profit,2))])
     return values,columns
 # ================================================ Base-rule
 
