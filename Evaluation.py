@@ -23,11 +23,10 @@ class Evaluation:
 
     #     for i in range(len(self.data)):
     #         signal = self.data.iloc[i]['ensemble']
-    #         print(self.data.index[i])
 
     #         hourData =  hourFrame.loc[hourFrame.index == self.data.index[i]]
-    #         print(hourData)
-    #         print("==========================")
+    #         # print(hourData)
+    #         # print("==========================")
     #         for j in range(len(hourData)-1):
     #             entry_price = hourData.iloc[j]['Close'] 
     #             next_price_low = hourData.iloc[j+1]['Low'] 
@@ -41,7 +40,7 @@ class Evaluation:
     #                     loses += 1
     #                     profit -= entry_price * 0.05
                 
-    #             elif signal == 2:
+    #             elif signal == -1:
     #                 if next_price_low <= entry_price * 0.99:  # Takeprofit
     #                     wins += 1
     #                     profit += entry_price * 0.1

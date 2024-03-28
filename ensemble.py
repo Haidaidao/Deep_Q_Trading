@@ -57,8 +57,8 @@ def ensemble_y_true(feature, stats, threshold):
             last_action = 1
             action = 1
         elif changes < -threshold or (last_action < 0 and changes < 0 and changes >= -threshold):
-            last_action = 2
-            action = 2
+            last_action = -1
+            action = -1
         else:
             last_action = 0
 
@@ -208,15 +208,11 @@ def XGBoostEnsemble(numWalks,type,numDel):
 # ================================================ Random Forest
 def RandomForestEnsemble(numWalks,type,numDel):
     
-    current_balance_sum=0
-    net_profit_sum=0
-    winning_trade_number_sum=0
-    losing_trade_number_sum=0
-    profit_factor_sum=0
-    percent_profitable_sum=0
-    average_profit_per_trade_sum=0
+    wins_number = 0
+    loses_number = 0
+    profit_number = 0
 
-    columns = ["From","To", "Final balance", "Net Profit", "Wins", "Closes", "Profit factor", "Percent Profitable", "Average Profit per trade"]
+    columns = ["From","To", "Wins", "Closes", "Profit"]
 
     values = []
 
@@ -307,7 +303,8 @@ def RandomForestEnsemble(numWalks,type,numDel):
                 new_data = np.array([[df1_result['ensemble'][k], df2_result['ensemble'][k], df3_temp['ensemble'][k]]])
                 predicted_result = rf_model.predict(new_data)
                 df.loc[df1_result.index[k]] = predicted_result[0]
-
+        print(df['ensemble'])
+        print("==================")
 
         df['close'] = 0
         df['close'] = df.index.map(dax['Close'])
@@ -319,8 +316,11 @@ def RandomForestEnsemble(numWalks,type,numDel):
        
         wins, loses, profit = test.evaluate()
        
-        #values.append([from_date, to_date,str(round(current_balance,2)),str(round(net_profit,2)),str(round(winning_trade_number,2)),str(round(losing_trade_number,2)),str(round(profit_factor,2)),str(round(percent_profitable,2)) + '%', str(round(average_profit_per_trade,2))])
+        values.append([from_date, to_date,str(round(wins,2)),str(round(loses,2)),str(round(profit,2))])
 
+        wins_number+=wins
+        loses_number+=loses
+        profit_number+=profit
         # current_balance_sum+=current_balance
         # net_profit_sum+=net_profit
         # winning_trade_number_sum+=winning_trade_number
@@ -329,7 +329,7 @@ def RandomForestEnsemble(numWalks,type,numDel):
         # percent_profitable_sum+=percent_profitable
         # average_profit_per_trade_sum+=average_profit_per_trade
 
-    values.append([' ','Sum',str(round(wins,2)),str(round(loses,2)),str(round(profit,2))])
+    values.append([' ','Sum',str(round(wins_number,2)),str(round(loses_number,2)),str(round(profit_number,2))])
     return values,columns
 # ================================================ Base-rule
 
