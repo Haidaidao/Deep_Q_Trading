@@ -375,12 +375,9 @@ class DeepQTrading:
 
                 #Separate the Validation and testing data according to the limits found before
                 #Prepare the training and validation files for saving them later
-                ensambleTrain=pd.DataFrame(index=self.agent.dates[trainMinLimit:trainMaxLimit+1].loc[:,'Date'].drop_duplicates().tolist())
-                ensambleValid=pd.DataFrame(index=self.agent.dates[validMinLimit:validMaxLimit+1].loc[:,'Date'].drop_duplicates().tolist())
-                ensambleTest=pd.DataFrame(index=self.agent.dates[testMinLimit:testMaxLimit+1].loc[:,'Date'].drop_duplicates().tolist())
-
-                print(ensambleTest)
-                
+                ensambleTrain = pd.DataFrame()
+                ensambleValid = pd.DataFrame()
+                ensambleTest = pd.DataFrame()
 
                 #Put the name of the index for validation and testing
                 ensambleTrain.index.name='Date'
@@ -418,7 +415,7 @@ class DeepQTrading:
                         #Reset the training environment
                         trainEnv.resetEnv()
                         #Train the agent
-                        self.agent.agent.fit(trainEnv,nb_steps=floor(self.trainSize.days-self.trainSize.days*0.2),visualize=False,verbose=0)
+                        self.agent.agent.fit(trainEnv,nb_steps=floor(self.trainSize.days - self.trainSize.days *0.2),visualize=False,verbose=0)
                         #Get the info from the train callback
                         (_,trainCoverage,trainAccuracy,trainReward,trainLongPerc,trainShortPerc,trainLongAcc,trainShortAcc,trainLongPrec,trainShortPrec)=self.trainer.getInfo()
                         #Print Callback values on the screen
@@ -427,7 +424,7 @@ class DeepQTrading:
                         #Reset the validation environment
                         validEnv.resetEnv()
                         #Test the agent on validation data
-                        self.agent.agent.test(validEnv,nb_episodes=floor(self.validationSize.days-self.validationSize.days*0.2),visualize=False,verbose=0)
+                        self.agent.agent.test(validEnv,nb_episodes=floor(self.validationSize.days  - self.validationSize.days * 0.2),visualize=False,verbose=0)
                         #Get the info from the validation callback
                         (_,validCoverage,validAccuracy,validReward,validLongPerc,validShortPerc,validLongAcc,validShortAcc,validLongPrec,validShortPrec)=self.validator.getInfo()
                         #Print callback values on the screen
@@ -436,7 +433,7 @@ class DeepQTrading:
                         #Reset the testing environment
                         testEnv.resetEnv()
                         #Test the agent on testing data
-                        self.agent.agent.test(testEnv,nb_episodes=floor(self.validationSize.days-self.validationSize.days*0.2),visualize=False,verbose=0)
+                        self.agent.agent.test(testEnv,nb_episodes=floor(self.validationSize.days-self.validationSize.days * 0.2),visualize=False,verbose=0)
                         #Get the info from the testing callback
                         (_,testCoverage,testAccuracy,testReward,testLongPerc,testShortPerc,testLongAcc,testShortAcc,testLongPrec,testShortPrec)=self.tester.getInfo()
                         #Print callback values on the screen
