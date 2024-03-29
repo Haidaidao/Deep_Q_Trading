@@ -1,40 +1,26 @@
-#Copyright (C) 2020 Salvatore Carta, Anselmo Ferreira, Alessandro Sebastian Podda, Diego Reforgiato Recupero, Antonio Sanna. All rights reserved.
-
-#Environment used for spenv
-#gym is the library of videogames used by reinforcement learning
 import gym
 from gym import spaces
-#Numpy is the library to deal with matrices
 import numpy
-#Pandas is the library used to deal with the CSV dataset
 import pandas
-#datetime is the library used to manipulate time and date
-from datetime import datetime
-
-from decimal import Decimal
 import global_config
-#This is the prefix of the files that will be opened. It is related to the s&p500 stock market datasets
+
 MK = global_config.MK
 
-
 class SpEnv(gym.Env):
-    #Just for the gym library. In a continuous environment, you can do infinite decisions.
-    #We dont want this because we have just three possible actions.
     continuous = False
 
-    #Observation window is the time window regarding the "hourly" dataset
-    #ensemble variable tells to save or not the decisions at each walk
-    def __init__(self, minLimit=None, maxLimit=None, operationCost = 0, observationWindow = 20, ensamble = None, callback = None, isOnlyShort=False, columnName = "iteration-1", name="Day"):
+    def __init__(self, minLimit=None, maxLimit=None, operationCost=0, observationWindow=20, ensamble=None, callback=None, isOnlyShort=False, columnName="iteration-1", name="Hour"):
         #Declare the episode as the first episode
         self.episode=1
 
         self.isOnlyShort=isOnlyShort
 
         self.name = name
-        #Open the time series as the hourly dataset of S&P500
-        #the input feature vector is composed of data from hours, weeks and days
-        #20 from days, 8 from weeks and 40 hours, ending with 40 dimensional feature vectors
-        spTimeserie = pandas.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit+1] # opening the dataset
+
+        spTimeserie = pandas.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit]
+        spTimeserie['Date'] = pandas.to_datetime(spTimeserie['Date'] + ' ' + spTimeserie['Time'])
+        spTimeserie['Date'] = spTimeserie['Date'].dt.strftime('%m/%d/%Y %H:%M')
+
         # print(spTimeserie)
         #Converts each column to a list
         Date = spTimeserie.loc[:, 'Date'].tolist()
@@ -93,8 +79,8 @@ class SpEnv(gym.Env):
         self.nextObservation=0
 
         #self.history contains all the hour data. Here we search for the next day
-        while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
-            self.nextObservation+=1
+        # while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
+        #     self.nextObservation+=1
 
         #Initiates the values to be returned by the environment
         self.reward = None
@@ -103,82 +89,45 @@ class SpEnv(gym.Env):
         self.closeValue = 0
         self.callback=callback
 
+        if self.output:
+            self.ensamble = ensamble
+            self.columnName = columnName
+            self.ensamble[self.columnName] = 0
 
     #This is the action that is done in the environment.
     #Receives the action and returns the state, the reward and if its done
     def step(self, action):
-        #Initiates the reward, weeklist and daylist
-        self.reward=0
-
-
-        ##UNCOMMENT NEXT LINE FOR ONLY SHORT AGENT
-        if(self.isOnlyShort):
+        if self.isOnlyShort:
             action *= 2
 
-
-        #set the next observation to zero
-        self.nextObservation=0
-        #Search for the close value for tommorow
-        while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
-            #Search for the close error for today
-            self.closeValue=self.history[(self.currentObservation+self.nextObservation)%self.limit]['Close']
-            self.nextObservation+=1
-
-        #Get the open value for today
+        # Increment to move to the next hour, wrap around if at the end of the dataset
+        self.nextObservation = (self.currentObservation + 1) % self.limit
+        self.closeValue = self.history[self.nextObservation]['Close']
         self.openValue = self.history[self.currentObservation]['Open']
 
-        #Calculate the reward in percentage of growing/decreasing
-        self.possibleGain = (self.closeValue - self.openValue)/self.openValue
-        #If action is a long, calculate the reward
-        if(action == 1):
-            #The reward must be subtracted by the cost of transaction
-            self.reward = self.possibleGain-self.operationCost
-        #If action is a short, calculate the reward
-        elif(action==2):
-            self.reward = (-self.possibleGain)-self.operationCost
-        #If action is a hold, no reward
-        else:
-            self.reward = 0
-        #Finish episode
-        self.done=True
+        # Calculate the reward
+        self.possibleGain = (self.closeValue - self.openValue) / self.openValue
+        self.reward = (self.possibleGain - self.operationCost) if action == 1 else (-self.possibleGain - self.operationCost) if action == 2 else 0
 
+        # Update the current observation index
+        self.currentObservation = self.nextObservation
 
-        #Call the callback for the episode
-        if(self.callback!=None and self.done):
-            self.callback.on_episode_end(action,self.reward,self.possibleGain)
+        self.done = self.currentObservation == self.limit - 1  # or some other termination condition
 
+        if self.output:
+            adjusted_action = -1 if action == 2 else action
+            self.ensamble.at[self.currentObservation, self.columnName] = adjusted_action
 
-        #File of the ensamble (file containing each epoch decisions at each walk) will contain the action for that
-        #day (observation, line) at each epoch (column)
-        if(self.output):
-            if action == 2: 
-                action = -1
-            self.ensamble.at[self.history[self.currentObservation]['Date'],self.columnName]=action
+        return self.getObservation(), self.reward, self.done, {}
 
-
-
-        #Return the state, reward and if its done or not
-        return self.getObservation(self.history[self.currentObservation]['Date']), self.reward, self.done, {}
 
     #function done when the episode finishes
     #reset will prepare the next state (feature vector) and give it to the agent
     def reset(self):
-
         if(self.currentObservation<self.observationWindow):
             self.currentObservation=self.observationWindow
 
-
-
         self.episode+=1
-
-
-        #Shiftting the index for the first hour of the next day
-        self.nextObservation=0
-        while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
-            self.nextObservation+=1
-            #check if the index exceeds the limits
-            if((self.currentObservation+self.nextObservation)>=self.limit):
-                print("Resetted: episode " + str(self.episode) +"; Index " + str(self.currentObservation+self.nextObservation) + " over the limit (" + str(self.limit) + ")" )
 
         #reset the values used in the step() function
         self.done = False
@@ -191,11 +140,10 @@ class SpEnv(gym.Env):
         self.currentObservation+=self.nextObservation
         if(self.currentObservation>=self.limit):
             self.currentObservation=self.observationWindow
+        return self.getObservation()
 
-        return self.getObservation(self.history[self.currentObservation]['Date'])
 
-
-    def getObservation(self, date):
+    def getObservation(self):
 
         #Get the dayly information and week information
         #get all the data

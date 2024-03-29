@@ -176,6 +176,9 @@ class DeepQTrading:
         self.endingPoint=end
 
         self.agent.dates= pd.read_csv('./datasets/'+MK+self.agent.name+'.csv')
+        self.agent.dates['Date'] = pd.to_datetime(self.agent.dates['Date'] + ' ' + self.agent.dates['Time'])
+        self.agent.dates['Date'] = self.agent.dates['Date'].dt.strftime('%m/%d/%Y %H:%M')
+       
         self.agent.sp = pd.read_csv('./datasets/'+MK+self.agent.name+'.csv')
         #Convert the pandas format to date and time format
         self.agent.sp['Datetime'] = pd.to_datetime(self.agent.sp['Date'] + ' ' + self.agent.sp['Time'])
@@ -376,12 +379,16 @@ class DeepQTrading:
                 ensambleValid=pd.DataFrame(index=self.agent.dates[validMinLimit:validMaxLimit+1].loc[:,'Date'].drop_duplicates().tolist())
                 ensambleTest=pd.DataFrame(index=self.agent.dates[testMinLimit:testMaxLimit+1].loc[:,'Date'].drop_duplicates().tolist())
 
+                print(ensambleTest)
+                
+
                 #Put the name of the index for validation and testing
                 ensambleTrain.index.name='Date'
                 ensambleValid.index.name='Date'
                 ensambleTest.index.name='Date'
 
-                
+                print(self.explorations)
+                print("=========================")
                 #Explorations are epochs considered, or how many times the agent will play the game.
                 for eps in self.explorations:
 
@@ -391,6 +398,7 @@ class DeepQTrading:
                     #there will be 50 iterations (epochs), or eps[1])
 
                     for i in range(0,eps[1]):
+                        
                         del(trainEnv)
 
                         #Define the training, validation and testing environments with their respective callbacks

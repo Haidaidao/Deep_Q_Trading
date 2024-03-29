@@ -181,7 +181,7 @@ def XGBoostEnsemble(numWalks,type,numDel):
                 new_data = np.array([[df1_result['ensemble'][k], df2_result['ensemble'][k], df3_temp['ensemble'][k]]])
                 predicted_result = xgb_model.predict(new_data)
                 df.loc[df1_result.index[k]] = predicted_result[0]
-
+        
         df['close'] = 0
         df['close'] = df.index.map(dax['Close'])
         df['high'] = df.index.map(dax['High'])
