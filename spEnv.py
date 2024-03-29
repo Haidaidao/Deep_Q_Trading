@@ -20,9 +20,10 @@ class SpEnv(gym.Env):
         spTimeserie = pandas.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit]
         spTimeserie['Date'] = pandas.to_datetime(spTimeserie['Date'] + ' ' + spTimeserie['Time'])
         spTimeserie['Date'] = spTimeserie['Date'].dt.strftime('%m/%d/%Y %H:%M')
-
         # print(spTimeserie)
-        #Converts each column to a list
+        # print("============")
+        # self.history = spTimeserie.to_dict('records')
+
         Date = spTimeserie.loc[:, 'Date'].tolist()
         Time = spTimeserie.loc[:, 'Time'].tolist()
         Open = spTimeserie.loc[:, 'Open'].tolist()
@@ -79,8 +80,8 @@ class SpEnv(gym.Env):
         self.nextObservation=0
 
         #self.history contains all the hour data. Here we search for the next day
-        # while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
-        #     self.nextObservation+=1
+        while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
+            self.nextObservation+=1
 
         #Initiates the values to be returned by the environment
         self.reward = None
@@ -89,45 +90,81 @@ class SpEnv(gym.Env):
         self.closeValue = 0
         self.callback=callback
 
-        if self.output:
-            self.ensamble = ensamble
-            self.columnName = columnName
-            self.ensamble[self.columnName] = 0
-
-    #This is the action that is done in the environment.
+        #This is the action that is done in the environment.
     #Receives the action and returns the state, the reward and if its done
     def step(self, action):
-        if self.isOnlyShort:
+        #Initiates the reward, weeklist and daylist
+        self.reward=0
+
+
+        ##UNCOMMENT NEXT LINE FOR ONLY SHORT AGENT
+        if(self.isOnlyShort):
             action *= 2
 
-        # Increment to move to the next hour, wrap around if at the end of the dataset
-        self.nextObservation = (self.currentObservation + 1) % self.limit
-        self.closeValue = self.history[self.nextObservation]['Close']
+
+        #set the next observation to zero
+        self.nextObservation=0
+        #Search for the close value for tommorow
+        while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
+            #Search for the close error for today
+            self.closeValue=self.history[(self.currentObservation+self.nextObservation)%self.limit]['Close']
+            self.nextObservation+=1
+
+        #Get the open value for today
         self.openValue = self.history[self.currentObservation]['Open']
 
-        # Calculate the reward
-        self.possibleGain = (self.closeValue - self.openValue) / self.openValue
-        self.reward = (self.possibleGain - self.operationCost) if action == 1 else (-self.possibleGain - self.operationCost) if action == 2 else 0
+        #Calculate the reward in percentage of growing/decreasing
+        self.possibleGain = (self.closeValue - self.openValue)/self.openValue
+        #If action is a long, calculate the reward
+        if(action == 1):
+            #The reward must be subtracted by the cost of transaction
+            self.reward = self.possibleGain-self.operationCost
+        #If action is a short, calculate the reward
+        elif(action==2):
+            self.reward = (-self.possibleGain)-self.operationCost
+        #If action is a hold, no reward
+        else:
+            self.reward = 0
+        #Finish episode
+        self.done=True
 
-        # Update the current observation index
-        self.currentObservation = self.nextObservation
 
-        self.done = self.currentObservation == self.limit - 1  # or some other termination condition
+        #Call the callback for the episode
+        if(self.callback!=None and self.done):
+            self.callback.on_episode_end(action,self.reward,self.possibleGain)
 
-        if self.output:
-            adjusted_action = -1 if action == 2 else action
-            self.ensamble.at[self.currentObservation, self.columnName] = adjusted_action
 
-        return self.getObservation(), self.reward, self.done, {}
+        #File of the ensamble (file containing each epoch decisions at each walk) will contain the action for that
+        #day (observation, line) at each epoch (column)
+        if(self.output):
+            if action == 2: 
+                action = -1
+            self.ensamble.at[self.history[self.currentObservation]['Date'],self.columnName]=action
 
+
+
+        #Return the state, reward and if its done or not
+        return self.getObservation(self.history[self.currentObservation]['Date']), self.reward, self.done, {}
 
     #function done when the episode finishes
     #reset will prepare the next state (feature vector) and give it to the agent
     def reset(self):
+
         if(self.currentObservation<self.observationWindow):
             self.currentObservation=self.observationWindow
 
+
+
         self.episode+=1
+
+
+        #Shiftting the index for the first hour of the next day
+        self.nextObservation=0
+        while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
+            self.nextObservation+=1
+            #check if the index exceeds the limits
+            if((self.currentObservation+self.nextObservation)>=self.limit):
+                print("Resetted: episode " + str(self.episode) +"; Index " + str(self.currentObservation+self.nextObservation) + " over the limit (" + str(self.limit) + ")" )
 
         #reset the values used in the step() function
         self.done = False
@@ -140,10 +177,11 @@ class SpEnv(gym.Env):
         self.currentObservation+=self.nextObservation
         if(self.currentObservation>=self.limit):
             self.currentObservation=self.observationWindow
-        return self.getObservation()
+
+        return self.getObservation(self.history[self.currentObservation]['Date'])
 
 
-    def getObservation(self):
+    def getObservation(self, date):
 
         #Get the dayly information and week information
         #get all the data
