@@ -3,14 +3,13 @@ from gym import spaces
 import numpy
 import pandas
 import global_config
-from sklearn.preprocessing import MinMaxScaler
 
 MK = global_config.MK
 
 class SpEnv(gym.Env):
     continuous = False
 
-    def __init__(self, data=None, minLimit=None, maxLimit=None, operationCost=0, observationWindow=20, ensamble=None, callback=None, isOnlyShort=False, columnName="iteration-1", name="Hour"):
+    def __init__(self, minLimit=None, maxLimit=None, operationCost=0, observationWindow=20, ensamble=None, callback=None, isOnlyShort=False, columnName="iteration-1", name="Hour"):
         #Declare the episode as the first episode
         self.episode=1
 
@@ -18,19 +17,20 @@ class SpEnv(gym.Env):
 
         self.name = name
 
-        spTimeserie = data[minLimit : maxLimit] # get all possible hour (at least 20 hours for each date)
-
-        # spTimeserie = pandas.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit]
-        # spTimeserie['Date'] = pandas.to_datetime(spTimeserie['Date'] + ' ' + spTimeserie['Time'])
-        # spTimeserie['Date'] = spTimeserie['Date'].dt.strftime('%m/%d/%Y %H:%M')
+        spTimeserie = pandas.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit]
+        spTimeserie['Date'] = pandas.to_datetime(spTimeserie['Date'] + ' ' + spTimeserie['Time'])
+        spTimeserie['Date'] = spTimeserie['Date'].dt.strftime('%m/%d/%Y %H:%M')
         # print(spTimeserie)
         # print("============")
         # self.history = spTimeserie.to_dict('records')
-        Date = spTimeserie.index.tolist()
+
+        Date = spTimeserie.loc[:, 'Date'].tolist()
+        Time = spTimeserie.loc[:, 'Time'].tolist()
         Open = spTimeserie.loc[:, 'Open'].tolist()
         High = spTimeserie.loc[:, 'High'].tolist()
         Low = spTimeserie.loc[:, 'Low'].tolist()
         Close = spTimeserie.loc[:, 'Close'].tolist()
+
 
         #Load the data
         self.output=False
@@ -74,14 +74,14 @@ class SpEnv(gym.Env):
         self.limit = len(Open)
         #organizing the dataset as a list of dictionaries
         for i in range(0,self.limit):
-            self.history.append({'Date' : Date[i], 'Open': Open[i], 'High': High[i], 'Low': Low[i], 'Close': Close[i]})
+            self.history.append({'Date' : Date[i],'Time' : Time[i], 'Open': Open[i], 'High': High[i], 'Low': Low[i], 'Close': Close[i]})
 
         #Next observation starts
         self.nextObservation=0
 
-        # #self.history contains all the hour data. Here we search for the next day
-        # while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
-        #     self.nextObservation+=1
+        #self.history contains all the hour data. Here we search for the next day
+        while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
+            self.nextObservation+=1
 
         #Initiates the values to be returned by the environment
         self.reward = None
@@ -90,66 +90,45 @@ class SpEnv(gym.Env):
         self.closeValue = 0
         self.callback=callback
 
-        self.scaler = MinMaxScaler()
-
-    def max_step(self):
-        return self.limit
-
         #This is the action that is done in the environment.
     #Receives the action and returns the state, the reward and if its done
     def step(self, action):
-        #Initiates the reward, weeklist and daylist
-        self.reward=0
+        # Khởi tạo phần thưởng
+        self.reward = 0
 
-
-        ##UNCOMMENT NEXT LINE FOR ONLY SHORT AGENT
+        # Xử lý hành động chỉ bán (nếu isOnlyShort được kích hoạt)
         if(self.isOnlyShort):
             action *= 2
 
+        # Tính toán nextObservation và closeValue
+        self.nextObservation = 0
+        while self.history[self.currentObservation]['Date'] == self.history[(self.currentObservation + self.nextObservation) % self.limit]['Date']:
+            self.closeValue = self.history[(self.currentObservation + self.nextObservation) % self.limit]['Close']
+            self.nextObservation += 1
 
-        #set the next observation to zero
-        self.nextObservation=1
-        #Search for the close value for tommorow
-        # while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
-        #     #Search for the close error for today
-        #     self.closeValue=self.history[(self.currentObservation+self.nextObservation)%self.limit]['Close']
-        #     self.nextObservation+=1
-
-        self.closeValue = self.history[(self.currentObservation+self.nextObservation)%self.limit]['Close']
-
-        #Get the open value for today
+        # Lấy giá trị Open hiện tại
         self.openValue = self.history[self.currentObservation]['Open']
 
-        #Calculate the reward in percentage of growing/decreasing
-        self.possibleGain = (self.closeValue - self.openValue)/self.openValue
-        #If action is a long, calculate the reward
-        if(action == 1):
-            #The reward must be subtracted by the cost of transaction
-            self.reward = self.possibleGain-self.operationCost 
-        #If action is a short, calculate the reward
-        elif(action==2):
-            self.reward = (-self.possibleGain)-self.operationCost
-        #If action is a hold, no reward
+        # Tính toán lợi nhuận tiềm năng
+        self.possibleGain = (self.closeValue - self.openValue) / self.openValue
+
+        # Thiết lập phần thưởng dựa trên hành động
+        if action == 1:
+            self.reward = self.possibleGain - self.operationCost  # Phần thưởng cho mua
+        elif action == 2:
+            self.reward = (-self.possibleGain) - self.operationCost  # Phần thưởng cho bán
         else:
-            self.reward = 0
-        #Finish episode
-        self.done=True
+            self.reward = -0.5  # Phạt nhỏ cho việc không hành động
 
-        #Call the callback for the episode
-        if(self.callback!=None and self.done):
-            self.callback.on_episode_end(action,self.reward,self.possibleGain)
+        self.done = True
 
+        if self.callback is not None and self.done:
+            self.callback.on_episode_end(action, self.reward, self.possibleGain)
 
-        #File of the ensamble (file containing each epoch decisions at each walk) will contain the action for that
-        #day (observation, line) at each epoch (column)
-        if(self.output):
-            if action == 2: 
-                action = -1
-            self.ensamble.at[self.history[self.currentObservation]['Date'],self.columnName]=action
+        if self.output:
+            action_adjusted = -1 if action == 2 else action
+            self.ensamble.at[self.history[self.currentObservation]['Date'], self.columnName] = action_adjusted
 
-
-
-        #Return the state, reward and if its done or not
         return self.getObservation(self.history[self.currentObservation]['Date']), self.reward, self.done, {}
 
     #function done when the episode finishes
@@ -165,12 +144,12 @@ class SpEnv(gym.Env):
 
 
         #Shiftting the index for the first hour of the next day
-        self.nextObservation=1
-        # while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
-        #     self.nextObservation+=1
-        #     #check if the index exceeds the limits
-        #     if((self.currentObservation+self.nextObservation)>=self.limit):
-        #         print("Resetted: episode " + str(self.episode) +"; Index " + str(self.currentObservation+self.nextObservation) + " over the limit (" + str(self.limit) + ")" )
+        self.nextObservation=0
+        while(self.history[self.currentObservation]['Date']==self.history[(self.currentObservation+self.nextObservation)%self.limit]['Date']):
+            self.nextObservation+=1
+            #check if the index exceeds the limits
+            if((self.currentObservation+self.nextObservation)>=self.limit):
+                print("Resetted: episode " + str(self.episode) +"; Index " + str(self.currentObservation+self.nextObservation) + " over the limit (" + str(self.limit) + ")" )
 
         #reset the values used in the step() function
         self.done = False
@@ -209,14 +188,14 @@ class SpEnv(gym.Env):
         #The state is prepared by the environment, which is simply the feature vector
 
         if self.name != "Week":
+            print(self.history[self.currentObservation-self.observationWindow:self.currentObservation])
+            print()
             array = numpy.array(
                 [list(
                     map(
                         lambda x: (x["Close"]-x["Open"])/x["Open"],
                             self.history[self.currentObservation-self.observationWindow:self.currentObservation]
                             ))])
-
-            # array = self.scaler.fit_transform(array)
         return  array
 
     def resetEnv(self):
