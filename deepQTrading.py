@@ -543,15 +543,6 @@ class DeepQTrading:
                         #Print Callback values on the screen
                         print(str(i) + " TRAIN:  acc: " + str(trainAccuracy)+ " cov: " + str(trainCoverage)+ " rew: " + str(trainReward))
 
-                        # #Reset the validation environment
-                        # validEnv.resetEnv()
-                        # #Test the agent on validation data
-                        # self.agent.agent.test(validEnv,nb_episodes=validStep,visualize=False,verbose=0)
-                        # #Get the info from the validation callback
-                        # (_,validCoverage,validAccuracy,validReward,validLongPerc,validShortPerc,validLongAcc,validShortAcc,validLongPrec,validShortPrec)=self.validator.getInfo()
-                        # #Print callback values on the screen
-                        # print(str(i) + " VALID:  acc: " + str(validAccuracy)+ " cov: " + str(validCoverage)+ " rew: " + str(validReward))
-
                         #Reset the validation environment
                         validEnv.resetEnv()
                         #Test the agent on validation data
@@ -564,7 +555,7 @@ class DeepQTrading:
                         #Reset the testing environment
                         testEnv.resetEnv()
                         #Test the agent on testing data
-                        self.agent.agent.test(testEnv,nb_episodes=testStep,visualize=False,verbose=0)
+                        self.agent.agent.fit(testEnv,nb_steps=testStep,visualize=False,verbose=0)
                         #Get the info from the testing callback
                         (_,testCoverage,testAccuracy,testReward,testLongPerc,testShortPerc,testLongAcc,testShortAcc,testLongPrec,testShortPrec)=self.tester.getInfo()
                         #Print callback values on the screen

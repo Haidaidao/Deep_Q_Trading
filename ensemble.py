@@ -1,5 +1,6 @@
 # #Copyright (C) 2020 Salvatore Carta, Anselmo Ferreira, Alessandro Sebastian Podda, Diego Reforgiato Recupero, Antonio Sanna. All rights reserved.
 
+import csv
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -16,6 +17,7 @@ from sklearn.preprocessing import LabelEncoder
 import global_config
 import json
 from Evaluation import Evaluation
+import re
 
 config = json.load(open('plotResultsConf.json', 'r'))
 
@@ -26,14 +28,47 @@ iteration = 'iteration' + str(config['epoch']-1)
 
 
 # Get the results in the log file of the week that contains that day.
-def getActionWeek(weeksFrame, date):
-    date = datetime.strptime(date,"%m/%d/%Y")
+# def getAction(Frame, date):
+    
+#     date = datetime.strptime(date,"%m/%d/%Y")
 
-    for i in range(0, len(weeksFrame)):
-        week =  datetime.strptime(str(weeksFrame.index[i]),"%m/%d/%Y")
-        if week>date:
-            return  weeksFrame['ensemble'][i-1]
-    return 0
+#     for i in range(0, len(Frame)):
+#         date_point =  datetime.strptime(Frame.index[i],"%m/%d/%Y")
+#         if date_point>date:
+#             print(date)
+#             print(datetime.strptime(Frame.index[i-1],"%m/%d/%Y"))
+#             print(Frame['ensemble'][i-1])
+#             print("=======================")
+#             return  Frame['ensemble'][i-1]
+    
+#     return 0
+
+def getAction(Frame, date):
+    # Chuyển đổi chuỗi ngày thành đối tượng datetime
+    target_date = datetime.strptime(date, "%m/%d/%Y")
+    print(target_date)
+    # Chắc chắn rằng chỉ mục của Frame là đối tượng datetime
+    Frame.index = pd.to_datetime(Frame.index)
+
+    # Tìm chỉ số của ngày gần nhất không lớn hơn target_date
+    index = None
+    for i in range(len(Frame)):
+        date_point = Frame.index[i]
+        if date_point > target_date:
+            break
+        index = i
+
+    if index is not None:
+        # In thông tin và trả về giá trị ensemble
+        prev_date = Frame.index[index]
+        ensemble_value = Frame['ensemble'][index]
+        print(prev_date)
+        print(ensemble_value)
+        print("=======================")
+        return ensemble_value
+    else:
+        print("Không tìm thấy ngày phù hợp trong Frame")
+        return 0
 
 def ensemble_y_true(feature, stats, threshold):
 
@@ -42,13 +77,15 @@ def ensemble_y_true(feature, stats, threshold):
     skip = 0
     
     for index, _ in feature.iterrows():
-        if index not in stats.index:
+        # date = re.search(r'\d{2}/\d{2}/\d{4}', index).group()
+        date = index
+        if date not in stats.index:
             labels.append(last_action)
             skip += 1
             continue
         
-        close = stats.loc[index, 'Close']
-        open = stats.loc[index, 'Open']
+        close = stats.loc[date, 'Close']
+        open = stats.loc[date, 'Open']
         
         action = 0
         changes = (close - open) / open
@@ -72,19 +109,22 @@ def ensemble_y_true(feature, stats, threshold):
 # ================================================ XGBoots
 def XGBoostEnsemble(numWalks,type,numDel):
     
-    current_balance_sum=0
-    net_profit_sum=0
-    winning_trade_number_sum=0
-    losing_trade_number_sum=0
-    profit_factor_sum=0
-    percent_profitable_sum=0
-    average_profit_per_trade_sum=0
+    wins_number = 0
+    loses_number = 0
+    profit_number = 0
 
     columns = ["From","To", "Wins", "Closes", "Profit"]
 
     values = []
 
     dax=pd.read_csv("./datasets/"+ global_config.MK +"Day.csv",index_col='Date')
+   
+    daxHour = pd.read_csv("./datasets/"+ global_config.MK +"Hour.csv", index_col='Date')
+    daxHour = daxHour.reset_index()
+    daxHour['Date'] = pd.to_datetime(daxHour['Date'] + ' ' + daxHour['Time'])
+    daxHour['Date'] = daxHour['Date'].dt.strftime('%m/%d/%Y %H:%M')
+    daxHour.set_index('Date', inplace=True)
+
 
     type_train = "train"
 
@@ -112,27 +152,49 @@ def XGBoostEnsemble(numWalks,type,numDel):
         df2.index = df2.index.strftime('%m/%d/%Y')
         df2.rename(columns={'trend': 'ensemble'}, inplace=True)
 
+        df2_new = df1.copy()
+        df3_new = df1.copy()
+
+        for i in range(len(df2_new)):
+            date = re.search(r'\d{2}/\d{2}/\d{4}', df2_new.index[i]).group()
+            df2_new['ensemble'][i] = getAction(df2,date)
+
         df3.index = pd.to_datetime(df3.index)
         df3.index = df3.index.strftime('%m/%d/%Y')
         df3.rename(columns={'trend': 'ensemble'}, inplace=True)
 
-        df3_temp = pd.DataFrame(index=df2.index).assign(ensemble=0)
-        for k in range(0,len(df3_temp)):
-            df3_temp['ensemble'][k] = getActionWeek(df3,df3_temp.index[k])
+        for i in range(len(df3_new)):            
+            date = re.search(r'\d{2}/\d{2}/\d{4}', df3_new.index[i]).group()
+            df3_new['ensemble'][i] = getAction(df3,date)
+
 
         list_combine_train = np.empty((0, 3))
 
         for k in range(0,len(df1)):
-            list_combine_train = np.append(list_combine_train, [[df1['ensemble'][k], df2['ensemble'][k], df3_temp['ensemble'][k]]], axis=0)
+            list_combine_train = np.append(list_combine_train, [[df1['ensemble'][k], df2_new['ensemble'][k], df3_new['ensemble'][k]]], axis=0)
       
-        y_train = ensemble_y_true(df1, dax, threshold)
+        y_train = ensemble_y_true(df1, daxHour, threshold)
+        # with open('y_train.csv', 'w', newline='') as file:
+        #     writer = csv.writer(file)
+        #     for value in y_train:
+        #         writer.writerow([value])  # Ghi từng số trong list vào một hàng
+        # # print(y_train)
+        # # print("=====================")
+        for i in range(len(y_train)):
+            if y_train[i] == -1:
+                y_train[i] = 2
+        
+        for i in range(len(list_combine_train)):
+            for k in range(len(list_combine_train[i])):
+                if list_combine_train[i][k]==-1:
+                    list_combine_train[i][k]=2
+       
 
         le = LabelEncoder()
         y_train = le.fit_transform(y_train)
-        # xgb_model = xgb.XGBClassifier(n_estimators=100, random_state=42)
         xgb_model.fit(list_combine_train, y_train)
 
-        # Predict
+        # # Predict
         for deleted in range(1,numDel):
             del df['iteration'+str(deleted)]
 
@@ -146,8 +208,8 @@ def XGBoostEnsemble(numWalks,type,numDel):
         df3_result = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(j) + "ensemble_" + type + ".csv",
                           index_col='Date')
 
-        from_date=str(df2_result.index[0])
-        to_date=str(df2_result.index[len(df2_result)-1])
+        from_date=str(df1_result.index[0])
+        to_date=str(df1_result.index[len(df1_result)-1])
 
         for deleted in range(1, numDel):
             del df1_result['iteration' + str(deleted)]
@@ -165,45 +227,45 @@ def XGBoostEnsemble(numWalks,type,numDel):
         df3_result.index = df3_result.index.strftime('%m/%d/%Y')
         df3_result.rename(columns={'trend': 'ensemble'}, inplace=True)
 
-        df3_temp = pd.DataFrame(index=df2_result.index).assign(ensemble=0)
-        for k in range(0,len(df3_temp)):
-            df3_temp['ensemble'][k] = getActionWeek(df3_result,df3_temp.index[k])
+        df2_new_result = df1.copy()
+        df3_new_result = df1.copy()
 
-        # print(df1)
-        # print("=======")
-        # print(df2)
-        # print("=======")
-        # print(df3)
-        # print("--------------")
+        for i in range(len(df2_new_result)):
+            date = re.search(r'\d{2}/\d{2}/\d{4}', df2_new_result.index[i]).group()
+            df2_new_result['ensemble'][i] = getAction(df2_result,date)
+
+        for i in range(len(df3_new)):            
+            date = re.search(r'\d{2}/\d{2}/\d{4}', df3_new_result.index[i]).group()
+            df3_new_result['ensemble'][i] = getAction(df3_result,date)
 
         for k in range(0,len(df1_result)):
-            if(df1_result.index[k] in df2_result.index):
-                new_data = np.array([[df1_result['ensemble'][k], df2_result['ensemble'][k], df3_temp['ensemble'][k]]])
+            date = re.search(r'\d{2}/\d{2}/\d{4}', df1_result.index[k]).group()
+            if(date in df2_result.index):
+                new_data = np.array([[df1_result['ensemble'][k], df2_new_result['ensemble'][k], df3_new_result['ensemble'][k]]])  
+                for m in range(len(new_data)):
+                    for n in range(len(new_data[m])):
+                        if new_data[m][n]==-1:
+                            new_data[m][n]=2
                 predicted_result = xgb_model.predict(new_data)
                 df.loc[df1_result.index[k]] = predicted_result[0]
         
-        df['close'] = 0
-        df['close'] = df.index.map(dax['Close'])
-        df['high'] = df.index.map(dax['High'])
-        df['low'] = df.index.map(dax['Low'])
-        # print(df)
-        # print("=================")
-        test = Evaluation(df)
-       
-        wins, loses, profit = test.evaluate()
-       
-        #values.append([from_date, to_date,str(round(current_balance,2)),str(round(net_profit,2)),str(round(winning_trade_number,2)),str(round(losing_trade_number,2)),str(round(profit_factor,2)),str(round(percent_profitable,2)) + '%', str(round(average_profit_per_trade,2))])
+        df['close'] = df.index.map(daxHour['Close'])
+        df['open'] = df.index.map(daxHour['Open'])
+        df['high'] = df.index.map(daxHour['High'])
+        df['low'] = df.index.map(daxHour['Low'])
+        # df.to_csv('df.csv', index=False)
 
-        # current_balance_sum+=current_balance
-        # net_profit_sum+=net_profit
-        # winning_trade_number_sum+=winning_trade_number
-        # losing_trade_number_sum+=losing_trade_number
-        # profit_factor_sum+=profit_factor
-        # percent_profitable_sum+=percent_profitable
-        # average_profit_per_trade_sum+=average_profit_per_trade
+        eva = Evaluation(df)
+        wins, loses, profit = eva.evaluate()
+        values.append([from_date, to_date,str(round(wins,2)),str(round(loses,2)),str(round(profit,2))])
 
-    values.append([' ','Sum',str(round(wins,2)),str(round(loses,2)),str(round(profit,2))])
-    # print(values)
+        wins_number+=wins
+        loses_number+=loses
+        profit_number+=profit
+
+    values.append([' ','Sum',str(round(wins_number,2)),str(round(loses_number,2)),str(round(profit_number,2))])
+    
+    # values.append([' ','Sum',0,0,0])
     return values,columns
 # ================================================ Random Forest
 def RandomForestEnsemble(numWalks,type,numDel):
@@ -217,6 +279,12 @@ def RandomForestEnsemble(numWalks,type,numDel):
     values = []
 
     dax=pd.read_csv("./datasets/"+ global_config.MK +"Day.csv",index_col='Date')
+
+    daxHour = pd.read_csv("./datasets/"+ global_config.MK +"Hour.csv", index_col='Date')
+    daxHour = daxHour.reset_index()
+    daxHour['Date'] = pd.to_datetime(daxHour['Date'] + ' ' + daxHour['Time'])
+    daxHour['Date'] = daxHour['Date'].dt.strftime('%m/%d/%Y %H:%M')
+    daxHour.set_index('Date', inplace=True)
 
     type_train = "train"
 
@@ -243,20 +311,31 @@ def RandomForestEnsemble(numWalks,type,numDel):
         df2.index = df2.index.strftime('%m/%d/%Y')
         df2.rename(columns={'trend': 'ensemble'}, inplace=True)
 
+        df2_new = df1.copy()
+        df3_new = df1.copy()
+
+        for i in range(len(df2_new)):
+            date = re.search(r'\d{2}/\d{2}/\d{4}', df2_new.index[i]).group()
+            df2_new['ensemble'][i] = getAction(df2,date)
+
+
+
         df3.index = pd.to_datetime(df3.index)
         df3.index = df3.index.strftime('%m/%d/%Y')
         df3.rename(columns={'trend': 'ensemble'}, inplace=True)
 
-        df3_temp = pd.DataFrame(index=df2.index).assign(ensemble=0)
-        for k in range(0,len(df3_temp)):
-            df3_temp['ensemble'][k] = getActionWeek(df3,df3_temp.index[k])
+        for i in range(len(df3_new)):            
+            date = re.search(r'\d{2}/\d{2}/\d{4}', df3_new.index[i]).group()
+            df3_new['ensemble'][i] = getAction(df3,date)
+
 
         list_combine_train = np.empty((0, 3))
 
         for k in range(0,len(df1)):
-            list_combine_train = np.append(list_combine_train, [[df1['ensemble'][k], df2['ensemble'][k], df3_temp['ensemble'][k]]], axis=0)
-
-        y_train = ensemble_y_true(df1, dax, threshold)
+            list_combine_train = np.append(list_combine_train, [[df1['ensemble'][k], df2_new['ensemble'][k], df3_new['ensemble'][k]]], axis=0)
+      
+        y_train = ensemble_y_true(df1, daxHour, threshold)
+     
 
         # rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
         rf_model.fit(list_combine_train, y_train)
@@ -275,8 +354,8 @@ def RandomForestEnsemble(numWalks,type,numDel):
         df3_result = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(j) + "ensemble_" + type + ".csv",
                           index_col='Date')
 
-        from_date=str(df2_result.index[0])
-        to_date=str(df2_result.index[len(df2_result)-1])
+        from_date=str(df1_result.index[0])
+        to_date=str(df1_result.index[len(df1_result)-1])
 
         for deleted in range(1, numDel):
             del df1_result['iteration' + str(deleted)]
@@ -285,7 +364,7 @@ def RandomForestEnsemble(numWalks,type,numDel):
 
         df1_result = pd.DataFrame(df1_result[iteration])
         df1_result.rename(columns={iteration: 'ensemble'}, inplace=True)
-    
+
         df2_result.index = pd.to_datetime(df2_result.index)
         df2_result.index = df2_result.index.strftime('%m/%d/%Y')
         df2_result.rename(columns={'trend': 'ensemble'}, inplace=True)
@@ -294,42 +373,43 @@ def RandomForestEnsemble(numWalks,type,numDel):
         df3_result.index = df3_result.index.strftime('%m/%d/%Y')
         df3_result.rename(columns={'trend': 'ensemble'}, inplace=True)
 
-        df3_temp = pd.DataFrame(index=df2_result.index).assign(ensemble=0)
-        for k in range(0,len(df3_temp)):
-            df3_temp['ensemble'][k] = getActionWeek(df3_result,df3_temp.index[k])
+        df2_new_result = df1.copy()
+        df3_new_result = df1.copy()
+
+        for i in range(len(df2_new_result)):
+            date = re.search(r'\d{2}/\d{2}/\d{4}', df2_new_result.index[i]).group()
+            df2_new_result['ensemble'][i] = getAction(df2_result,date)
+
+
+        for i in range(len(df3_new)):            
+            date = re.search(r'\d{2}/\d{2}/\d{4}', df3_new_result.index[i]).group()
+            df3_new_result['ensemble'][i] = getAction(df3_result,date)
+        
+        
 
         for k in range(0,len(df1_result)):
-            if(df1_result.index[k] in df2_result.index):
-                new_data = np.array([[df1_result['ensemble'][k], df2_result['ensemble'][k], df3_temp['ensemble'][k]]])
+            date = re.search(r'\d{2}/\d{2}/\d{4}', df1_result.index[k]).group()
+            if(date in df2_result.index):
+                new_data = np.array([[df1_result['ensemble'][k], df2_new_result['ensemble'][k], df3_new_result['ensemble'][k]]])
                 predicted_result = rf_model.predict(new_data)
                 df.loc[df1_result.index[k]] = predicted_result[0]
-        print(df['ensemble'])
-        print("==================")
-
-        df['close'] = 0
-        df['close'] = df.index.map(dax['Close'])
-        df['high'] = df.index.map(dax['High'])
-        df['low'] = df.index.map(dax['Low'])
+ 
+        df['close'] = df.index.map(daxHour['Close'])
+        df['open'] = df.index.map(daxHour['Open'])
+        df['high'] = df.index.map(daxHour['High'])
+        df['low'] = df.index.map(daxHour['Low'])
         # print(df)
-        # print("=================")
-        test = Evaluation(df)
-       
-        wins, loses, profit = test.evaluate()
-       
+        eva = Evaluation(df)
+        wins, loses, profit = eva.evaluate()
         values.append([from_date, to_date,str(round(wins,2)),str(round(loses,2)),str(round(profit,2))])
 
         wins_number+=wins
         loses_number+=loses
         profit_number+=profit
-        # current_balance_sum+=current_balance
-        # net_profit_sum+=net_profit
-        # winning_trade_number_sum+=winning_trade_number
-        # losing_trade_number_sum+=losing_trade_number
-        # profit_factor_sum+=profit_factor
-        # percent_profitable_sum+=percent_profitable
-        # average_profit_per_trade_sum+=average_profit_per_trade
 
     values.append([' ','Sum',str(round(wins_number,2)),str(round(loses_number,2)),str(round(profit_number,2))])
+    
+    # values.append([' ','Sum',0,0,0])
     return values,columns
 # ================================================ Base-rule
 
@@ -392,7 +472,7 @@ def SimpleEnsemble(numWalks,type,numDel):
                     df.loc[df1.index[k]] = 0
                 else:
                     Sh = normalized(df1['ensemble'][k])
-                    Sw = normalized(getActionWeek(df3, df2.index[k]))
+                    Sw = normalized(getAction(df3, df2.index[k]))
                     Sd = normalized(df2.loc[df1.index[k],'ensemble'])
                     
                     if Sh == 1:
