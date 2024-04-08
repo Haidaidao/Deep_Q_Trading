@@ -43,14 +43,12 @@ iteration = 'iteration' + str(config['epoch']-1)
     
 #     return 0
 
-def getAction(Frame, date):
-    # Chuyển đổi chuỗi ngày thành đối tượng datetime
+def getAction(Frame, date, name):
+
     target_date = datetime.strptime(date, "%m/%d/%Y")
-    print(target_date)
-    # Chắc chắn rằng chỉ mục của Frame là đối tượng datetime
+
     Frame.index = pd.to_datetime(Frame.index)
 
-    # Tìm chỉ số của ngày gần nhất không lớn hơn target_date
     index = None
     for i in range(len(Frame)):
         date_point = Frame.index[i]
@@ -59,15 +57,10 @@ def getAction(Frame, date):
         index = i
 
     if index is not None:
-        # In thông tin và trả về giá trị ensemble
         prev_date = Frame.index[index]
         ensemble_value = Frame['ensemble'][index]
-        print(prev_date)
-        print(ensemble_value)
-        print("=======================")
         return ensemble_value
     else:
-        print("Không tìm thấy ngày phù hợp trong Frame")
         return 0
 
 def ensemble_y_true(feature, stats, threshold):
@@ -156,8 +149,9 @@ def XGBoostEnsemble(numWalks,type,numDel):
         df3_new = df1.copy()
 
         for i in range(len(df2_new)):
+           
             date = re.search(r'\d{2}/\d{2}/\d{4}', df2_new.index[i]).group()
-            df2_new['ensemble'][i] = getAction(df2,date)
+            df2_new['ensemble'][i] = getAction(df2,date,"day")
 
         df3.index = pd.to_datetime(df3.index)
         df3.index = df3.index.strftime('%m/%d/%Y')
@@ -165,7 +159,7 @@ def XGBoostEnsemble(numWalks,type,numDel):
 
         for i in range(len(df3_new)):            
             date = re.search(r'\d{2}/\d{2}/\d{4}', df3_new.index[i]).group()
-            df3_new['ensemble'][i] = getAction(df3,date)
+            df3_new['ensemble'][i] = getAction(df3,date, "week")
 
 
         list_combine_train = np.empty((0, 3))
@@ -174,12 +168,7 @@ def XGBoostEnsemble(numWalks,type,numDel):
             list_combine_train = np.append(list_combine_train, [[df1['ensemble'][k], df2_new['ensemble'][k], df3_new['ensemble'][k]]], axis=0)
       
         y_train = ensemble_y_true(df1, daxHour, threshold)
-        # with open('y_train.csv', 'w', newline='') as file:
-        #     writer = csv.writer(file)
-        #     for value in y_train:
-        #         writer.writerow([value])  # Ghi từng số trong list vào một hàng
-        # # print(y_train)
-        # # print("=====================")
+
         for i in range(len(y_train)):
             if y_train[i] == -1:
                 y_train[i] = 2
@@ -227,16 +216,18 @@ def XGBoostEnsemble(numWalks,type,numDel):
         df3_result.index = df3_result.index.strftime('%m/%d/%Y')
         df3_result.rename(columns={'trend': 'ensemble'}, inplace=True)
 
-        df2_new_result = df1.copy()
-        df3_new_result = df1.copy()
+        df2_new_result = df1_result.copy()
+        df3_new_result = df1_result.copy()
 
         for i in range(len(df2_new_result)):
             date = re.search(r'\d{2}/\d{2}/\d{4}', df2_new_result.index[i]).group()
-            df2_new_result['ensemble'][i] = getAction(df2_result,date)
+            df2_new_result['ensemble'][i] = getAction(df2_result,date, "day")
+  
 
-        for i in range(len(df3_new)):            
+        for i in range(len(df3_new_result)):            
             date = re.search(r'\d{2}/\d{2}/\d{4}', df3_new_result.index[i]).group()
-            df3_new_result['ensemble'][i] = getAction(df3_result,date)
+            df3_new_result['ensemble'][i] = getAction(df3_result,date, "week")
+      
 
         for k in range(0,len(df1_result)):
             date = re.search(r'\d{2}/\d{2}/\d{4}', df1_result.index[k]).group()
@@ -316,17 +307,15 @@ def RandomForestEnsemble(numWalks,type,numDel):
 
         for i in range(len(df2_new)):
             date = re.search(r'\d{2}/\d{2}/\d{4}', df2_new.index[i]).group()
-            df2_new['ensemble'][i] = getAction(df2,date)
-
-
+            df2_new['ensemble'][i] = getAction(df2,date, "day")
 
         df3.index = pd.to_datetime(df3.index)
         df3.index = df3.index.strftime('%m/%d/%Y')
         df3.rename(columns={'trend': 'ensemble'}, inplace=True)
 
-        for i in range(len(df3_new)):            
+        for i in range(len(df3_new)):         
             date = re.search(r'\d{2}/\d{2}/\d{4}', df3_new.index[i]).group()
-            df3_new['ensemble'][i] = getAction(df3,date)
+            df3_new['ensemble'][i] = getAction(df3,date, "week")
 
 
         list_combine_train = np.empty((0, 3))
@@ -336,8 +325,6 @@ def RandomForestEnsemble(numWalks,type,numDel):
       
         y_train = ensemble_y_true(df1, daxHour, threshold)
      
-
-        # rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
         rf_model.fit(list_combine_train, y_train)
 
         # Predict
@@ -373,19 +360,17 @@ def RandomForestEnsemble(numWalks,type,numDel):
         df3_result.index = df3_result.index.strftime('%m/%d/%Y')
         df3_result.rename(columns={'trend': 'ensemble'}, inplace=True)
 
-        df2_new_result = df1.copy()
-        df3_new_result = df1.copy()
+        df2_new_result = df1_result.copy()
+        df3_new_result = df1_result.copy()
 
         for i in range(len(df2_new_result)):
             date = re.search(r'\d{2}/\d{2}/\d{4}', df2_new_result.index[i]).group()
-            df2_new_result['ensemble'][i] = getAction(df2_result,date)
+            df2_new_result['ensemble'][i] = getAction(df2_result,date, "day")
 
 
-        for i in range(len(df3_new)):            
+        for i in range(len(df3_new_result)):   
             date = re.search(r'\d{2}/\d{2}/\d{4}', df3_new_result.index[i]).group()
-            df3_new_result['ensemble'][i] = getAction(df3_result,date)
-        
-        
+            df3_new_result['ensemble'][i] = getAction(df3_result,date, "week")
 
         for k in range(0,len(df1_result)):
             date = re.search(r'\d{2}/\d{2}/\d{4}', df1_result.index[k]).group()

@@ -1,5 +1,5 @@
 {
-    "type": "RandomForest",
+    "type": "XGBoost",
     "num_files": 9,
     "MK": "dax",
     "ensemble_folder": "ensembleFolder",
