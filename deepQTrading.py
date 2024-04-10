@@ -129,7 +129,7 @@ class DeepQTrading:
         self.memory = SequentialMemory(limit=10000, window_length=1)
      
         #Instantiate the agent with parameters received
-        self.agent = AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Hour')
+        self.agent = AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Day')
 
         #Define the current starting point as the initial date
         self.currentStartingPoint = begin
@@ -247,8 +247,8 @@ class DeepQTrading:
                 #Compile the agent with Adam initialization
                 self.agent.agent.compile(Adam(lr=1e-3), metrics=['mae'])
 
-                #Load the weights saved before in a random way if it is the first time
-                self.agent.agent.load_weights("q.weights")
+                # #Load the weights saved before in a random way if it is the first time
+                # self.agent.agent.load_weights("q.weights")
 
                 ########################################TRAINING STAGE########################################################
 
@@ -366,38 +366,38 @@ class DeepQTrading:
                         print(str(i) + " TEST:  acc: " + str(testAccuracy)+ " cov: " + str(testCoverage)+ " rew: " + str(testReward))
 
                         #write the walk data on the text file
-                        if name == "Hour":
-                            self.outputFile.write(
-                                str(i)+","+
-                                str(trainAccuracy)+","+
-                                str(trainCoverage)+","+
-                                str(trainReward)+","+
-                                str(trainLongPerc)+","+
-                                str(trainShortPerc)+","+
-                                str(trainLongAcc)+","+
-                                str(trainShortAcc)+","+
-                                str(trainLongPrec)+","+
-                                str(trainShortPrec)+","+
+                        
+                        self.outputFile.write(
+                            str(i)+","+
+                            str(trainAccuracy)+","+
+                            str(trainCoverage)+","+
+                            str(trainReward)+","+
+                            str(trainLongPerc)+","+
+                            str(trainShortPerc)+","+
+                            str(trainLongAcc)+","+
+                            str(trainShortAcc)+","+
+                            str(trainLongPrec)+","+
+                            str(trainShortPrec)+","+
 
-                                str(validAccuracy)+","+
-                                str(validCoverage)+","+
-                                str(validReward)+","+
-                                str(validLongPerc)+","+
-                                str(validShortPerc)+","+
-                                str(validLongAcc)+","+
-                                str(validShortAcc)+","+
-                                str(validLongPrec)+","+
-                                str(validShortPrec)+","+
+                            str(validAccuracy)+","+
+                            str(validCoverage)+","+
+                            str(validReward)+","+
+                            str(validLongPerc)+","+
+                            str(validShortPerc)+","+
+                            str(validLongAcc)+","+
+                            str(validShortAcc)+","+
+                            str(validLongPrec)+","+
+                            str(validShortPrec)+","+
 
-                                str(testAccuracy)+","+
-                                str(testCoverage)+","+
-                                str(testReward)+","+
-                                str(testLongPerc)+","+
-                                str(testShortPerc)+","+
-                                str(testLongAcc)+","+
-                                str(testShortAcc)+","+
-                                str(testLongPrec)+","+
-                                str(testShortPrec)+"\n")
+                            str(testAccuracy)+","+
+                            str(testCoverage)+","+
+                            str(testReward)+","+
+                            str(testLongPerc)+","+
+                            str(testShortPerc)+","+
+                            str(testLongAcc)+","+
+                            str(testShortAcc)+","+
+                            str(testLongPrec)+","+
+                            str(testShortPrec)+"\n")
 
                 #Close the file
                 self.outputFile.close()

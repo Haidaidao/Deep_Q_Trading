@@ -52,8 +52,41 @@ class TrendReader:
             current_date += datetime.timedelta(days=interval)
         return date_list
 
+    # def get(self, date, window_size=1):
+    #     result = []
 
-    def get(self, date, window_size=5):
+    #     og_date_str = date.strftime("%m/%d/%Y")
+
+    #     # sync the request date with the closest possible date before the required date
+    #     # (only get data that is already known, not the data in the future)
+    #     start = None
+    #     while start is None:
+    #         try:
+    #             if date <= self.first_date:
+    #                 return [numpy.zeros(5).tolist()]  # Assuming the zeroed list should be wrapped in a list to match the structure
+
+    #             dateString = date.strftime("%m/%d/%Y")
+    #             start = self.dict[dateString] + 1
+    #         except Exception:
+    #             date = date - datetime.timedelta(days=1)
+
+    #     if self.dict[dateString] - (window_size) + 1 < 0:
+    #         result = [0] * (window_size - start)  # Or create a list of zeroed lists or dicts as per your data structure
+    #         result.extend(self.list[0:self.dict[dateString] + 1])
+    #     else:
+    #         result.extend(self.list[self.dict[dateString] - (window_size) + 1:self.dict[dateString] + 1])
+
+    #     date_list = [item['Date'] for item in result]  # Assuming each item in the result has a 'Date' key
+
+    #     if self.date_track_filename:
+    #         with open(self.date_track_filename, 'a') as file:
+    #             file.writelines(f"{og_date_str} - {date_list}\n")
+    #     print(result)
+    #     print("--------------------")
+    #     return result
+
+
+    def get(self, date, window_size=1):
         result = []
 
         og_date_str = date.strftime("%m/%d/%Y")
@@ -63,7 +96,7 @@ class TrendReader:
         while(start is None):
             try:
                 if date <= self.first_date:
-                    return numpy.zeros(5).tolist()
+                    return numpy.zeros(window_size).tolist()
 
                 dateString= date.strftime("%m/%d/%Y")
                 start = self.dict[dateString] + 1
@@ -83,5 +116,5 @@ class TrendReader:
 
         if self.date_track_filename != None:
             open(self.date_track_filename, 'a').writelines(f"{og_date_str} - {date_list}\n")
-
+        # print(result)
         return result

@@ -64,6 +64,8 @@ class SpEnv(gym.Env):
         #20 from days, 8 from weeks and 40 hours, ending with 40 dimensional feature vectors
         spTimeserie = pandas.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit+1] # opening the dataset
         # print(spTimeserie)
+        # print("=========================")
+        # print(spTimeserie)
         #Converts each column to a list
         Date = spTimeserie.loc[:, 'Date'].tolist()
         Time = spTimeserie.loc[:, 'Time'].tolist()
@@ -80,8 +82,8 @@ class SpEnv(gym.Env):
         # self.dayData = MergedDataStructure(filename=f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(iteration) + "ensemble_" + type + ".csv")
         #Load the data
 
-        self.dayData = TrendReader(f'Output/trend/{MK}Day.csv', 1, 'day_test.txt')
-        self.weekData = TrendReader(f'Output/trend/{MK}Week.csv', 7, 'week_test.txt')
+        self.frameTrendData = TrendReader(f'Output/trend/{MK}Day.csv', 1, 'day_test.txt')
+        # self.weekData = TrendReader(f'Output/trend/{MK}Week.csv', 7, 'week_test.txt')
         self.output=False
 
         #ensamble is the table of validation and testing
@@ -253,14 +255,27 @@ class SpEnv(gym.Env):
         #The state is prepared by the environment, which is simply the feature vector
         date = datetime.strptime(date, "%m/%d/%Y")
 
+        # print(date)
+        # print(self.history[self.currentObservation-self.observationWindow:self.currentObservation])
+        
+
         array = numpy.array(
                 [list(
                     map(
                         lambda x: (x["Close"]-x["Open"])/x["Open"],
                             self.history[self.currentObservation-self.observationWindow:self.currentObservation] 
-                            )) + self.dayData.get(date) + self.weekData.get(date)])
+                    )) + self.frameTrendData.get(date)])
+        # print(len(self.history[self.currentObservation-self.observationWindow:self.currentObservation]))
+        # print("===================")
 
         return  array
+    
+        # return  numpy.array(
+        #     [list(
+        #         map(
+        #             lambda x: (x["Close"]-x["Open"])/x["Open"],
+        #                 self.history[self.currentObservation-self.observationWindow:self.currentObservation]
+        #                 ))])
 
     def resetEnv(self):
         self.currentObservation=self.observationWindow
