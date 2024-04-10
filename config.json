@@ -1,7 +1,7 @@
 {
     "ensemble_type": "NewState",
     "num_files": 8,
-    "MK": "dax",
+    "MK": "sp500",
     "ensemble_folder": "",
     "label_threshold": 0.005,
     "epoch": 50

@@ -532,10 +532,11 @@ def ResultNewState(numWalks,type,numDel):
 
     for j in range(0,numWalks):
         
-        df_fn = path.join('./Output/ensemble', ensembleFolder, f'walkDay{str(j)}ensemble_{type}.csv')
-
+        df_fn = path.join('./Output/ensemble', f'walkDay{str(j)}ensemble_{type}.csv')
+        print(ensembleFolder)
 
         df=pd.read_csv(df_fn, index_col='Date')
+
         
         from_date=str(df.index[0])
         to_date=str(df.index[len(df)-1])

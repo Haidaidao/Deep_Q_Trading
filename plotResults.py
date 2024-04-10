@@ -21,7 +21,7 @@ func_map = {
     "NewState": ResultNewState
 }
 
-numFiles=global_config.num_files
+numFiles=global_config.num_files + 1
 
 ensemble = func_map[global_config.ensemble_type]
 
