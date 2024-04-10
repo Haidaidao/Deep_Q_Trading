@@ -10,7 +10,7 @@ MK = global_config.MK
 class SpEnv(gym.Env):
     continuous = False
 
-    def __init__(self, data=None, minLimit=None, maxLimit=None, operationCost=0, observationWindow=20, ensamble=None, callback=None, isOnlyShort=False, columnName="iteration-1", name="Hour"):
+    def __init__(self, data=None, minLimit=None, maxLimit=None, operationCost=0, observationWindow=20, ensamble=None, callback=None, isOnlyShort=False, columnName="iteration-1", name="Hour", FrameTrend=None):
         #Declare the episode as the first episode
         self.episode=1
 
@@ -19,6 +19,9 @@ class SpEnv(gym.Env):
         self.name = name
 
         spTimeserie = data[minLimit : maxLimit] # get all possible hour (at least 20 hours for each date)
+
+        if FrameTrend is not None:
+            self.spTimeserieTrend = pandas.read_csv("./Output/ensemble/"+"ensembleFolder"+"/walk"+self.name+str(self.iteration)+"ensemble_"+self.type+".csv")[minLimit:maxLimit]
 
         # spTimeserie = pandas.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit]
         # spTimeserie['Date'] = pandas.to_datetime(spTimeserie['Date'] + ' ' + spTimeserie['Time'])
