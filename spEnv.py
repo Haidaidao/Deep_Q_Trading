@@ -82,8 +82,8 @@ class SpEnv(gym.Env):
         # self.dayData = MergedDataStructure(filename=f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(iteration) + "ensemble_" + type + ".csv")
         #Load the data
 
-        self.frameTrendData = TrendReader(f'Output/trend/{MK}Day.csv', 1, 'day_test.txt')
-        # self.weekData = TrendReader(f'Output/trend/{MK}Week.csv', 7, 'week_test.txt')
+        self.dayData = TrendReader(f'Output/trend/{MK}Day.csv', 1, 'day_test.txt')
+        self.weekData = TrendReader(f'Output/trend/{MK}Week.csv', 7, 'week_test.txt')
         self.output=False
 
         #ensamble is the table of validation and testing
@@ -255,8 +255,8 @@ class SpEnv(gym.Env):
         #The state is prepared by the environment, which is simply the feature vector
         date = datetime.strptime(date, "%m/%d/%Y")
 
-        # print(date)
-        # print(self.history[self.currentObservation-self.observationWindow:self.currentObservation])
+        print(date)
+        print(self.history[self.currentObservation-self.observationWindow:self.currentObservation])
         
 
         array = numpy.array(
@@ -264,9 +264,9 @@ class SpEnv(gym.Env):
                     map(
                         lambda x: (x["Close"]-x["Open"])/x["Open"],
                             self.history[self.currentObservation-self.observationWindow:self.currentObservation] 
-                    )) + self.frameTrendData.get(date)])
+                    )) + self.dayData.get(date,1) + self.weekData.get(date,5)])
         # print(len(self.history[self.currentObservation-self.observationWindow:self.currentObservation]))
-        # print("===================")
+        print("===================")
 
         return  array
     
