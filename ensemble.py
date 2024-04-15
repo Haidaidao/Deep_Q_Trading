@@ -25,7 +25,7 @@ iteration = 'iteration' + str(config['epoch']-1)
 
 ensembleFolder = global_config.ensemble_folder
 threshold = global_config.label_threshold
-
+MK = global_config.MK
 
 # Get the results in the log file of the week that contains that day.
 def getActionWeek(weeksFrame, date):
@@ -138,32 +138,32 @@ def XGBoostEnsemble(numWalks,type,numDel):
 
     xgb_model = xgb.XGBClassifier(n_estimators=100, random_state=42)
 
+    df2_fn = path.join('./Output/trend', f'{MK}Day.csv')
+    df3_fn = path.join('./Output/trend', f'{MK}Week.csv')
+
+    df2 = pd.read_csv(df2_fn, index_col='Date')
+    df3 = pd.read_csv(df3_fn, index_col='Date')
+
+    df2.index = pd.to_datetime(df2.index)
+    df2.index = df2.index.strftime('%m/%d/%Y')
+    df2.rename(columns={'trend': 'ensemble'}, inplace=True)
+
+    df3.index = pd.to_datetime(df3.index)
+    df3.index = df3.index.strftime('%m/%d/%Y')
+    df3.rename(columns={'trend': 'ensemble'}, inplace=True)
+
     for j in range(0, numWalks):
 
         df1_fn = path.join('./Output/ensemble', ensembleFolder, f'walkHour{str(j)}ensemble_{type_train}.csv')
-        df2_fn = path.join('./Output/ensemble', ensembleFolder, f'walkDay{str(j)}ensemble_{type_train}.csv')
-        df3_fn = path.join('./Output/ensemble', ensembleFolder, f'walkWeek{str(j)}ensemble_{type_train}.csv')
 
         # Train
         df1 = pd.read_csv(df1_fn, index_col='Date')
-        df2 = pd.read_csv(df2_fn, index_col='Date')
-        df3 = pd.read_csv(df3_fn, index_col='Date')
 
         for deleted in range(1, numDel):
             del df1['iteration' + str(deleted)]
-            del df2['iteration' + str(deleted)]
-            del df3['iteration' + str(deleted)]
 
         df1 = pd.DataFrame(df1[iteration])
         df1.rename(columns={iteration: 'ensemble'}, inplace=True)
-
-        df2.index = pd.to_datetime(df2.index)
-        df2.index = df2.index.strftime('%m/%d/%Y')
-        df2.rename(columns={'trend': 'ensemble'}, inplace=True)
-
-        df3.index = pd.to_datetime(df3.index)
-        df3.index = df3.index.strftime('%m/%d/%Y')
-        df3.rename(columns={'trend': 'ensemble'}, inplace=True)
 
         df3_temp = pd.DataFrame(index=df2.index).assign(ensemble=0)
         for k in range(0,len(df3_temp)):
@@ -189,31 +189,20 @@ def XGBoostEnsemble(numWalks,type,numDel):
         df = df.set_index(pd.Index([], name='date'))
 
         df1_res_fn = path.join('./Output/ensemble', ensembleFolder, f'walkHour{str(j)}ensemble_{type}.csv')
-        df2_res_fn = path.join('./Output/ensemble', ensembleFolder, f'walkDay{str(j)}ensemble_{type}.csv')
-        df3_res_fn = path.join('./Output/ensemble', ensembleFolder, f'walkWeek{str(j)}ensemble_{type}.csv')
 
         df1_result = pd.read_csv(df1_res_fn, index_col='Date')
-        df2_result = pd.read_csv(df2_res_fn, index_col='Date')
-        df3_result = pd.read_csv(df3_res_fn, index_col='Date')
+        df2_result = df2.copy()
+        df3_result = df3.copy()
 
         from_date=str(df2_result.index[0])
         to_date=str(df2_result.index[len(df2_result)-1])
 
         for deleted in range(1, numDel):
             del df1_result['iteration' + str(deleted)]
-            del df2_result['iteration' + str(deleted)]
-            del df3_result['iteration' + str(deleted)]
+
 
         df1_result = pd.DataFrame(df1_result[iteration])
         df1_result.rename(columns={iteration: 'ensemble'}, inplace=True)
-
-        df2_result.index = pd.to_datetime(df2_result.index)
-        df2_result.index = df2_result.index.strftime('%m/%d/%Y')
-        df2_result.rename(columns={'trend': 'ensemble'}, inplace=True)
-
-        df3_result.index = pd.to_datetime(df3_result.index)
-        df3_result.index = df3_result.index.strftime('%m/%d/%Y')
-        df3_result.rename(columns={'trend': 'ensemble'}, inplace=True)
 
         df3_temp = pd.DataFrame(index=df2_result.index).assign(ensemble=0)
         for k in range(0,len(df3_temp)):
@@ -280,32 +269,32 @@ def RandomForestEnsemble(numWalks,type,numDel):
 
     rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
 
+    df2_fn = path.join('./Output/trend', f'{MK}Day.csv')
+    df3_fn = path.join('./Output/trend', f'{MK}Week.csv')
+
+    df2 = pd.read_csv(df2_fn, index_col='Date')
+    df3 = pd.read_csv(df3_fn, index_col='Date')
+
+    df2.index = pd.to_datetime(df2.index)
+    df2.index = df2.index.strftime('%m/%d/%Y')
+    df2.rename(columns={'trend': 'ensemble'}, inplace=True)
+
+    df3.index = pd.to_datetime(df3.index)
+    df3.index = df3.index.strftime('%m/%d/%Y')
+    df3.rename(columns={'trend': 'ensemble'}, inplace=True)
+
     for j in range(0, numWalks):
         # Train
         df1_fn = path.join('./Output/ensemble', ensembleFolder, f'walkHour{str(j)}ensemble_{type_train}.csv')
-        df2_fn = path.join('./Output/ensemble', ensembleFolder, f'walkDay{str(j)}ensemble_{type_train}.csv')
-        df3_fn = path.join('./Output/ensemble', ensembleFolder, f'walkWeek{str(j)}ensemble_{type_train}.csv')
 
         # Train
         df1 = pd.read_csv(df1_fn, index_col='Date')
-        df2 = pd.read_csv(df2_fn, index_col='Date')
-        df3 = pd.read_csv(df3_fn, index_col='Date')
 
         for deleted in range(1, numDel):
             del df1['iteration' + str(deleted)]
-            del df2['iteration' + str(deleted)]
-            del df3['iteration' + str(deleted)]
 
         df1 = pd.DataFrame(df1[iteration])
         df1.rename(columns={iteration: 'ensemble'}, inplace=True)
-
-        df2.index = pd.to_datetime(df2.index)
-        df2.index = df2.index.strftime('%m/%d/%Y')
-        df2.rename(columns={'trend': 'ensemble'}, inplace=True)
-
-        df3.index = pd.to_datetime(df3.index)
-        df3.index = df3.index.strftime('%m/%d/%Y')
-        df3.rename(columns={'trend': 'ensemble'}, inplace=True)
 
         df3_temp = pd.DataFrame(index=df2.index).assign(ensemble=0)
         for k in range(0,len(df3_temp)):
@@ -329,20 +318,16 @@ def RandomForestEnsemble(numWalks,type,numDel):
         df = df.set_index(pd.Index([], name='date'))
 
         df1_res_fn = path.join('./Output/ensemble', ensembleFolder, f'walkHour{str(j)}ensemble_{type}.csv')
-        df2_res_fn = path.join('./Output/ensemble', ensembleFolder, f'walkDay{str(j)}ensemble_{type}.csv')
-        df3_res_fn = path.join('./Output/ensemble', ensembleFolder, f'walkWeek{str(j)}ensemble_{type}.csv')
 
         df1_result = pd.read_csv(df1_res_fn, index_col='Date')
-        df2_result = pd.read_csv(df2_res_fn, index_col='Date')
-        df3_result = pd.read_csv(df3_res_fn, index_col='Date')
+        df2_result = df2.copy()
+        df3_result = df3.copy()
 
         from_date=str(df2_result.index[0])
         to_date=str(df2_result.index[len(df2_result)-1])
 
         for deleted in range(1, numDel):
             del df1_result['iteration' + str(deleted)]
-            del df2_result['iteration' + str(deleted)]
-            del df3_result['iteration' + str(deleted)]
 
         df1_result = pd.DataFrame(df1_result[iteration])
         df1_result.rename(columns={iteration: 'ensemble'}, inplace=True)
