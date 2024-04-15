@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 from math import floor
-from ensemble import RandomForestEnsemble, SimpleEnsemble, XGBoostEnsemble
+from ensemble import RandomForestEnsemble,  ResultNewState, XGBoostEnsemble
 import global_config
 import json
 
@@ -16,7 +16,7 @@ pdf=PdfPages(outputFile)
 
 func_map = {
     "RandomForest": RandomForestEnsemble,
-    "Base": SimpleEnsemble,
+    "NewState": ResultNewState,
     "XGBoost": XGBoostEnsemble
 }
 

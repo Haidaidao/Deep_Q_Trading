@@ -1,8 +1,8 @@
 {
-    "type": "RandomForest",
+    "type": "NewState",
     "num_files": 9,
-    "MK": "dax",
+    "MK": "sp500",
     "ensemble_folder": "ensembleFolder",
     "label_threshold": 0.0005,
-    "epoch": 25
+    "epoch": 1
 }

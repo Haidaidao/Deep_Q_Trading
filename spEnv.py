@@ -4,6 +4,7 @@ import numpy
 import pandas
 import global_config
 from sklearn.preprocessing import MinMaxScaler
+from trend_reader import TrendReader
 
 MK = global_config.MK
 
@@ -34,6 +35,9 @@ class SpEnv(gym.Env):
         High = spTimeserie.loc[:, 'High'].tolist()
         Low = spTimeserie.loc[:, 'Low'].tolist()
         Close = spTimeserie.loc[:, 'Close'].tolist()
+
+        self.dayData = TrendReader(f'Output/trend/{MK}Day.csv', 1, 'day_test.txt')
+        self.weekData = TrendReader(f'Output/trend/{MK}Week.csv', 7, 'week_test.txt')
 
         #Load the data
         self.output=False
@@ -210,15 +214,16 @@ class SpEnv(gym.Env):
 
 
         #The state is prepared by the environment, which is simply the feature vector
-
+        print(date)
+        print(self.history[self.currentObservation-self.observationWindow:self.currentObservation])
         if self.name != "Week":
             array = numpy.array(
                 [list(
                     map(
                         lambda x: (x["Close"]-x["Open"])/x["Open"],
                             self.history[self.currentObservation-self.observationWindow:self.currentObservation]
-                            ))])
-
+                            )) + self.dayData.get(date,1) + self.weekData.get(date,5)])
+        print("==========================")
             # array = self.scaler.fit_transform(array)
         return  array
 

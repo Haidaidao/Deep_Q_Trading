@@ -1,6 +1,7 @@
 # #Copyright (C) 2020 Salvatore Carta, Anselmo Ferreira, Alessandro Sebastian Podda, Diego Reforgiato Recupero, Antonio Sanna. All rights reserved.
 
 import csv
+from os import path
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -396,115 +397,61 @@ def RandomForestEnsemble(numWalks,type,numDel):
     
     # values.append([' ','Sum',0,0,0])
     return values,columns
-# ================================================ Base-rule
 
-def normalized(a):
-    if a > 0:
-        return 1
-    elif a < 0:
-        return -1
-    return 0
+# ================================================ Result New State
+def ResultNewState(numWalks,type,numDel):
+    wins_number = 0
+    loses_number = 0
+    profit_number = 0
 
-def SimpleEnsemble(numWalks,type,numDel):
-    dollSum=0
-    rewSum=0
-    posSum=0
-    negSum=0
-    covSum=0
-    numSum=0
-
-    columns = ["From","To", "Reward%", "#Wins", "#Losses", "Dollars", "Coverage", "Accuracy"]
+    columns = ["From","To", "Wins", "Closes", "Profit"]
 
     values=[]
 
     dax = pd.read_csv("./datasets/" + global_config.MK + "Day.csv", index_col='Date')
 
+    daxHour = pd.read_csv("./datasets/"+ global_config.MK +"Hour.csv", index_col='Date')
+    daxHour = daxHour.reset_index()
+    daxHour['Date'] = pd.to_datetime(daxHour['Date'] + ' ' + daxHour['Time'])
+    daxHour['Date'] = daxHour['Date'].dt.strftime('%m/%d/%Y %H:%M')
+    daxHour.set_index('Date', inplace=True)
+
     for j in range(0,numWalks):
+        
+        df_fn = path.join('./Output/ensemble', f'walkHour{str(j)}ensemble_{type}.csv')
 
-        df1=pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk"+"Hour"+str(j)+"ensemble_"+type+".csv",index_col='Date')
-        df2=pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk"+"Day"+str(j)+"ensemble_"+type+".csv",index_col='Date')
-        df3=pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk"+"Week"+str(j)+"ensemble_"+type+".csv",index_col='Date')
+        df=pd.read_csv(df_fn, index_col='Date')
 
-        from_date=str(df2.index[0])
-        to_date=str(df2.index[len(df2)-1])
-
-        for deleted in range(1,numDel):
-            del df1['iteration'+str(deleted)]
-            del df2['iteration'+str(deleted)]
-            del df3['iteration'+str(deleted)]
-
-            
-        df1 = pd.DataFrame(df1[iteration])
-        df1.rename(columns={iteration: 'ensemble'}, inplace=True)
-
-        df2.index = pd.to_datetime(df2.index)
-        df2.index = df2.index.strftime('%m/%d/%Y')
-        df2.rename(columns={'trend': 'ensemble'}, inplace=True)
-
-        df3.index = pd.to_datetime(df3.index)
-        df3.index = df3.index.strftime('%m/%d/%Y')
-        df3.rename(columns={'trend': 'ensemble'}, inplace=True)
+        
+        from_date=str(df.index[0])
+        to_date=str(df.index[len(df)-1])
 
         for deleted in range(1,numDel):
             del df['iteration'+str(deleted)]
 
-        df = pd.DataFrame(columns=['ensemble'])
-        df = df.set_index(pd.Index([], name='date'))
+            
+        df = pd.DataFrame(df[iteration])
+        df.rename(columns={iteration: 'ensemble'}, inplace=True)
 
-        for k in range(0,len(df1)):
-            if(df1.index[k] in df2.index):
-                if df1['ensemble'][k] == 0:
-                    df.loc[df1.index[k]] = 0
-                else:
-                    Sh = normalized(df1['ensemble'][k])
-                    Sw = normalized(getAction(df3, df2.index[k]))
-                    Sd = normalized(df2.loc[df1.index[k],'ensemble'])
-                    
-                    if Sh == 1:
-                        if Sw + Sd >= 1:
-                            df.loc[df1.index[k]] = 1
-                    elif Sh == -1: 
-                        if Sw + Sd <= -1:
-                            df.loc[df1.index[k]] = -1
-                    else:
-                        df.loc[df1.index[k]] = 0
- 
-        num=0
-        rew=0
-        pos=0
-        neg=0
-        doll=0
-        cov=0
-        for date, i in df.iterrows():
-            num+=1
+        for deleted in range(1,numDel):
+            del df['iteration'+str(deleted)]
 
-            if date in dax.index:
-                if (i['ensemble']==1):
-                    pos+= 1 if (dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
+        df['close'] = df.index.map(daxHour['Close'])
+        df['open'] = df.index.map(daxHour['Open'])
+        df['high'] = df.index.map(daxHour['High'])
+        df['low'] = df.index.map(daxHour['Low'])
 
-                    neg+= 0 if (dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
-                    rew+=(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
-                    doll+=(dax.at[date,'Close']-dax.at[date,'Open'])*50
-                    cov+=1
-                elif (i['ensemble']==-1):
+        eva = Evaluation(df)
+        wins, loses, profit = eva.evaluate()
+        values.append([from_date, to_date,str(round(wins,2)),str(round(loses,2)),str(round(profit,2))])
 
-                    neg+= 0 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
-                    pos+= 1 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
-                    rew+=-(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
-                    cov+=1
-                    doll+=-(dax.at[date,'Close']-dax.at[date,'Open'])*50
-
-        values.append([from_date, to_date,str(round(rew,2)),str(round(pos,2)),str(round(neg,2)),str(round(doll,2)),str(round(cov/num,2)),(str(round(pos/cov,2)) if (cov>0) else "None")])
-
-        dollSum+=doll
-        rewSum+=rew
-        posSum+=pos
-        negSum+=neg
-        covSum+=cov
-        numSum+=num
+        wins_number+=wins
+        loses_number+=loses
+        profit_number+=profit
 
 
-    values.append([' ','Sum',str(round(rewSum,2)),str(round(posSum,2)),str(round(negSum,2)),str(round(dollSum,2)),str(round(covSum/numSum,2)),(str(round(posSum/covSum,2)) if (covSum>0) else "None")])
+    values.append([' ','Sum',str(round(wins_number,2)),str(round(loses_number,2)),str(round(profit_number,2))])
+    
     # print(values)
     return values,columns
 

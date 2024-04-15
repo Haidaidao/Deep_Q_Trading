@@ -175,7 +175,7 @@ class DeepQTrading:
         #Define the ending point as the final date (January 1st of 2010)
         self.endingPoint=end
 
-        self.hoursFrame, self.daysFrame, self.weeksFrame, self.averageCountNumPerDay = self.frameProcessing()
+        self.hoursFrame, self.averageCountNumPerDay = self.frameProcessing()
 
         self.agent.dates = self.hoursFrame
 
@@ -215,20 +215,20 @@ class DeepQTrading:
     
     def frameProcessing(self):
         hoursFrame = pd.read_csv('./datasets/'+MK+"Hour"+'.csv')
-        weeksFrame = pd.read_csv('./datasets/'+MK+"Week"+'.csv')
-        daysFrame = pd.read_csv('./datasets/'+MK+"Day"+'.csv')
+        # weeksFrame = pd.read_csv('./datasets/'+MK+"Week"+'.csv')
+        # daysFrame = pd.read_csv('./datasets/'+MK+"Day"+'.csv')
 
         hoursFrame['Datetime'] = pd.to_datetime(hoursFrame['Date'] + ' ' + hoursFrame['Time'], format='%m/%d/%Y %H:%M')
-        weeksFrame['Datetime'] = pd.to_datetime(weeksFrame['Date'] + ' ' + weeksFrame['Time'], format='%m/%d/%Y %H:%M')
-        daysFrame['Datetime'] = pd.to_datetime(daysFrame['Date'] + ' ' + daysFrame['Time'], format='%m/%d/%Y %H:%M')
+        # weeksFrame['Datetime'] = pd.to_datetime(weeksFrame['Date'] + ' ' + weeksFrame['Time'], format='%m/%d/%Y %H:%M')
+        # daysFrame['Datetime'] = pd.to_datetime(daysFrame['Date'] + ' ' + daysFrame['Time'], format='%m/%d/%Y %H:%M')
 
         averageHourNumPerDay = hoursFrame.groupby('Date').size().mean()
 
         hoursFrame = hoursFrame.drop(columns=['Date', 'Time'], axis=1).set_index('Datetime')
-        weeksFrame = weeksFrame.drop(columns=['Date', 'Time'], axis=1).set_index('Datetime')
-        daysFrame = daysFrame.drop(columns=['Date', 'Time'], axis=1).set_index('Datetime')
+        # weeksFrame = weeksFrame.drop(columns=['Date', 'Time'], axis=1).set_index('Datetime')
+        # daysFrame = daysFrame.drop(columns=['Date', 'Time'], axis=1).set_index('Datetime')
 
-        return hoursFrame, daysFrame, weeksFrame, averageHourNumPerDay
+        return hoursFrame, averageHourNumPerDay
     
     def indexController(self, currentStartingPoint, walkSize, endingPoint, testSize, trainSize, validationSize):   
         iteration=-1
@@ -325,38 +325,38 @@ class DeepQTrading:
         # weeksFrame = pd.read_csv('./datasets/'+MK+"Week"+'.csv')
         # daysFrame = pd.read_csv('./datasets/'+MK+"Day"+'.csv')
 
-        for i in range(0,numFile):
-            trainMinLimit = self.getDate_Index(self.weeksFrame, self.hoursFrame, trainMin[i])
-            trainMaxLimit = self.getDate_Index(self.weeksFrame, self.hoursFrame, trainMax[i])
+        # for i in range(0,numFile):
+        #     trainMinLimit = self.getDate_Index(self.weeksFrame, self.hoursFrame, trainMin[i])
+        #     trainMaxLimit = self.getDate_Index(self.weeksFrame, self.hoursFrame, trainMax[i])
 
-            validMinLimit = self.getDate_Index(self.weeksFrame, self.hoursFrame, validMin[i])
-            validMaxLimit = self.getDate_Index(self.weeksFrame, self.hoursFrame, validMax[i])
+        #     validMinLimit = self.getDate_Index(self.weeksFrame, self.hoursFrame, validMin[i])
+        #     validMaxLimit = self.getDate_Index(self.weeksFrame, self.hoursFrame, validMax[i])
         
-            testMinLimit = self.getDate_Index(self.weeksFrame, self.hoursFrame, testMin[i])
-            testMaxLimit = self.getDate_Index(self.weeksFrame, self.hoursFrame, testMax[i])
+        #     testMinLimit = self.getDate_Index(self.weeksFrame, self.hoursFrame, testMin[i])
+        #     testMaxLimit = self.getDate_Index(self.weeksFrame, self.hoursFrame, testMax[i])
 
-            train = TrendSlope(dataframe=self.weeksFrame, iteration = i, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = "Week" ,type = "train")
-            train.writeFile()
-            valid = TrendSlope(dataframe=self.weeksFrame, iteration = i, minLimit=validMinLimit,maxLimit=validMaxLimit, name = "Week" ,type = "valid")
-            valid.writeFile()
-            test  = TrendSlope(dataframe=self.weeksFrame, iteration = i, minLimit=testMinLimit,maxLimit=testMaxLimit, name = "Week" ,type = "test")
-            test.writeFile()   
+        #     train = TrendSlope(dataframe=self.weeksFrame, iteration = i, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = "Week" ,type = "train")
+        #     train.writeFile()
+        #     valid = TrendSlope(dataframe=self.weeksFrame, iteration = i, minLimit=validMinLimit,maxLimit=validMaxLimit, name = "Week" ,type = "valid")
+        #     valid.writeFile()
+        #     test  = TrendSlope(dataframe=self.weeksFrame, iteration = i, minLimit=testMinLimit,maxLimit=testMaxLimit, name = "Week" ,type = "test")
+        #     test.writeFile()   
 
-            trainMinLimit = self.getDate_Index(self.daysFrame, self.hoursFrame, trainMin[i])
-            trainMaxLimit = self.getDate_Index(self.daysFrame, self.hoursFrame, trainMax[i])
+        #     trainMinLimit = self.getDate_Index(self.daysFrame, self.hoursFrame, trainMin[i])
+        #     trainMaxLimit = self.getDate_Index(self.daysFrame, self.hoursFrame, trainMax[i])
 
-            validMinLimit = self.getDate_Index(self.daysFrame, self.hoursFrame, validMin[i])
-            validMaxLimit = self.getDate_Index(self.daysFrame, self.hoursFrame, validMax[i])
+        #     validMinLimit = self.getDate_Index(self.daysFrame, self.hoursFrame, validMin[i])
+        #     validMaxLimit = self.getDate_Index(self.daysFrame, self.hoursFrame, validMax[i])
         
-            testMinLimit = self.getDate_Index(self.daysFrame, self.hoursFrame, testMin[i])
-            testMaxLimit = self.getDate_Index(self.daysFrame, self.hoursFrame, testMax[i])
+        #     testMinLimit = self.getDate_Index(self.daysFrame, self.hoursFrame, testMin[i])
+        #     testMaxLimit = self.getDate_Index(self.daysFrame, self.hoursFrame, testMax[i])
 
-            train = TrendSlope(dataframe=self.daysFrame, iteration = i, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = "Day" ,type = "train")
-            train.writeFile()
-            valid = TrendSlope(dataframe=self.daysFrame, iteration = i, minLimit=validMinLimit,maxLimit=validMaxLimit, name = "Day" ,type = "valid")
-            valid.writeFile()
-            test  = TrendSlope(dataframe=self.daysFrame, iteration = i, minLimit=testMinLimit,maxLimit=testMaxLimit, name = "Day" ,type = "test")
-            test.writeFile()   
+        #     train = TrendSlope(dataframe=self.daysFrame, iteration = i, minLimit=trainMinLimit,maxLimit=trainMaxLimit, name = "Day" ,type = "train")
+        #     train.writeFile()
+        #     valid = TrendSlope(dataframe=self.daysFrame, iteration = i, minLimit=validMinLimit,maxLimit=validMaxLimit, name = "Day" ,type = "valid")
+        #     valid.writeFile()
+        #     test  = TrendSlope(dataframe=self.daysFrame, iteration = i, minLimit=testMinLimit,maxLimit=testMaxLimit, name = "Day" ,type = "test")
+        #     test.writeFile()   
 
         #Initiates the environments,
         trainEnv=validEnv=testEnv=" "
@@ -494,8 +494,8 @@ class DeepQTrading:
                 ensambleValid.index.name = 'Date'
                 ensambleTest.index.name = 'Date'
 
-                print(self.explorations)
-                print("=========================")
+                # print(self.explorations)
+                # print("=========================")
                 #Explorations are epochs considered, or how many times the agent will play the game.
                 for eps in self.explorations:
 
@@ -598,17 +598,15 @@ class DeepQTrading:
                 #Close the file
                 self.outputFile.close()
 
-
-
                 ensambleTrain.sort_index(inplace=True)
                 ensambleValid.sort_index(inplace=True)
                 ensambleTest.sort_index(inplace=True)
 
                 #Write validation and Testing data into files
                 #Save the files for processing later with the ensemble considering the 50 epochs
-                ensambleTrain.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent.name+str(iteration)+"ensemble_train.csv", date_format='%m/%d/%Y %H:%M')
-                ensambleValid.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent.name+str(iteration)+"ensemble_valid.csv", date_format='%m/%d/%Y %H:%M')
-                ensambleTest.to_csv("./Output/ensemble/"+self.ensembleFolderName+"/walk"+self.agent.name+str(iteration)+"ensemble_test.csv", date_format='%m/%d/%Y %H:%M')
+                ensambleTrain.to_csv("./Output/ensemble/"+"/walk"+self.agent.name+str(iteration)+"ensemble_train.csv", date_format='%m/%d/%Y %H:%M')
+                ensambleValid.to_csv("./Output/ensemble/"+"/walk"+self.agent.name+str(iteration)+"ensemble_valid.csv", date_format='%m/%d/%Y %H:%M')
+                ensambleTest.to_csv("./Output/ensemble/"+"/walk"+self.agent.name+str(iteration)+"ensemble_test.csv", date_format='%m/%d/%Y %H:%M')
     
             self.currentStartingPoint+=self.testSize
 

@@ -28,6 +28,8 @@ from rl.agents.dqn import DQNAgent
 from rl.memory import SequentialMemory
 from rl.policy import EpsGreedyQPolicy
 
+from trend import TrendGenerator
+
 #Library used for showing the exception in the case of error 
 import sys
 
@@ -35,6 +37,8 @@ import global_config
 import json
 
 config = json.load(open('plotResultsConf.json', 'r'))
+
+MK = global_config.MK
 
 #import tensorflow as tf
 #from keras.backend.tensorflow_backend import set_session
@@ -64,12 +68,18 @@ isOnlyShort=sys.argv[2]==1
 #the input is 20 observation days from the past, 8 observations from the past week and 
 #40 observations from the past hours
 model = Sequential()
-model.add(Flatten(input_shape=(1,1,20)))
+model.add(Flatten(input_shape=(1,1,26)))
 model.add(Dense(35,activation='linear'))
 model.add(LeakyReLU(alpha=.001))
 model.add(Dense(nb_actions))
 model.add(Activation('linear'))
 
+
+trendDay = TrendGenerator(name="Day")
+trendDay.writeFile(f'Output/trend/{MK}Day.csv')
+
+trendWeek = TrendGenerator(name="Week")
+trendWeek.writeFile(f'Output/trend/{MK}Week.csv')
 
 #Define the DeepQTrading class with the following parameters:
 #explorations: 0.2 operations are random, and 50 epochs.
@@ -82,6 +92,7 @@ model.add(Activation('linear'))
 #begin: where the walks will start from. We are defining January 1st of 2010
 #end: where the walks will finish. We are defining February 22nd of 2011
 #nOutput:number of walks
+
 
 dqt = DeepQTrading(
     model=model,
