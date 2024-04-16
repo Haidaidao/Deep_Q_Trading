@@ -29,7 +29,6 @@ import pandas as pd
 #Library used to manipulate time
 import datetime
 
-from trend import Trend
 from macd import MACD
 from AgentObject import AgentObject
 import global_config
