@@ -214,8 +214,8 @@ class SpEnv(gym.Env):
 
 
         #The state is prepared by the environment, which is simply the feature vector
-        print(date)
-        print(self.history[self.currentObservation-self.observationWindow:self.currentObservation])
+        # print(date)
+        # print(self.history[self.currentObservation-self.observationWindow:self.currentObservation])
         if self.name != "Week":
             array = numpy.array(
                 [list(
@@ -223,7 +223,7 @@ class SpEnv(gym.Env):
                         lambda x: (x["Close"]-x["Open"])/x["Open"],
                             self.history[self.currentObservation-self.observationWindow:self.currentObservation]
                             )) + self.dayData.get(date,1) + self.weekData.get(date,5)])
-        print("==========================")
+        # print("==========================")
             # array = self.scaler.fit_transform(array)
         return  array
 

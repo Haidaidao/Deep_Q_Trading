@@ -106,11 +106,11 @@ class TrendReader:
         if self.dict[dateString]-(window_size) + 1 < 0: 
             for i in range (0, window_size - start):
                 result.append(0) 
-            print(self.list[:self.dict[dateString] + 1])
+            # print(self.list[:self.dict[dateString] + 1])
             date_list = [ dateString ]
             result.extend([item['Trend'] for item in self.list[0:self.dict[dateString]+1]])
         else:
-            print(self.list[self.dict[dateString]-(window_size) + 1:self.dict[dateString]+1])
+            # print(self.list[self.dict[dateString]-(window_size) + 1:self.dict[dateString]+1])
             date_list = [item['Date'] for item in self.list[self.dict[dateString]-(window_size) + 1:self.dict[dateString]+1]]
             result.extend([item['Trend'] for item in self.list[self.dict[dateString]-(window_size) + 1:self.dict[dateString]+1]])
 
