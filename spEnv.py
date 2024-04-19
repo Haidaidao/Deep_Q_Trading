@@ -11,7 +11,7 @@ MK = global_config.MK
 class SpEnv(gym.Env):
     continuous = False
 
-    def __init__(self, data=None, minLimit=None, maxLimit=None, operationCost=0, observationWindow=20, ensamble=None, callback=None, isOnlyShort=False, columnName="iteration-1", name="Hour", FrameTrend=None):
+    def __init__(self, data=None, minLimit=None, maxLimit=None, operationCost=0, observationWindow=20, ensamble=None, callback=None, isOnlyShort=False, columnName="iteration-1", name=global_config.short, FrameTrend=None):
         #Declare the episode as the first episode
         self.episode=1
 
@@ -36,8 +36,8 @@ class SpEnv(gym.Env):
         Low = spTimeserie.loc[:, 'Low'].tolist()
         Close = spTimeserie.loc[:, 'Close'].tolist()
 
-        self.dayData = TrendReader(f'Output/trend/{MK}Day.csv', 1, 'day_test.txt')
-        self.weekData = TrendReader(f'Output/trend/{MK}Week.csv', 7, 'week_test.txt')
+        self.middleData = TrendReader(f'Output/trend/{MK}{global_config.middle}.csv', 1, 'middle_test.txt')
+        self.longData = TrendReader(f'Output/trend/{MK}{global_config.long}.csv', 7, 'long_test.txt')
 
         #Load the data
         self.output=False
@@ -216,13 +216,13 @@ class SpEnv(gym.Env):
         #The state is prepared by the environment, which is simply the feature vector
         # print(date)
         # print(self.history[self.currentObservation-self.observationWindow:self.currentObservation])
-        if self.name != "Week":
+        if self.name != global_config.long:
             array = numpy.array(
                 [list(
                     map(
                         lambda x: (x["Close"]-x["Open"])/x["Open"],
                             self.history[self.currentObservation-self.observationWindow:self.currentObservation]
-                            )) + self.dayData.get(date,1) + self.weekData.get(date,5)])
+                            )) + self.middleData.get(date,1) + self.longData.get(date,5)])
         # print("==========================")
             # array = self.scaler.fit_transform(array)
         return  array

@@ -94,7 +94,7 @@ def ResultNewState(numWalks,type,numDel):
 
     values=[]
 
-    dax = pd.read_csv("./datasets/" + global_config.MK + "Hour.csv")
+    dax = pd.read_csv("./datasets/" + global_config.MK +  global_config.short + ".csv")
     dax['Date'] = pd.to_datetime(dax['Date'] + ' ' + dax['Time'])
     dax.set_index('Date', inplace=True)
     dax.index = dax.index.strftime('%m/%d/%Y %H:%M')
@@ -102,7 +102,7 @@ def ResultNewState(numWalks,type,numDel):
 
     for j in range(0,numWalks):
         
-        df_fn = path.join('./Output/ensemble', f'walkHour{str(j)}ensemble_{type}.csv')
+        df_fn = path.join('./Output/ensemble', f'walk{global_config.short}{str(j)}ensemble_{type}.csv')
 
         df=pd.read_csv(df_fn, index_col='Date')
 

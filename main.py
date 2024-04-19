@@ -76,10 +76,10 @@ model.add(Activation('linear'))
 
 
 trendDay = TrendGenerator(name="Day")
-trendDay.writeFile(f'Output/trend/{MK}Day.csv')
+trendDay.writeFile(f'Output/trend/{MK}{global_config.middle}.csv')
 
 trendWeek = TrendGenerator(name="Week")
-trendWeek.writeFile(f'Output/trend/{MK}Week.csv')
+trendWeek.writeFile(f'Output/trend/{MK}{global_config.long}.csv')
 
 #Define the DeepQTrading class with the following parameters:
 #explorations: 0.2 operations are random, and 50 epochs.
@@ -121,6 +121,21 @@ dqt = DeepQTrading(
 #     isOnlyShort=isOnlyShort,
 #     ensembleFolderName=sys.argv[3]
 #     )
+
+# dqt = DeepQTrading(
+#     model=model,
+#     explorations=[(0.2,config['epoch'])],
+#     trainSize=datetime.timedelta(minutes=5),
+#     validationSize=datetime.timedelta(minutes=3),
+#     testSize=datetime.timedelta(minutes=2),
+#     outputFile="./Output/csv/walks/walks",
+#     begin=datetime.datetime(2024,2,10,0,0,0,0),
+#     end=datetime.datetime(2024,2,23,0,0,0,0),
+#     nbActions=nb_actions,
+#     isOnlyShort=isOnlyShort,
+#     ensembleFolderName=sys.argv[3]
+#     )
+
 
 dqt.run()
 

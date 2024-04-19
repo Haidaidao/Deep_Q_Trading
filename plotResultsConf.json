@@ -4,5 +4,8 @@
     "MK": "sp500",
     "ensemble_folder": "ensembleFolder",
     "label_threshold": 0.0005,
-    "epoch": 1
+    "epoch": 1,
+    "short": "Hour",
+    "middle": "Day",
+    "long": "Week"
 }
