@@ -19,8 +19,9 @@ class SpEnv(gym.Env):
 
         self.name = name
 
-        spTimeserie = data[minLimit : maxLimit] # get all possible hour (at least 20 hours for each date)
-
+        spTimeserie = data[minLimit : maxLimit+1] # get all possible hour (at least 20 hours for each date)
+        print(spTimeserie)
+        print("=======================")
         if FrameTrend is not None:
             self.spTimeserieTrend = pandas.read_csv("./Output/ensemble/"+"ensembleFolder"+"/walk"+self.name+str(self.iteration)+"ensemble_"+self.type+".csv")[minLimit:maxLimit]
 
@@ -72,7 +73,8 @@ class SpEnv(gym.Env):
         self.observationWindow = observationWindow
 
         #Set the current observation as 40
-        self.currentObservation = observationWindow
+        self.currentObservation = minLimit
+        print("minLimit", minLimit)
         #The operation cost is defined as
         self.operationCost=operationCost
         #Defines that the environment is not done yet
@@ -96,6 +98,10 @@ class SpEnv(gym.Env):
         self.openValue = 0
         self.closeValue = 0
         self.callback=callback
+        
+        for i in range(0,21):
+            # print(self.history[i]['Date'])
+            self.ensamble.at[self.history[i]['Date'],self.columnName]=0
 
         self.scaler = MinMaxScaler()
 
@@ -155,7 +161,6 @@ class SpEnv(gym.Env):
             self.ensamble.at[self.history[self.currentObservation]['Date'],self.columnName]=action
 
 
-
         #Return the state, reward and if its done or not
         return self.getObservation(self.history[self.currentObservation]['Date']), self.reward, self.done, {}
 
@@ -190,12 +195,10 @@ class SpEnv(gym.Env):
         self.currentObservation+=self.nextObservation
         if(self.currentObservation>=self.limit):
             self.currentObservation=self.observationWindow
-
         return self.getObservation(self.history[self.currentObservation]['Date'])
 
 
     def getObservation(self, date):
-
         #Get the dayly information and week information
         #get all the data
         # dayList=self.dayData.get(date)

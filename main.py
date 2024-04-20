@@ -94,19 +94,19 @@ trendWeek.writeFile(f'Output/trend/{MK}{global_config.long}.csv')
 #nOutput:number of walks
 
 
-dqt = DeepQTrading(
-    model=model,
-    explorations=[(0.2,config['epoch'])],
-    trainSize=datetime.timedelta(days=360*5),
-    validationSize=datetime.timedelta(days=30*6),
-    testSize=datetime.timedelta(days=30*6),
-    outputFile="./Output/csv/walks/walks",
-    begin=datetime.datetime(2001,1,1,0,0,0,0),
-    end=datetime.datetime(2011,2,28,0,0,0,0),
-    nbActions=nb_actions,
-    isOnlyShort=isOnlyShort,
-    ensembleFolderName=sys.argv[3]
-    )
+# dqt = DeepQTrading(
+#     model=model,
+#     explorations=[(0.2,config['epoch'])],
+#     trainSize=datetime.timedelta(days=360*5),
+#     validationSize=datetime.timedelta(days=30*6),
+#     testSize=datetime.timedelta(days=30*6),
+#     outputFile="./Output/csv/walks/walks",
+#     begin=datetime.datetime(2001,1,1,0,0,0,0),
+#     end=datetime.datetime(2011,2,28,0,0,0,0),
+#     nbActions=nb_actions,
+#     isOnlyShort=isOnlyShort,
+#     ensembleFolderName=sys.argv[3]
+#     )
 
 # dqt = DeepQTrading(
 #     model=model,
@@ -122,19 +122,19 @@ dqt = DeepQTrading(
 #     ensembleFolderName=sys.argv[3]
 #     )
 
-# dqt = DeepQTrading(
-#     model=model,
-#     explorations=[(0.2,config['epoch'])],
-#     trainSize=datetime.timedelta(minutes=5),
-#     validationSize=datetime.timedelta(minutes=3),
-#     testSize=datetime.timedelta(minutes=2),
-#     outputFile="./Output/csv/walks/walks",
-#     begin=datetime.datetime(2024,2,10,0,0,0,0),
-#     end=datetime.datetime(2024,2,23,0,0,0,0),
-#     nbActions=nb_actions,
-#     isOnlyShort=isOnlyShort,
-#     ensembleFolderName=sys.argv[3]
-#     )
+dqt = DeepQTrading(
+    model=model,
+    explorations=[(0.2,config['epoch'])],
+    trainSize=datetime.timedelta(minutes=15*80),
+    validationSize=datetime.timedelta(minutes=15*60),
+    testSize=datetime.timedelta(minutes=15*60),
+    outputFile="./Output/csv/walks/walks",
+    begin=datetime.datetime(2024,2,16,0,0,0,0),
+    end=datetime.datetime(2024,2,22,0,0,0,0),
+    nbActions=nb_actions,
+    isOnlyShort=isOnlyShort,
+    ensembleFolderName=sys.argv[3]
+    )
 
 
 dqt.run()
