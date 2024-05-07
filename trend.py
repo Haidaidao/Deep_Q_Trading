@@ -127,4 +127,5 @@ class TrendGenerator:
         for i in range(0,len(self.Date)):
             ensambleValid.at[trendResult.index[i],self.columnName]=trendResult['trend'][i]
         ensambleValid['close'] = self.Close
+        ensambleValid['open'] = self.Open
         ensambleValid.to_csv(file_name)

@@ -11,7 +11,9 @@ class TrendReader:
         #Transform each column into a list
         Date = self.timeseries.loc[:, 'Date'].tolist()
         
-        Trend = self.timeseries.loc[:, 'trend'].tolist()
+        # Trend = self.timeseries.loc[:, 'trend'].tolist()
+        Close = self.timeseries.loc[:, 'close'].tolist()
+        Open = self.timeseries.loc[:, 'open'].tolist()
 
         #Create empty list and dictionary
         self.list=[]
@@ -31,7 +33,7 @@ class TrendReader:
         #Just converting pandas data to a list
         #lets pick up the csv data and put them in the list (self.list) 
         for i in range(0,limit-1):
-            self.list.append({'Date' : Date[i],'Trend' : Trend[i]})
+            self.list.append({'Date' : Date[i], 'Close': Close[i], 'Open': Open[i]})
             
             #Fill the gaps with days that do not exist 
             # dateList = [datetime.datetime.strptime(Date[i+1], "%m/%d/%Y") - datetime.timedelta(days=x) for x in range(0, ( datetime.datetime.strptime(Date[i+1], "%m/%d/%Y")- datetime.datetime.strptime(Date[i], "%m/%d/%Y") ).days )]
@@ -52,42 +54,14 @@ class TrendReader:
             current_date += datetime.timedelta(days=interval)
         return date_list
 
-    # def get(self, date, window_size=1):
-    #     result = []
 
-    #     og_date_str = date.strftime("%m/%d/%Y")
-
-    #     # sync the request date with the closest possible date before the required date
-    #     # (only get data that is already known, not the data in the future)
-    #     start = None
-    #     while start is None:
-    #         try:
-    #             if date <= self.first_date:
-    #                 return [numpy.zeros(5).tolist()]  # Assuming the zeroed list should be wrapped in a list to match the structure
-
-    #             dateString = date.strftime("%m/%d/%Y")
-    #             start = self.dict[dateString] + 1
-    #         except Exception:
-    #             date = date - datetime.timedelta(days=1)
-
-    #     if self.dict[dateString] - (window_size) + 1 < 0:
-    #         result = [0] * (window_size - start)  # Or create a list of zeroed lists or dicts as per your data structure
-    #         result.extend(self.list[0:self.dict[dateString] + 1])
-    #     else:
-    #         result.extend(self.list[self.dict[dateString] - (window_size) + 1:self.dict[dateString] + 1])
-
-    #     date_list = [item['Date'] for item in result]  # Assuming each item in the result has a 'Date' key
-
-    #     if self.date_track_filename:
-    #         with open(self.date_track_filename, 'a') as file:
-    #             file.writelines(f"{og_date_str} - {date_list}\n")
-    #     print(result)
-    #     print("--------------------")
-    #     return result
-
-
-    def get(self, date, window_size=1):
+    def get(self, date, window_size=1, name = "Day"):
         result = []
+
+        sum = 0
+
+        if name == "Week":
+            sum=1
 
         og_date_str = date.strftime("%m/%d/%Y")
 
@@ -106,15 +80,58 @@ class TrendReader:
         if self.dict[dateString]-(window_size) + 1 < 0: 
             for i in range (0, window_size - start):
                 result.append(0) 
-            print(self.list[:self.dict[dateString] + 1])
+            print(self.list[:self.dict[dateString] + sum])
             date_list = [ dateString ]
-            result.extend([item['Trend'] for item in self.list[0:self.dict[dateString]+1]])
+            result.extend([{'Close': item['Close'], 'Open': item['Open']}  for item in self.list[0:self.dict[dateString]+sum]])
         else:
-            print(self.list[self.dict[dateString]-(window_size) + 1:self.dict[dateString]+1])
-            date_list = [item['Date'] for item in self.list[self.dict[dateString]-(window_size) + 1:self.dict[dateString]+1]]
-            result.extend([item['Trend'] for item in self.list[self.dict[dateString]-(window_size) + 1:self.dict[dateString]+1]])
+            print(self.list[self.dict[dateString]-(window_size)+sum:self.dict[dateString]+sum])
+            date_list = [item['Date'] for item in self.list[self.dict[dateString]-(window_size) + sum:self.dict[dateString]+sum]]
+            result.extend([{'Close': item['Close'], 'Open': item['Open']}  for item in self.list[self.dict[dateString]-(window_size) + sum:self.dict[dateString]+sum]])
 
         if self.date_track_filename != None:
             open(self.date_track_filename, 'a').writelines(f"{og_date_str} - {date_list}\n")
         # print(result)
         return result
+
+    # def get(self, date, window_size=1, name="Day"):
+    #     result = []
+
+    #     sum = 0
+    #     if name == "Week":
+    #         sum = 1
+
+    #     og_date_str = date.strftime("%m/%d/%Y")
+
+    #     # Đồng bộ hóa ngày yêu cầu với ngày gần nhất trước ngày đó (chỉ lấy dữ liệu đã biết, không lấy dữ liệu trong tương lai)
+    #     start = None
+    #     while start is None:
+    #         try:
+    #             if date <= self.first_date:
+    #                 # Trả về danh sách các từ điển với giá trị 0 cho 'Close' và 'Open', và ngày là ngày hiện tại
+    #                 return [{'Date': date.strftime("%m/%d/%Y"), 'Close': 0, 'Open': 0} for _ in range(window_size)]
+
+    #             dateString = date.strftime("%m/%d/%Y")
+    #             start = self.dict[dateString] + 1
+    #         except Exception:
+    #             date = date - datetime.timedelta(days=1)
+
+    #     # Xử lý dữ liệu cho mỗi khoảng thời gian
+    #     if self.dict[dateString] - (window_size - 1) < 0:
+    #         # Nếu yêu cầu lấy dữ liệu nằm trước danh sách
+    #         print(self.list[self.dict[dateString]-(window_size)+sum:self.dict[dateString]+sum])
+    #         for i in range(window_size - start):
+    #             result.append({'Date': (date - datetime.timedelta(days=i)).strftime("%m/%d/%Y"), 'Close': 0, 'Open': 0})
+    #         # Lấy dữ liệu từ danh sách và thêm vào kết quả
+    #         result.extend([{'Date': item['Date'], 'Close': item['Close'], 'Open': item['Open']} for item in self.list[0:self.dict[dateString] + sum]])
+    #     else:
+    #         # Lấy đúng khoảng dữ liệu cần thiết
+    #         result.extend([{'Date': item['Date'], 'Close': item['Close'], 'Open': item['Open']} for item in self.list[self.dict[dateString] - (window_size - 1) + sum: self.dict[dateString] + sum]])
+
+    #     # Nếu có theo dõi ngày, ghi vào tệp
+    #     if self.date_track_filename:
+    #         date_list = [item['Date'] for item in result]
+    #         with open(self.date_track_filename, 'a') as file:
+    #             file.writelines(f"{og_date_str} - {date_list}\n")
+
+    #     return result
+
