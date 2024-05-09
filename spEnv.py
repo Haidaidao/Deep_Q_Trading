@@ -257,17 +257,6 @@ class SpEnv(gym.Env):
         #The state is prepared by the environment, which is simply the feature vector
         date = datetime.strptime(date, "%m/%d/%Y")
 
-        # print(date)
-        # print(self.history[self.currentObservation-self.observationWindow:self.currentObservation])
-        
-
-        # array = numpy.array(
-        #         [list(
-        #             map(
-        #                 lambda x: (x["Close"]-x["Open"])/x["Open"],
-        #                     self.history[self.currentObservation-self.observationWindow:self.currentObservation] 
-        #             )) + self.dayData.get(date,5,"Day") + self.weekData.get(date,5,"Week")])
-        self.dayData.get(date,20,"Day")
         array = numpy.array(
             [list(
                 map(
