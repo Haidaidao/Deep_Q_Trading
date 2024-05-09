@@ -256,7 +256,7 @@ class SpEnv(gym.Env):
 
         #The state is prepared by the environment, which is simply the feature vector
         date = datetime.strptime(date, "%m/%d/%Y")
-
+        print(date)
         array = numpy.array(
             [list(
                 map(
@@ -266,7 +266,7 @@ class SpEnv(gym.Env):
                         self.weekData.get(date,8,"Week")))])
 
         # print(array)
-        # print("===================")
+        print("===================")
 
         return  array
     

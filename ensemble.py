@@ -48,10 +48,10 @@ def getAction(Frame, date, name="df2"):
     date = datetime.strptime(date,"%m/%d/%Y")
     for i in range(0, len(Frame)):
         result =  datetime.strptime(str(Frame.index[i]),"%m/%d/%Y")
-        if result == date:
+        if result >= date:
             return  Frame['ensemble'][i]
-        elif result>date:
-            return  Frame['ensemble'][i-1]
+        # elif result>date:
+        #     return  Frame['ensemble'][i-1]
     
     return 0
 
@@ -413,8 +413,6 @@ def RandomForestEnsemble(numWalks,perc,type,numDel):
         df3.index = df3.index.strftime('%m/%d/%Y')
         df3.rename(columns={'trend': 'ensemble'}, inplace=True)
 
-
-
         df3_temp = pd.DataFrame(index=df1.index).assign(ensemble=0)
         for k in range(0,len(df3_temp)):
             df3_temp['ensemble'][k] = getAction(df3,df3_temp.index[k],"df3")
@@ -444,8 +442,8 @@ def RandomForestEnsemble(numWalks,perc,type,numDel):
         df1_result = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Hour" + str(j) + "ensemble_" + type + ".csv",
                           index_col='Date')
 
-        from_date=str(df2.index[0])
-        to_date=str(df2.index[len(df2)-1])
+        from_date=str(df1_result.index[0])
+        to_date=str(df1_result.index[len(df1_result)-1])
 
         for deleted in range(1, numDel):
             del df1_result['iteration' + str(deleted)]
@@ -529,8 +527,8 @@ def BaseRule(numWalks,perc,type,numDel):
         df2=pd.read_csv(f"./Output/trend/{MK}Day"+".csv",index_col='Date')
         df3=pd.read_csv(f"./Output/trend/{MK}Week"+".csv",index_col='Date')
 
-        from_date=str(df2.index[0])
-        to_date=str(df2.index[len(df2)-1])
+        from_date=str(df1.index[0])
+        to_date=str(df1.index[len(df1)-1])
 
         for deleted in range(1,numDel):
             del df1['iteration'+str(deleted)]
@@ -626,3 +624,71 @@ def BaseRule(numWalks,perc,type,numDel):
     values.append([' ','Sum',str(round(rewSum,2)),str(round(posSum,2)),str(round(negSum,2)),str(round(posSum/negSum,2)),str(round(dollSum,2)),str(round(covSum/numSum,2)),(str(round(posSum/covSum,2)) if (covSum>0) else "None")])
 
     return values,columns
+
+# ================================================ Rule author
+
+def EnsembleAuthor(numWalks,perc,type,numDel):
+    dollSum=0
+    rewSum=0
+    posSum=0
+    negSum=0
+    covSum=0
+    numSum=0
+
+    values=[]
+    #output=open("daxValidDel9th60.csv","w+")
+    #output.write("Iteration,Reward%,#Wins,#Losses,Euro,Coverage,Accuracy\n")
+    columns = ["Sum","Reward%", "#Wins", "#Losses", "Rotation" ,"Dollars", "Coverage", "Accuracy"]
+
+    dax = pd.read_csv("./datasets/" + global_config.MK + "Day.csv", index_col='Date')
+    for j in range(0,numWalks):
+
+        df=pd.read_csv(f"./Output/ensemble/walk"+"Hour"+str(j)+"ensemble_"+type+".csv",index_col='Date')
+
+        for deleted in range(1,numDel):
+            del df['iteration'+str(deleted)]
+        
+        if perc==0:
+            df=full_ensemble(df)
+        else:
+            df=perc_ensemble(df,perc)
+
+        num=0
+        rew=0
+        pos=0
+        neg=0
+        doll=0
+        cov=0
+        for date, i in df.iterrows():
+            num+=1
+
+            if date in dax.index:
+                if (i['ensemble']==1):
+                    pos+= 1 if (dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
+                    
+                    neg+= 0 if (dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
+                    rew+=(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
+                    doll+=(dax.at[date,'Close']-dax.at[date,'Open'])*50
+                    cov+=1
+                elif (i['ensemble']==-1):
+                    
+                    neg+= 0 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
+                    pos+= 1 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
+                    rew+=-(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
+                    cov+=1
+                    doll+=-(dax.at[date,'Close']-dax.at[date,'Open'])*50
+        
+        values.append(["",str(round(rew,2)),str(round(pos,2)),str(round(neg,2)),"",str(round(doll,2)),str(round(cov/num,2)),(str(round(pos/cov,2)) if (cov>0) else "None")])
+
+        
+        dollSum+=doll
+        rewSum+=rew
+        posSum+=pos
+        negSum+=neg
+        covSum+=cov
+        numSum+=num
+
+
+    values.append(["Sum",str(round(rewSum,2)),str(round(posSum,2)),str(round(negSum,2)),str(round(posSum/negSum,2)),str(round(dollSum,2)),str(round(covSum/numSum,2)),(str(round(posSum/covSum,2)) if (covSum>0) else "None")])
+    return values,columns
+

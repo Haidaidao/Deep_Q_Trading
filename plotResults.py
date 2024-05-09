@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 from math import floor
-from ensemble import BaseRule, RandomForestEnsemble
+from ensemble import BaseRule, RandomForestEnsemble, EnsembleAuthor, XGBoostEnsemble
 import global_config
 import json
 
@@ -16,7 +16,9 @@ pdf=PdfPages(outputFile)
 
 func_map = {
     "BaseRule": BaseRule,
-    "Random": RandomForestEnsemble
+    "Random": RandomForestEnsemble,
+    "Author": EnsembleAuthor,
+    "XGBoost": XGBoostEnsemble
 }
 
 numFiles=global_config.num_files + 1
