@@ -70,21 +70,23 @@ class TrendReader:
         while(start is None):
             try:
                 if date <= self.first_date:
-                    return numpy.zeros(window_size).tolist()
+                    for i in range(window_size):
+                        result.append({'Close': 1, 'Open': 1}) 
+                    return result;
 
                 dateString= date.strftime("%m/%d/%Y")
                 start = self.dict[dateString] + 1
             except Exception:
                 date = date - datetime.timedelta(days=1)
                 
-        if self.dict[dateString]-(window_size) + 1 < 0: 
-            for i in range (0, window_size - start):
-                result.append(0) 
-            print(self.list[:self.dict[dateString] + sum])
+        if self.dict[dateString]-(window_size) <  0: 
+            for i in range (window_size - start + 1):
+                result.append({'Close': 1, 'Open': 1}) 
+            #print(self.list[:self.dict[dateString] + sum])
             date_list = [ dateString ]
-            result.extend([{'Close': item['Close'], 'Open': item['Open']}  for item in self.list[0:self.dict[dateString]+sum]])
+            result.extend([{'Close': item['Close'], 'Open': item['Open']}  for item in self.list[0 + sum:self.dict[dateString] + sum]])
         else:
-            print(self.list[self.dict[dateString]-(window_size)+sum:self.dict[dateString]+sum])
+            #print(self.list[self.dict[dateString]-(window_size)+sum:self.dict[dateString]+sum])
             date_list = [item['Date'] for item in self.list[self.dict[dateString]-(window_size) + sum:self.dict[dateString]+sum]]
             result.extend([{'Close': item['Close'], 'Open': item['Open']}  for item in self.list[self.dict[dateString]-(window_size) + sum:self.dict[dateString]+sum]])
 
