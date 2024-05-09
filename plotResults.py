@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 from math import floor
-from ensemble import BaseRule
+from ensemble import BaseRule, RandomForestEnsemble
 import global_config
 import json
 
@@ -15,7 +15,8 @@ outputFile=str(sys.argv[1]) + ".pdf"
 pdf=PdfPages(outputFile)
 
 func_map = {
-    "BaseRule": BaseRule
+    "BaseRule": BaseRule,
+    "Random": RandomForestEnsemble
 }
 
 numFiles=global_config.num_files + 1
@@ -144,7 +145,7 @@ t.set_fontsize(6)
 t.auto_set_column_width(col=list(range(len(col))))
 plt.title("Test")
 
-plt.suptitle("70")
+plt.suptitle("70%")
 pdf.savefig()
 
 ###########-------------------------------------------------------------------|Tabella Ensemble|-------------------
