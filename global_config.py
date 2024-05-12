@@ -8,6 +8,7 @@ MK = config['MK']
 ensemble_folder = config['ensemble_folder']
 label_threshold = config['label_threshold']
 epoch = config['epoch']
+trend_type = config['trend_type']
 
 def writeConfig(name, value):
     config = json.load(open('config.json', 'r'))
