@@ -14,7 +14,7 @@ from mergedDataStructure import MergedDataStructure
 from decimal import Decimal
 import global_config
 
-from trend_reader import TrendReader
+from observation_additional_info import DailyWeeklyData
 #This is the prefix of the files that will be opened. It is related to the s&p500 stock market datasets
 MK = global_config.MK
 ensembleFolder = global_config.ensemble_folder
@@ -80,8 +80,8 @@ class SpEnv(gym.Env):
         # self.dayData = MergedDataStructure(filename=f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(iteration) + "ensemble_" + type + ".csv")
         #Load the data
 
-        self.dayData = TrendReader(f'Output/trend/{MK}Day.csv', 1, 'day_test.txt')
-        self.weekData = TrendReader(f'Output/trend/{MK}Week.csv', 7, 'week_test.txt')
+        self.dayData = DailyWeeklyData(f'Output/trend/{MK}Day.csv', 1, 'day_test.txt')
+        self.weekData = DailyWeeklyData(f'Output/trend/{MK}Week.csv', 7, 'week_test.txt')
         self.output=False
 
         #ensamble is the table of validation and testing

@@ -14,7 +14,7 @@ from mergedDataStructure import MergedDataStructure
 from decimal import Decimal
 import global_config
 
-from trend_reader import TrendReader
+from observation_additional_info import DailyWeeklyData
 #This is the prefix of the files that will be opened. It is related to the s&p500 stock market datasets
 MK = global_config.MK
 ensembleFolder = global_config.ensemble_folder
@@ -82,8 +82,8 @@ class SpEnv(gym.Env):
         # self.dayData = MergedDataStructure(filename=f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(iteration) + "ensemble_" + type + ".csv")
         #Load the data
 
-        self.dayData = TrendReader(f'Output/trend/{MK}Day.csv', 1, 'day_test.txt')
-        self.weekData = TrendReader(f'Output/trend/{MK}Week.csv', 7, 'week_test.txt')
+        self.dayData = DailyWeeklyData(f'Output/trend/{MK}Day.csv', 1, 'day_test.txt')
+        self.weekData = DailyWeeklyData(f'Output/trend/{MK}Week.csv', 7, 'week_test.txt')
         # self.dayData = TrendReader(f'./datasets/'+MK+'Day.csv')
         # self.weekData = TrendReader(f'./datasets/'+MK+'Week.csv')   
         self.output=False
@@ -256,7 +256,7 @@ class SpEnv(gym.Env):
 
         #The state is prepared by the environment, which is simply the feature vector
         date = datetime.strptime(date, "%m/%d/%Y")
-        print(date)
+       #print(date)
         array = numpy.array(
             [list(
                 map(
@@ -266,7 +266,7 @@ class SpEnv(gym.Env):
                         self.weekData.get(date,8,"Week")))])
 
         # print(array)
-        print("===================")
+        # print("===================")
 
         return  array
     

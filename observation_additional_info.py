@@ -2,7 +2,7 @@ import pandas
 import datetime
 import numpy
 
-class TrendReader:
+class DailyWeeklyData:
     def __init__(self, filename, fill_interval, date_track_filename=None):
          #Read the CSV
         self.filename = filename
@@ -82,11 +82,11 @@ class TrendReader:
         if self.dict[dateString]-(window_size) <  0: 
             for i in range (window_size - start + 1):
                 result.append({'Close': 1, 'Open': 1}) 
-            print(self.list[:self.dict[dateString] + sum])
+            #print(self.list[:self.dict[dateString] + sum])
             date_list = [ dateString ]
             result.extend([{'Close': item['Close'], 'Open': item['Open']}  for item in self.list[0 + sum:self.dict[dateString] + sum]])
         else:
-            print(self.list[self.dict[dateString]-(window_size)+sum:self.dict[dateString]+sum])
+            #print(self.list[self.dict[dateString]-(window_size)+sum:self.dict[dateString]+sum])
             date_list = [item['Date'] for item in self.list[self.dict[dateString]-(window_size) + sum:self.dict[dateString]+sum]]
             result.extend([{'Close': item['Close'], 'Open': item['Open']}  for item in self.list[self.dict[dateString]-(window_size) + sum:self.dict[dateString]+sum]])
 
