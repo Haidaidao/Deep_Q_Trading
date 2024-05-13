@@ -86,7 +86,7 @@ def ensemble_y_true(feature, stats, threshold):
             
     return labels
 # ================================================ XGBoots
-def XGBoostEnsemble(numWalks,type,numDel):
+def XGBoostEnsemble(numWalks,perc,type,numDel):
     
     dollSum = 0
     rewSum = 0
@@ -95,7 +95,7 @@ def XGBoostEnsemble(numWalks,type,numDel):
     covSum = 0
     numSum = 0
 
-    columns = ["From","To", "Reward%", "#Wins", "#Losses", "Dollars", "Coverage", "Accuracy"]
+    columns = ["From","To", "Reward%", "#Wins", "#Losses", "Rotation" ,"Dollars", "Coverage", "Accuracy"]
 
     values = []
 
@@ -110,18 +110,18 @@ def XGBoostEnsemble(numWalks,type,numDel):
         # Train
         df1 = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Hour" + str(j) + "ensemble_" + type_train+ ".csv",
                           index_col='Date')
-        df2 = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(j) + "ensemble_" + type_train + ".csv",
-                          index_col='Date')
-        df3 = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(j) + "ensemble_" + type_train + ".csv",
-                          index_col='Date')
+        df2=pd.read_csv(f"./Output/trend/{MK}Day"+".csv",index_col='Date')
+        df3=pd.read_csv(f"./Output/trend/{MK}Week"+".csv",index_col='Date')
 
         for deleted in range(1, numDel):
             del df1['iteration' + str(deleted)]
             del df2['iteration' + str(deleted)]
             del df3['iteration' + str(deleted)]
 
-        df1 = pd.DataFrame(df1[iteration])
-        df1.rename(columns={iteration: 'ensemble'}, inplace=True)
+        if perc==0:
+            df1=full_ensemble(df1)
+        else:
+            df1=perc_ensemble(df1,perc)
 
         df2.index = pd.to_datetime(df2.index)
         df2.index = df2.index.strftime('%m/%d/%Y')
@@ -131,16 +131,22 @@ def XGBoostEnsemble(numWalks,type,numDel):
         df3.index = df3.index.strftime('%m/%d/%Y')
         df3.rename(columns={'trend': 'ensemble'}, inplace=True)
 
-        df3_temp = pd.DataFrame(index=df2.index).assign(ensemble=0)
+        df3_temp = pd.DataFrame(index=df1.index).assign(ensemble=0)
         for k in range(0,len(df3_temp)):
-            df3_temp['ensemble'][k] = getAction(df3,df3_temp.index[k])
+            df3_temp['ensemble'][k] = getAction(df3,df3_temp.index[k],"df3")
+
+        df2_temp = pd.DataFrame(index=df1.index).assign(ensemble=0)
+        for k in range(0,len(df2_temp)):
+            df2_temp['ensemble'][k] = getAction(df2,df2_temp.index[k],"df2")
 
         list_combine_train = np.empty((0, 3))
 
         for k in range(0,len(df1)):
             list_combine_train = np.append(list_combine_train, [[df1['ensemble'][k], df2['ensemble'][k], df3_temp['ensemble'][k]]], axis=0)
-      
+        list_combine_train[list_combine_train == -1] = 2
+
         y_train = ensemble_y_true(df1, dax, threshold)
+        y_train[y_train == -1] = 2
 
         le = LabelEncoder()
         y_train = le.fit_transform(y_train)
@@ -156,37 +162,35 @@ def XGBoostEnsemble(numWalks,type,numDel):
 
         df1_result = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Hour" + str(j) + "ensemble_" + type + ".csv",
                           index_col='Date')
-        df2_result = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(j) + "ensemble_" + type + ".csv",
-                          index_col='Date')
-        df3_result = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(j) + "ensemble_" + type + ".csv",
-                          index_col='Date')
 
-        from_date=str(df2_result.index[0])
-        to_date=str(df2_result.index[len(df2_result)-1])
+        from_date=str(df1_result.index[0])
+        to_date=str(df1_result.index[len(df1_result)-1])
 
         for deleted in range(1, numDel):
             del df1_result['iteration' + str(deleted)]
-            del df2_result['iteration' + str(deleted)]
-            del df3_result['iteration' + str(deleted)]
 
-        df1_result = pd.DataFrame(df1_result[iteration])
-        df1_result.rename(columns={iteration: 'ensemble'}, inplace=True)
+        if perc==0:
+            df1_result=full_ensemble(df1_result)
+        else:
+            df1_result=perc_ensemble(df1_result,perc)
 
-        df2_result.index = pd.to_datetime(df2_result.index)
-        df2_result.index = df2_result.index.strftime('%m/%d/%Y')
-        df2_result.rename(columns={'trend': 'ensemble'}, inplace=True)
-
-        df3_result.index = pd.to_datetime(df3_result.index)
-        df3_result.index = df3_result.index.strftime('%m/%d/%Y')
-        df3_result.rename(columns={'trend': 'ensemble'}, inplace=True)
-
-        df3_temp = pd.DataFrame(index=df2_result.index).assign(ensemble=0)
+        df3_temp = pd.DataFrame(index=df1_result.index).assign(ensemble=0)
         for k in range(0,len(df3_temp)):
-            df3_temp['ensemble'][k] = getAction(df3_result,df3_temp.index[k])
+            df3_temp['ensemble'][k] = getAction(df3,df3_temp.index[k],"df3")
+
+        df2_temp = pd.DataFrame(index=df1_result.index).assign(ensemble=0)
+        for k in range(0,len(df2_temp)):
+            df2_temp['ensemble'][k] = getAction(df2,df2_temp.index[k],"df2")
 
         for k in range(0,len(df1_result)):
-            if(df1_result.index[k] in df2_result.index):
-                new_data = np.array([[df1_result['ensemble'][k], df2_result['ensemble'][k], df3_temp['ensemble'][k]]])
+            if(df1_result.index[k] in df2_temp.index):
+                if df1_result['ensemble'][k] == -1:
+                    df1_result['ensemble'][k] = 2
+                if df2_temp['ensemble'][k] == -1:
+                    df2_temp['ensemble'][k] = 2
+                if df3_temp['ensemble'][k] == -1:
+                    df3_temp['ensemble'][k] = 2
+                new_data = np.array([[df1_result['ensemble'][k], df2_temp['ensemble'][k], df3_temp['ensemble'][k]]])
                 predicted_result = xgb_model.predict(new_data)
                 df.loc[df1_result.index[k]] = predicted_result[0]
 
@@ -213,8 +217,7 @@ def XGBoostEnsemble(numWalks,type,numDel):
                     cov+=1
                     doll+=-(dax.at[date,'Close']-dax.at[date,'Open'])*50
 
-        values.append([from_date, to_date,str(round(rew,2)),str(round(pos,2)),str(round(neg,2)),str(round(doll,2)),str(round(cov/num,2)),(str(round(pos/cov,2)) if (cov>0) else "None")])
-
+        values.append([from_date, to_date,str(round(rew,2)),str(round(pos,2)),str(round(neg,2)),"",str(round(doll,2)),str(round(cov/num,2)),(str(round(pos/cov,2)) if (cov>0) else "None")])
         dollSum+=doll
         rewSum+=rew
         posSum+=pos
@@ -223,8 +226,8 @@ def XGBoostEnsemble(numWalks,type,numDel):
         numSum+=num
 
 
-    values.append([' ','Sum',str(round(rewSum,2)),str(round(posSum,2)),str(round(negSum,2)),str(round(dollSum,2)),str(round(covSum/numSum,2)),(str(round(posSum/covSum,2)) if (covSum>0) else "None")])
-    # print(values)
+    values.append([' ','Sum',str(round(rewSum,2)),str(round(posSum,2)),str(round(negSum,2)),str(round(posSum/negSum,2)),str(round(dollSum,2)),str(round(covSum/numSum,2)),(str(round(posSum/covSum,2)) if (covSum>0) else "None")])
+
     return values,columns
 # ================================================ Random Forest
 def RandomForestEnsemble(numWalks,perc,type,numDel):
@@ -298,18 +301,12 @@ def RandomForestEnsemble(numWalks,perc,type,numDel):
 
         df1_result = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Hour" + str(j) + "ensemble_" + type + ".csv",
                           index_col='Date')
-        # df2_result = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(j) + "ensemble_" + type + ".csv",
-        #                   index_col='Date')
-        # df3_result = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Week" + str(j) + "ensemble_" + type + ".csv",
-        #                   index_col='Date')
 
         from_date=str(df2.index[0])
         to_date=str(df2.index[len(df2)-1])
 
         for deleted in range(1, numDel):
             del df1_result['iteration' + str(deleted)]
-            # del df2_result['iteration' + str(deleted)]
-            # del df3_result['iteration' + str(deleted)]
 
         if perc==0:
             df1_result=full_ensemble(df1_result)
@@ -347,7 +344,7 @@ def RandomForestEnsemble(numWalks,perc,type,numDel):
                     rew+=(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
                     doll+=(dax.at[date,'Close']-dax.at[date,'Open'])*50
                     cov+=1
-                elif (i['ensemble']==2):
+                elif (i['ensemble']==-1):
 
                     neg+= 0 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
                     pos+= 1 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
@@ -355,7 +352,7 @@ def RandomForestEnsemble(numWalks,perc,type,numDel):
                     cov+=1
                     doll+=-(dax.at[date,'Close']-dax.at[date,'Open'])*50
 
-        values.append([from_date, to_date,str(round(rew,2)),str(round(pos,2)),str(round(neg,2)),str(round(doll,2)),str(round(cov/num,2)),(str(round(pos/cov,2)) if (cov>0) else "None")])
+        values.append([from_date, to_date,str(round(rew,2)),str(round(pos,2)),str(round(neg,2)),"",str(round(doll,2)),str(round(cov/num,2)),(str(round(pos/cov,2)) if (cov>0) else "None")])
 
         dollSum+=doll
         rewSum+=rew
@@ -365,8 +362,8 @@ def RandomForestEnsemble(numWalks,perc,type,numDel):
         numSum+=num
 
 
-    values.append([' ','Sum',str(round(rewSum,2)),str(round(posSum,2)),str(round(negSum,2)),str(round(dollSum,2)),str(round(covSum/numSum,2)),(str(round(posSum/covSum,2)) if (covSum>0) else "None")])
-    # print(values)
+    values.append([' ','Sum',str(round(rewSum,2)),str(round(posSum,2)),str(round(negSum,2)),str(round(posSum/negSum,2)),str(round(dollSum,2)),str(round(covSum/numSum,2)),(str(round(posSum/covSum,2)) if (covSum>0) else "None")])
+
     return values,columns
 # ================================================ Random
 
