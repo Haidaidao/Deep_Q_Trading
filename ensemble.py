@@ -232,14 +232,13 @@ def XGBoostEnsemble(numWalks,perc,type,numDel):
     return values,columns
 # ================================================ Random Forest
 def RandomForestEnsemble(numWalks,perc,type,numDel):
-    dollSum = 0
-    rewSum = 0
-    posSum = 0
-    negSum = 0
-    covSum = 0
-    numSum = 0
+    Capital = 10000 
+    Capital_original = Capital
 
-    columns = ["From","To", "Reward%", "#Wins", "#Losses", "Rotation" ,"Dollars", "Coverage", "Accuracy"]
+    Wins = 0
+    Losses = 0
+
+    columns = ["From","To", "Capital", "#Wins", "#Losses", "Ratio", "Difference"]
 
 
     values = []
@@ -327,53 +326,24 @@ def RandomForestEnsemble(numWalks,perc,type,numDel):
                 predicted_result = rf_model.predict(new_data)
                 df.loc[df1_result.index[k]] = predicted_result[0]
 
-        num=0
-        rew=0
-        pos=0
-        neg=0
-        doll=0
-        cov=0
-        for date, i in df.iterrows():
-            num+=1
+        df['open'] = df.index.map(dax['Open'])
+        df['high'] = df.index.map(dax['High'])
+        df['low'] = df.index.map(dax['Low'])
+        df['close'] = df.index.map(dax['Close'])
+        print(Capital)
+        print("==================")
+        Capital, win_trades, lose_trades =Evaluation(df, MK).evaluate(capital=Capital)
+        values.append([from_date, to_date,str(round(Capital,2)),str(round(win_trades,2)),str(round(lose_trades,2)), "", str(round(Capital-Capital_original,2))])
+        Capital_final = Capital
+        Wins+=win_trades
+        Losses+=lose_trades
 
-            if date in dax.index:
-                if (i['ensemble']==1):
-                    pos+= 1 if (dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
-
-                    neg+= 0 if (dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
-                    rew+=(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
-                    doll+=(dax.at[date,'Close']-dax.at[date,'Open'])*50
-                    cov+=1
-                elif (i['ensemble']==-1):
-                    print("================================")
-                    neg+= 0 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
-                    pos+= 1 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
-                    rew+=-(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
-                    cov+=1
-                    doll+=-(dax.at[date,'Close']-dax.at[date,'Open'])*50
-
-        values.append([from_date, to_date,str(round(rew,2)),str(round(pos,2)),str(round(neg,2)),"",str(round(doll,2)),str(round(cov/num,2)),(str(round(pos/cov,2)) if (cov>0) else "None")])
-
-        dollSum+=doll
-        rewSum+=rew
-        posSum+=pos
-        negSum+=neg
-        covSum+=cov
-        numSum+=num
-
-
-    values.append([' ','Sum',str(round(rewSum,2)),str(round(posSum,2)),str(round(negSum,2)),str(round(posSum/negSum,2)),str(round(dollSum,2)),str(round(covSum/numSum,2)),(str(round(posSum/covSum,2)) if (covSum>0) else "None")])
+    values.append([' ', "Finall",str(round(Capital_final,2)),str(round(Wins,2)),str(round(Losses,2)), str(round(Wins/Losses,2) if (Losses>0) else "None"), " "])
 
     return values,columns
 
 # ================================================ Base Rule
 def BaseRule(numWalks,perc,type,numDel):
-    dollSum=0
-    rewSum=0
-    posSum=0
-    negSum=0
-    covSum=0
-    numSum=0
 
     Capital = 10000 
     Capital_original = Capital
@@ -406,11 +376,9 @@ def BaseRule(numWalks,perc,type,numDel):
         else:
             df1=perc_ensemble(df1,perc)
 
-
-            
-        # df1 = pd.DataFrame(df1[iteration])
-        # df1.rename(columns={iteration: 'ensemble'}, inplace=True)
-
+        # df1.to_csv('output_'+ type+str(j)+str(perc)+'_.csv', index=False)
+        
+        
         df2.index = pd.to_datetime(df2.index)
         df2.index = df2.index.strftime('%m/%d/%Y')
         df2.rename(columns={'trend': 'ensemble'}, inplace=True)
@@ -431,72 +399,52 @@ def BaseRule(numWalks,perc,type,numDel):
                 if df1['ensemble'][k] == 0:
                     df.loc[df1.index[k]] = 0
                 else:
-                    # if df1['ensemble'][k] == getAction(df3, df2.index[k]) or df1['ensemble'][k] == df2.loc[df1.index[k],'ensemble']: 
-                        
-                    #     if  getAction(df3, df2.index[k]) == df2.loc[df1.index[k],'ensemble'] and df2.loc[df1.index[k],'ensemble'] != df1['ensemble'][k] :
-                    #         df.loc[df1.index[k]] = 0
-
-                    #     elif df2.loc[df1.index[k],'ensemble'] == 0 and getAction(df3, df2.index[k]) !=0:
-                    #         df.loc[df1.index[k]] = getAction(df3, df2.index[k])
-                    #     elif df2.loc[df1.index[k],'ensemble'] != 0 and getAction(df3, df2.index[k]) ==0:
-                    #         df.loc[df1.index[k]] = df2.loc[df1.index[k],'ensemble']
-                    #     elif getAction(df3, df2.index[k]) != df2.loc[df1.index[k],'ensemble']:
-                    #         df.loc[df1.index[k]] = 0
-                    #     elif getAction(df3, df2.index[k]) == df2.loc[df1.index[k],'ensemble']:
-                    #         df.loc[df1.index[k]] = df2.loc[df1.index[k],'ensemble']
-                    #     else:
-                    #         df.loc[df1.index[k]] = 0
-                    # else: 
-                    #     df.loc[df1.index[k]] = 0
-                    if df1['ensemble'][k] == getAction(df3, df2.index[k]) and getAction(df2, df1.index[k]):
+                    if df1['ensemble'][k] == getAction(df3, df1.index[k]) and getAction(df2, df1.index[k])==df1['ensemble'][k]:
                         df.loc[df1.index[k]] = df1['ensemble'][k]
-                    elif getAction(df3, df2.index[k]) == df2.loc[df1.index[k],'ensemble']:
+                    elif getAction(df3, df1.index[k]) == df2.loc[df1.index[k],'ensemble']:
                         df.loc[df1.index[k]] = df2.loc[df1.index[k],'ensemble']
-                    elif getAction(df3, df2.index[k]) == 0 and df2.loc[df1.index[k],'ensemble'] != 0:
+                    elif getAction(df3, df1.index[k]) == 0 and df2.loc[df1.index[k],'ensemble'] != 0:
                         df.loc[df1.index[k]] = df2.loc[df1.index[k],'ensemble']
-                    elif getAction(df3, df2.index[k]) != 0 and df2.loc[df1.index[k],'ensemble'] == 0:
+                    elif getAction(df3, df1.index[k]) != 0 and df2.loc[df1.index[k],'ensemble'] == 0:
                         df.loc[df1.index[k]] = getAction(df3, df2.index[k])
                     else:
                         df.loc[df1.index[k]] = 0
+        
 
         df['open'] = df.index.map(dax['Open'])
         df['high'] = df.index.map(dax['High'])
         df['low'] = df.index.map(dax['Low'])
         df['close'] = df.index.map(dax['Close'])
 
-        print(Capital)
-        Capital, win_trades, lose_trades =Evaluation(df, MK).evaluate(capital=Capital)
+        Capital, win_trades, lose_trades = Evaluation(df, MK, type, j ,perc).evaluate(capital=Capital)
         values.append([from_date, to_date,str(round(Capital,2)),str(round(win_trades,2)),str(round(lose_trades,2)), "", str(round(Capital-Capital_original,2))])
         Capital_final = Capital
         Wins+=win_trades
         Losses+=lose_trades
-        print("===================")
 
-
-    # values.append([' ','Sum',str(round(rewSum,2)),str(round(posSum,2)),str(round(negSum,2)),str(round(posSum/negSum,2)),str(round(dollSum,2)),str(round(covSum/numSum,2)),(str(round(posSum/covSum,2)) if (covSum>0) else "None")])
     values.append([' ', "Finall",str(round(Capital_final,2)),str(round(Wins,2)),str(round(Losses,2)), str(round(Wins/Losses,2) if (Losses>0) else "None"), " "])
 
     return values,columns
 
+
 # ================================================ Rule author
 
 def EnsembleAuthor(numWalks,perc,type,numDel):
-    dollSum=0
-    rewSum=0
-    posSum=0
-    negSum=0
-    covSum=0
-    numSum=0
+    Capital = 10000 
+    Capital_original = Capital
 
+    Wins = 0
+    Losses = 0
     values=[]
-    #output=open("daxValidDel9th60.csv","w+")
-    #output.write("Iteration,Reward%,#Wins,#Losses,Euro,Coverage,Accuracy\n")
-    columns = ["Sum","Reward%", "#Wins", "#Losses", "Rotation" ,"Dollars", "Coverage", "Accuracy"]
+    columns = ["From","To", "Capital", "#Wins", "#Losses", "Ratio", "Difference"]
     dax = pd.read_csv("./datasets/" + global_config.MK + "Day.csv", index_col='Date')
     for j in range(0,numWalks):
 
 
         df=pd.read_csv(f"./Output/ensemble/walk"+"Hour"+str(j)+"ensemble_"+type+".csv",index_col='Date')
+
+        from_date=str(df.index[0])
+        to_date=str(df.index[len(df)-1])
 
         for deleted in range(1,numDel):
             del df['iteration'+str(deleted)]
@@ -506,42 +454,20 @@ def EnsembleAuthor(numWalks,perc,type,numDel):
         else:
             df=perc_ensemble(df,perc)
 
-        num=0
-        rew=0
-        pos=0
-        neg=0
-        doll=0
-        cov=0
-        for date, i in df.iterrows():
-            num+=1
+        df['open'] = df.index.map(dax['Open'])
+        df['high'] = df.index.map(dax['High'])
+        df['low'] = df.index.map(dax['Low'])
+        df['close'] = df.index.map(dax['Close'])
 
-            if date in dax.index:
-                if (i['ensemble']==1):
-                    pos+= 1 if (dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
-                    
-                    neg+= 0 if (dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
-                    rew+=(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
-                    doll+=(dax.at[date,'Close']-dax.at[date,'Open'])*50
-                    cov+=1
-                elif (i['ensemble']==-1):
-                    
-                    neg+= 0 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 1
-                    pos+= 1 if -(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open'] > 0 else 0
-                    rew+=-(dax.at[date,'Close']-dax.at[date,'Open'])/dax.at[date,'Open']
-                    cov+=1
-                    doll+=-(dax.at[date,'Close']-dax.at[date,'Open'])*50
+        Capital, win_trades, lose_trades = Evaluation(df, MK).evaluate(capital=Capital)
         
-        values.append(["",str(round(rew,2)),str(round(pos,2)),str(round(neg,2)),"",str(round(doll,2)),str(round(cov/num,2)),(str(round(pos/cov,2)) if (cov>0) else "None")])
+        values.append([from_date, to_date,str(round(Capital,2)),str(round(win_trades,2)),str(round(lose_trades,2)), "", str(round(Capital-Capital_original,2))])
+        Capital_final = Capital
+        Wins+=win_trades
+        Losses+=lose_trades
 
-        
-        dollSum+=doll
-        rewSum+=rew
-        posSum+=pos
-        negSum+=neg
-        covSum+=cov
-        numSum+=num
+    values.append([' ', "Finall",str(round(Capital_final,2)),str(round(Wins,2)),str(round(Losses,2)), str(round(Wins/Losses,2) if (Losses>0) else "None"), " "])
 
-
-    values.append(["Sum",str(round(rewSum,2)),str(round(posSum,2)),str(round(negSum,2)),str(round(posSum/negSum,2)),str(round(dollSum,2)),str(round(covSum/numSum,2)),(str(round(posSum/covSum,2)) if (covSum>0) else "None")])
     return values,columns
+
 

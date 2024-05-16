@@ -5,5 +5,5 @@
     "MK": "sp500",
     "ensemble_folder": "",
     "label_threshold": 0.005,
-    "epoch": 1
+    "epoch": 50
 }
