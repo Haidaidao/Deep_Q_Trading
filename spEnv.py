@@ -84,8 +84,6 @@ class SpEnv(gym.Env):
 
         self.dayData = DailyWeeklyData(f'Output/trend/{MK}Day.csv', 1, 'day_test.txt')
         self.weekData = DailyWeeklyData(f'Output/trend/{MK}Week.csv', 7, 'week_test.txt')
-        # self.dayData = TrendReader(f'./datasets/'+MK+'Day.csv')
-        # self.weekData = TrendReader(f'./datasets/'+MK+'Week.csv')   
         self.output=False
 
         #ensamble is the table of validation and testing
@@ -256,7 +254,7 @@ class SpEnv(gym.Env):
 
         #The state is prepared by the environment, which is simply the feature vector
         date = datetime.strptime(date, "%m/%d/%Y")
-       #print(date)
+    
         array = numpy.array(
             [list(
                 map(
@@ -265,18 +263,7 @@ class SpEnv(gym.Env):
                         self.dayData.get(date,20,"Day") + 
                         self.weekData.get(date,8,"Week")))])
 
-        # print(array)
-        # print("===================")
-
         return  array
-    
-        # return  numpy.array(
-        #     [list(
-        #         map(
-        #             lambda x: (x["Close"]-x["Open"])/x["Open"],
-        #                 self.history[self.currentObservation-self.observationWindow:self.currentObservation]
-        #                 ))])
-
     def resetEnv(self):
         self.currentObservation=self.observationWindow
         #Resets the episode to 1
