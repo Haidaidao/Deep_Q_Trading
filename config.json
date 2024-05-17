@@ -1,6 +1,6 @@
 {
     "trend_type": "MACD",
-    "ensemble_type": "XGBoost",
+    "ensemble_type": "BaseRule",
     "num_files": 3,
     "MK": "sp500",
     "ensemble_folder": "",

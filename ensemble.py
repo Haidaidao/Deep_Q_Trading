@@ -560,31 +560,49 @@ def BaseRule(numWalks,perc,type,numDel):
         df = pd.DataFrame(columns=['ensemble'])
         df = df.set_index(pd.Index([], name='date'))
 
+        UP = 1; DOWN = -1; SIDEWAY = 0
+        LONG = 1; SHORT = -1; HOLD = 0
+
+        rules = {
+            (LONG, UP, UP): LONG,
+            (SHORT, UP, UP): LONG,
+            (HOLD, UP, UP): LONG,
+            
+
+            (LONG, DOWN, DOWN): SHORT, 
+            (SHORT, DOWN, DOWN): SHORT, 
+            (HOLD, DOWN, DOWN): SHORT, 
+
+            (LONG, SIDEWAY, SIDEWAY): LONG, 
+            (SHORT, SIDEWAY, SIDEWAY): SHORT, 
+            (HOLD, SIDEWAY, SIDEWAY): HOLD,
+
+            (LONG, UP, SIDEWAY): LONG,
+            (LONG, SIDEWAY, UP): LONG, 
+
+            (SHORT, DOWN, SIDEWAY): SHORT,
+            (SHORT, SIDEWAY, DOWN): SHORT, 
+
+            (HOLD, UP, SIDEWAY): HOLD,
+            (HOLD, SIDEWAY, UP): HOLD, 
+            (HOLD, DOWN, SIDEWAY): HOLD,
+            (HOLD, SIDEWAY, DOWN): HOLD, 
+
+            (LONG, DOWN, UP): HOLD, 
+            (SHORT, DOWN, UP): HOLD, 
+            (HOLD, DOWN, UP): HOLD, 
+
+            (LONG, UP, DOWN): HOLD, 
+            (SHORT, UP, DOWN): HOLD, 
+            (HOLD, UP, DOWN): HOLD, 
+        }
+
         for k in range(0,len(df1)):
             if(df1.index[k] in df2.index):
-                # print(df1.index[k])
-                # print(getAction(df2, df1.index[k]))
-                # print(df2.loc[df1.index[k],'ensemble'])
-                # print(getAction(df3, df2.index[k]))
-                # print("========================================")
-                if df1['ensemble'][k] == 0:
-                    df.loc[df1.index[k]] = 0
-                else:
-                    if df1['ensemble'][k] == getAction(df3, df2.index[k]) or df1['ensemble'][k] == df2.loc[df1.index[k],'ensemble']: 
-                        if  getAction(df3, df2.index[k]) == df2.loc[df1.index[k],'ensemble']  and df2.loc[df1.index[k],'ensemble'] != df1['ensemble'][k] :
-                            df.loc[df1.index[k]] = 0
-                        elif df2.loc[df1.index[k],'ensemble'] == 0 and getAction(df3, df2.index[k]) !=0:
-                            df.loc[df1.index[k]] = getAction(df3, df2.index[k])
-                        elif df2.loc[df1.index[k],'ensemble'] != 0 and getAction(df3, df2.index[k]) ==0:
-                            df.loc[df1.index[k]] = df2.loc[df1.index[k],'ensemble']
-                        elif getAction(df3, df2.index[k]) != df2.loc[df1.index[k],'ensemble']:
-                            df.loc[df1.index[k]] = 0
-                        elif getAction(df3, df2.index[k]) == df2.loc[df1.index[k],'ensemble']:
-                            df.loc[df1.index[k]] = df2.loc[df1.index[k],'ensemble']
-                        else:
-                            df.loc[df1.index[k]] = 0
-                    else: 
-                        df.loc[df1.index[k]] = 0
+                key = (df1['ensemble'][k], int(df2.loc[df1.index[k],'ensemble']), int(getAction(df3, df2.index[k])))
+                df.loc[df1.index[k]] = rules.get(key, 0)
+            else:
+                df.loc[df1.index[k]] = 0
 
         num=0
         rew=0
