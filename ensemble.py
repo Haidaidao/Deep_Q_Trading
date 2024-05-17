@@ -85,6 +85,57 @@ def ensemble_y_true(feature, stats, threshold):
         labels.append(action)
             
     return labels
+
+def Evaluate(data, name, stop_loss_pct=0.02, take_profit_pct=0.04, capital=10000):
+        first_index = data.index[0]
+        last_index = data.index[-1]
+
+        ensemble_data = {pd.Timestamp(date): str(ensemble) for date, ensemble in data['ensemble'].items()}
+        df = pd.read_csv("./datasets/" + name + "Hour.csv", index_col='Date')[first_index:last_index]
+       
+        grouped_open = df.groupby(df.index).apply(lambda x: np.array(x[['Open']]).flatten())
+        open_data = {pd.Timestamp(date): values for date, values in grouped_open.items()}
+   
+        grouped_close = df.groupby(df.index).apply(lambda x: np.array(x[['Close']]).flatten())
+        close_data = {pd.Timestamp(date): values for date, values in grouped_close.items()} 
+
+        win_trades = 0
+        lose_trades = 0
+        for date, prices in close_data.items():
+
+            signal = ensemble_data[date]
+            if signal == 0:
+                continue  # Không giao dịch nếu tín hiệu là SIDEWAY
+
+            entry_price = open_data[date][0]  # Giá mở cửa của ngày
+            stop_loss_price = entry_price * (1 - stop_loss_pct) if signal == 1 else entry_price * (1 + stop_loss_pct)
+            take_profit_price = entry_price * (1 + take_profit_pct) if signal == 1 else entry_price * (1 - take_profit_pct)
+            
+            for price in prices:
+                if (signal == 1 and (price <= stop_loss_price or price >= take_profit_price)) or \
+                (signal == -1 and (price >= stop_loss_price or price <= take_profit_price)):
+                    # Xuất hiện điều kiện StopLoss hoặc Take Profit
+                    profit_or_loss = (price - entry_price) * (1 if signal == 1 else -1)
+                    capital += profit_or_loss
+                    if profit_or_loss > 0:
+                        win_trades += 1
+                    else:
+                        lose_trades += 1
+                    break
+            else:
+                # Nếu không có StopLoss hoặc Take Profit, tính toán lãi/lỗ tại giá đóng cửa
+                profit_or_loss = (close_data[date][-1] - entry_price) * (1 if signal == 1 else -1)
+                capital += profit_or_loss
+                if profit_or_loss > 0:
+                    win_trades += 1
+                else:
+                    lose_trades += 1
+           
+            # print(f"Ngày: {date}, Tín hiệu: {signal}, Vốn hiện tại: {capital:.2f}")
+        
+        return capital, win_trades, lose_trades
+
+
 # ================================================ XGBoots
 def XGBoostEnsemble(numWalks,perc,type,numDel):
     
@@ -343,6 +394,8 @@ def RandomForestEnsemble(numWalks,perc,type,numDel):
     return values,columns
 
 # ================================================ Base Rule
+
+
 def BaseRule(numWalks,perc,type,numDel):
 
     Capital = 10000 
@@ -375,8 +428,6 @@ def BaseRule(numWalks,perc,type,numDel):
             df1=full_ensemble(df1)
         else:
             df1=perc_ensemble(df1,perc)
-
-        # df1.to_csv('output_'+ type+str(j)+str(perc)+'_.csv', index=False)
         
         
         df2.index = pd.to_datetime(df2.index)
@@ -411,12 +462,14 @@ def BaseRule(numWalks,perc,type,numDel):
                         df.loc[df1.index[k]] = 0
         
 
-        df['open'] = df.index.map(dax['Open'])
-        df['high'] = df.index.map(dax['High'])
-        df['low'] = df.index.map(dax['Low'])
-        df['close'] = df.index.map(dax['Close'])
+        df1['open'] = df1.index.map(dax['Open'])
+        df1['high'] = df1.index.map(dax['High'])
+        df1['low'] = df1.index.map(dax['Low'])
+        df1['close'] = df1.index.map(dax['Close'])
+        print(df1)
+        # eva = Evaluation()
+        Capital, win_trades, lose_trades = Evaluate(data=df1,name=MK,capital=Capital)
 
-        Capital, win_trades, lose_trades = Evaluation(df, MK, type, j ,perc).evaluate(capital=Capital)
         values.append([from_date, to_date,str(round(Capital,2)),str(round(win_trades,2)),str(round(lose_trades,2)), "", str(round(Capital-Capital_original,2))])
         Capital_final = Capital
         Wins+=win_trades
@@ -458,8 +511,8 @@ def EnsembleAuthor(numWalks,perc,type,numDel):
         df['high'] = df.index.map(dax['High'])
         df['low'] = df.index.map(dax['Low'])
         df['close'] = df.index.map(dax['Close'])
-
-        Capital, win_trades, lose_trades = Evaluation(df, MK).evaluate(capital=Capital)
+        eva = Evaluation()
+        Capital, win_trades, lose_trades = eva.evaluate(data=df,name=MK,capital=Capital)
         
         values.append([from_date, to_date,str(round(Capital,2)),str(round(win_trades,2)),str(round(lose_trades,2)), "", str(round(Capital-Capital_original,2))])
         Capital_final = Capital
