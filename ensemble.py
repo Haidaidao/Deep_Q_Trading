@@ -498,7 +498,7 @@ def BaseRule(numWalks,perc,type,numDel):
         df['high'] = df.index.map(dax['High'])
         df['low'] = df.index.map(dax['Low'])
         df['close'] = df.index.map(dax['Close'])
-        print(df)
+       
         # eva = Evaluation()
         Capital, win_trades, lose_trades = Evaluate(data=df,name=MK,capital=Capital)
 

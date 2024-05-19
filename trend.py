@@ -1,6 +1,7 @@
 # Copyright 2019-2020 Alvaro Bartolome
 # See LICENSE for details.
 
+import math
 from investpy import get_stock_historical_data
 
 import numpy as np
@@ -20,9 +21,13 @@ from decimal import Decimal
 
 import string
 import global_config
+import trendStrengthIdentifier
 
 MK = global_config.MK
 trend_type = global_config.trend_type
+
+trend_add_delta_linear = trendStrengthIdentifier.linear_regression_slope
+trend_add_delta_two_point = trendStrengthIdentifier.two_point_slope
 
 class TrendGenerator:
     def __init__(self, name = "Week", type = "test", columnName = "trend"):
@@ -104,19 +109,86 @@ class TrendGenerator:
             count = count + 1
 
         return df_result
+    
+    def trendWAWithLinear(self, trendArr):
+        for i in range(0,len(self.Date)):  
+            if trendArr[i]!=0:
+                if i-4>=0:
+                    delta = trend_add_delta_linear(self.Close, i - 4, i, False)
+                    trendArr[i] = delta
+                else:
+                    if trendArr[i] != 0:
+                        trendArr[i] = 0
 
+        return trendArr
+    
+    def trendWAWithLinearScaler(self, trendArr):
+        for i in range(0,len(self.Date)):  
+            if trendArr[i]!=0:
+                if i-4>=0:
+                    delta = trend_add_delta_linear(self.Close, i - 4, i, False)
+                    trendArr[i] = delta
+                    normalized_m = np.arctan(delta) / (np.pi / 2)
+                    trendArr[i] = normalized_m
+                else:
+                    if trendArr[i] != 0:
+                        trendArr[i] = 0
+
+        return trendArr
+    
+    def trendWAWithTwoPoint(self, trendArr):
+        for i in range(0,len(self.Date)):  
+            if trendArr[i]!=0:
+                if i-4>=0:
+                    delta = trend_add_delta_two_point(self.Close, i - 4, i, False)
+                    trendArr[i] = delta
+                else:
+                    if trendArr[i] != 0:
+                        trendArr[i] = 0
+
+        return trendArr
+    
+    def trendWAWithTwoPointScaler(self, trendArr):
+        for i in range(0,len(self.Date)):  
+            if trendArr[i]!=0:
+                if i-4>=0:
+                    delta = trend_add_delta_two_point(self.Close, i - 4, i, False)
+                    trendArr[i] = math.tanh(delta)
+
+                else:
+                    if trendArr[i] != 0:
+                        trendArr[i] = 0
+
+        return trendArr
+    
     def writeFile(self, file_name):
         ensambleValid=pd.DataFrame()
         ensambleValid.index.name='Date'
         self.spTimeserie.set_index('Date', inplace=True)
 
-        assert trend_type == "MACD" or trend_type == "TrendWA", "trend_type must be \"MACD\" or \"TrendWA\""
+        assert trend_type == "MACD" or trend_type == "TrendWA" or trend_type == "TrendWAWithTwoPointScaler" or  trend_type == "TrendWAWithLinearScaler" or trend_type == "TrendWAWithTwoPoint" or trend_type == "TrendWAWithLinear", "trend_type must be \"MACD\" or \"TrendWA\""
 
         if trend_type == "TrendWA":
             trendResult = self.trendWA(df = self.spTimeserie, prices = self.Close , window_size=5)
 
         if trend_type == "MACD":
             trendResult = self.MACD_signal()
+
+        if trend_type == "TrendWAWithLinear":
+            trendResult = self.trendWA(df = self.spTimeserie, prices = self.Close , window_size=5)
+            trendResult['trend'] = self.trendWAWithLinear(trendResult['trend'].tolist())
+
+        if trend_type == "TrendWAWithTwoPoint":
+            trendResult = self.trendWA(df = self.spTimeserie, prices = self.Close , window_size=5)
+            trendResult['trend'] = self.trendWAWithTwoPoint(trendResult['trend'].tolist())
+
+        if trend_type == "TrendWAWithLinearScaler":
+            trendResult = self.trendWA(df = self.spTimeserie, prices = self.Close , window_size=5)
+            trendResult['trend'] = self.trendWAWithLinearScaler(trendResult['trend'].tolist())
+
+        if trend_type == "TrendWAWithTwoPointScaler":
+            trendResult = self.trendWA(df = self.spTimeserie, prices = self.Close , window_size=5)
+            trendResult['trend'] = self.trendWAWithTwoPointScaler(trendResult['trend'].tolist())
 
         for i in range(0,len(self.Date)):
             ensambleValid.at[trendResult.index[i],self.columnName]=trendResult['trend'][i]

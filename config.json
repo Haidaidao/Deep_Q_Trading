@@ -1,5 +1,5 @@
 {
-    "trend_type": "MACD",
+    "trend_type": "TrendWAWithTwoPointScaler",
     "ensemble_type": "BaseRule",
     "num_files": 3,
     "MK": "msft",
