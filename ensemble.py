@@ -85,6 +85,37 @@ def ensemble_y_true(feature, stats, threshold):
         labels.append(action)
             
     return labels
+
+def ensemble_y_true_with_optimize_trend(feature, stats, threshold):
+
+    labels = []
+    last_action = 0
+    skip = 0
+    
+    for index, _ in feature.iterrows():
+        if index not in stats.index:
+            labels.append(last_action)
+            skip += 1
+            continue
+        
+        close = stats.loc[index, 'Close']
+        open = stats.loc[index, 'Open']
+        
+        action = 0
+        changes = (close - open) / open
+
+        if changes >= threshold or (last_action > 0 and changes >= 0 and changes < threshold):
+            last_action = 1
+            action = 1
+        elif changes < -threshold or (last_action < 0 and changes < 0 and changes >= -threshold):
+            last_action = -1
+            action = -1
+        else:
+            last_action = 0
+
+        labels.append(action)
+            
+    return labels
 # ================================================ XGBoots
 def XGBoostEnsemble(numWalks,perc,type,numDel):
     
@@ -388,6 +419,9 @@ def BaseRule(numWalks,perc,type,numDel):
         df2=pd.read_csv(f"./Output/trend/{MK}Day"+".csv",index_col='Date')
         df3=pd.read_csv(f"./Output/trend/{MK}Week"+".csv",index_col='Date')
 
+        df2['trend'] = df2['trend'].apply(lambda x: -1 if x < 0 else 1 if x > 0 else 0)
+        df3['trend'] = df3['trend'].apply(lambda x: -1 if x < 0 else 1 if x > 0 else 0)
+
         from_date=str(df1.index[0])
         to_date=str(df1.index[len(df1)-1])
 
@@ -400,11 +434,6 @@ def BaseRule(numWalks,perc,type,numDel):
             df1=full_ensemble(df1)
         else:
             df1=perc_ensemble(df1,perc)
-
-
-            
-        # df1 = pd.DataFrame(df1[iteration])
-        # df1.rename(columns={iteration: 'ensemble'}, inplace=True)
 
         df2.index = pd.to_datetime(df2.index)
         df2.index = df2.index.strftime('%m/%d/%Y')
@@ -461,6 +490,7 @@ def BaseRule(numWalks,perc,type,numDel):
         for k in range(0,len(df1)):
             if(df1.index[k] in df2.index):
                 key = (df1['ensemble'][k], int(df2.loc[df1.index[k],'ensemble']), int(getAction(df3, df2.index[k])))
+                
                 df.loc[df1.index[k]] = rules.get(key, 0)
             else:
                 df.loc[df1.index[k]] = 0
