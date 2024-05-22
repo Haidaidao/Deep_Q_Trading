@@ -108,9 +108,9 @@ dqt = DeepQTrading(
 #     ensembleFolderName=sys.argv[3]
 #     )
 
-dqt.run()
+# dqt.run()
 
-dqt.end()
+# dqt.end()
 
 
 

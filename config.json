@@ -1,6 +1,6 @@
 {
-    "trend_type": "TrendWA",
-    "ensemble_type": "BaseRule",
+    "trend_type": "TrendWAWithLinear",
+    "ensemble_type": "Random",
     "num_files": 3,
     "MK": "sp500",
     "ensemble_folder": "",

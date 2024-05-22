@@ -247,7 +247,7 @@ def RandomForestEnsemble(numWalks,perc,type,numDel):
 
     type_train = "train"
 
-    rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+    # rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
 
     for j in range(0, numWalks):
         # Train
@@ -290,7 +290,7 @@ def RandomForestEnsemble(numWalks,perc,type,numDel):
 
         y_train = ensemble_y_true(df1, dax, threshold)
 
-        # rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+        rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
         rf_model.fit(list_combine_train, y_train)
 
         # Predict
