@@ -1,5 +1,5 @@
 {
-    "trend_type": "TrendWAWithLinear",
+    "trend_type": "TrendWA",
     "ensemble_type": "Random",
     "num_files": 3,
     "MK": "sp500",
