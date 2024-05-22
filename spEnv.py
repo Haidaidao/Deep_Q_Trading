@@ -261,9 +261,7 @@ class SpEnv(gym.Env):
             [list(
                 map(
                     lambda x: (x["Close"]-x["Open"])/x["Open"],
-                        self.history[self.currentObservation-self.observationWindow:self.currentObservation]  + 
-                        self.dayData.get(date,20,"Day") + 
-                        self.weekData.get(date,8,"Week")))])
+                        self.history[self.currentObservation-self.observationWindow:self.currentObservation]))])
 
         # print(array)
         # print("===================")
