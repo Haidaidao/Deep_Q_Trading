@@ -1,5 +1,5 @@
 {
-    "trend_type": "MACD",
+    "trend_type": "TrendWA",
     "ensemble_type": "Random",
     "num_files": 8,
     "MK": "msft",
