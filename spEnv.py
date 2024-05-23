@@ -63,8 +63,8 @@ class SpEnv(gym.Env):
         #the input feature vector is composed of data from hours, weeks and days
         #20 from days, 8 from weeks and 40 hours, ending with 40 dimensional feature vectors
         spTimeserie = pandas.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit+1] # opening the dataset
-        # print(spTimeserie)
-        # print("=========================")
+        print(spTimeserie)
+        print("=========================")
         # print(spTimeserie)
         #Converts each column to a list
         Date = spTimeserie.loc[:, 'Date'].tolist()
@@ -256,7 +256,13 @@ class SpEnv(gym.Env):
 
         #The state is prepared by the environment, which is simply the feature vector
         date = datetime.strptime(date, "%m/%d/%Y")
-       #print(date)
+        print(date)
+        print(self.history[self.currentObservation-self.observationWindow:self.currentObservation])
+        print(numpy.array(
+            [list(
+                map(
+                    lambda x: x["Close"],
+                        self.history[self.currentObservation-self.observationWindow:self.currentObservation]))]))
         array = numpy.array(
             [list(
                 map(

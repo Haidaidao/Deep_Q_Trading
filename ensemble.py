@@ -251,9 +251,9 @@ def RandomForestEnsemble(numWalks,perc,type,numDel):
 
     for j in range(0, numWalks):
         # Train
-        df1 = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Hour" + str(j) + "ensemble_" + type_train+ ".csv",
+        df1 = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(j) + "ensemble_" + type_train+ ".csv",
                           index_col='Date')
-        df2=pd.read_csv(f"./Output/trend/{MK}Day"+".csv",index_col='Date')
+        df2=pd.read_csv(f"./Output/trend/{MK}Hour"+".csv",index_col='Date')
         df3=pd.read_csv(f"./Output/trend/{MK}Week"+".csv",index_col='Date')
 
         for deleted in range(1, numDel):
@@ -268,11 +268,11 @@ def RandomForestEnsemble(numWalks,perc,type,numDel):
 
         df2.index = pd.to_datetime(df2.index)
         df2.index = df2.index.strftime('%m/%d/%Y')
-        df2.rename(columns={'trend': 'ensemble'}, inplace=True)
+        df2.rename(columns={'Trend': 'ensemble'}, inplace=True)
 
         df3.index = pd.to_datetime(df3.index)
         df3.index = df3.index.strftime('%m/%d/%Y')
-        df3.rename(columns={'trend': 'ensemble'}, inplace=True)
+        df3.rename(columns={'Trend': 'ensemble'}, inplace=True)
 
         df3_temp = pd.DataFrame(index=df1.index).assign(ensemble=0)
         for k in range(0,len(df3_temp)):
@@ -300,7 +300,7 @@ def RandomForestEnsemble(numWalks,perc,type,numDel):
         df = pd.DataFrame(columns=['ensemble'])
         df = df.set_index(pd.Index([], name='date'))
 
-        df1_result = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Hour" + str(j) + "ensemble_" + type + ".csv",
+        df1_result = pd.read_csv(f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(j) + "ensemble_" + type + ".csv",
                           index_col='Date')
 
         from_date=str(df1_result.index[0])
@@ -384,8 +384,8 @@ def BaseRule(numWalks,perc,type,numDel):
 
     for j in range(0,numWalks):
 
-        df1=pd.read_csv(f"./Output/ensemble/walk"+"Hour"+str(j)+"ensemble_"+type+".csv",index_col='Date')
-        df2=pd.read_csv(f"./Output/trend/{MK}Day"+".csv",index_col='Date')
+        df1=pd.read_csv(f"./Output/ensemble/walk"+"Day"+str(j)+"ensemble_"+type+".csv",index_col='Date')
+        df2=pd.read_csv(f"./Output/trend/{MK}Hour"+".csv",index_col='Date')
         df3=pd.read_csv(f"./Output/trend/{MK}Week"+".csv",index_col='Date')
 
         from_date=str(df1.index[0])
@@ -408,11 +408,11 @@ def BaseRule(numWalks,perc,type,numDel):
 
         df2.index = pd.to_datetime(df2.index)
         df2.index = df2.index.strftime('%m/%d/%Y')
-        df2.rename(columns={'trend': 'ensemble'}, inplace=True)
+        df2.rename(columns={'Trend': 'ensemble'}, inplace=True)
 
         df3.index = pd.to_datetime(df3.index)
         df3.index = df3.index.strftime('%m/%d/%Y')
-        df3.rename(columns={'trend': 'ensemble'}, inplace=True)
+        df3.rename(columns={'Trend': 'ensemble'}, inplace=True)
 
 
         for deleted in range(1,numDel):

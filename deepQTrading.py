@@ -129,7 +129,7 @@ class DeepQTrading:
         self.memory = SequentialMemory(limit=10000, window_length=1)
      
         #Instantiate the agent with parameters received
-        self.agent = AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Hour')
+        self.agent = AgentObject(self.model, self.policy, self.nbActions, self.memory, 'Day')
 
         #Define the current starting point as the initial date
         self.currentStartingPoint = begin
