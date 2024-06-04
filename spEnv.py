@@ -82,8 +82,8 @@ class SpEnv(gym.Env):
         # self.dayData = MergedDataStructure(filename=f"./Output/ensemble/{ensembleFolder}/walk" + "Day" + str(iteration) + "ensemble_" + type + ".csv")
         #Load the data
 
-        self.dayData = DailyWeeklyData(f'Output/trend/{MK}Day.csv', 1, 'day_test.txt')
-        self.weekData = DailyWeeklyData(f'Output/trend/{MK}Week.csv', 7, 'week_test.txt')
+        # self.dayData = DailyWeeklyData(f'Output/trend/{MK}Day.csv', 1, 'day_test.txt')
+        # self.weekData = DailyWeeklyData(f'Output/trend/{MK}Week.csv', 7, 'week_test.txt')
         # self.dayData = TrendReader(f'./datasets/'+MK+'Day.csv')
         # self.weekData = TrendReader(f'./datasets/'+MK+'Week.csv')   
         self.output=False

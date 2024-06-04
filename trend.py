@@ -86,12 +86,18 @@ class TrendGenerator:
 
         assert trend_type == "MACD" or trend_type == "TrendWA" or trend_type == "TrendWAWithTwoPointScaler" or  trend_type == "TrendWAWithLinearScaler" or trend_type == "TrendWAWithTwoPoint" or trend_type == "TrendWAWithLinear", "trend_type must be \"MACD\" or \"TrendWA\""
         
+        window = 5
+
         if trend_type == "TrendWA":
-            trendResult = self.trendWA(df = self.spTimeserie, prices = self.Close , window_size=5)
+            if self.name == "Hour":
+                window = 10
+            print(window)
+            print(self.name)
+            trendResult = self.trendWA(df = self.spTimeserie, prices = self.Close , window_size=window)
             # print(trendResult)
 
         ensambleValid = pd.DataFrame(trendResult)
         ensambleValid.set_index('Date', inplace=True) 
 
-        print(ensambleValid)
+        
         ensambleValid.to_csv(file_name)
