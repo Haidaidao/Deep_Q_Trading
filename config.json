@@ -1,8 +1,8 @@
 {
     "trend_type": "TrendWA",
-    "ensemble_type": "BaseRule",
-    "num_files": 3,
-    "MK": "sp500",
+    "ensemble_type": "Random",
+    "num_files": 8,
+    "MK": "dax",
     "ensemble_folder": "",
     "label_threshold": 0.005,
     "epoch": 50

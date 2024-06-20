@@ -15,7 +15,7 @@ import datetime
 from keras.models import Sequential
 
 # Layers used in the NN considered
-from keras.layers import Dense, Activation, Flatten, Conv1D, Reshape
+from keras.layers import Dense, Activation, LSTM, Dropout, Reshape
 
 # Activation Layers used in the source code
 from keras.layers import LeakyReLU
@@ -54,16 +54,19 @@ nb_actions = int(sys.argv[1])
 
 isOnlyShort = sys.argv[2] == 1
 
-# Define the CNN model using Conv1D
 model = Sequential()
 model.add(Reshape((68, 1), input_shape=(1, 1, 68)))
-model.add(Conv1D(32, 3, activation='linear'))
-model.add(LeakyReLU(alpha=.001))
-model.add(Flatten())
+model.add(LSTM(units=50, return_sequences=True))
+model.add(Dropout(0.2))
+model.add(LSTM(units=50, return_sequences=False))
+model.add(Dropout(0.2))
 model.add(Dense(35, activation='linear'))
-model.add(LeakyReLU(alpha=.001))
 model.add(Dense(nb_actions))
 model.add(Activation('linear'))
+
+
+
+
 
 # Define the DeepQTrading class with the following parameters:
 # explorations: 0.2 operations are random, and 50 epochs.
