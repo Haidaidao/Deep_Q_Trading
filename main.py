@@ -15,7 +15,7 @@ import datetime
 from keras.models import Sequential
 
 #Layers used in the NN considered
-from keras.layers import Dense, Activation, Flatten
+from keras.layers import Dense, Activation, Flatten, Conv1D, Reshape
 
 #Activation Layers used in the source code
 from keras.layers import LeakyReLU
@@ -54,15 +54,29 @@ nb_actions = int(sys.argv[1])
 
 isOnlyShort=sys.argv[2]==1
 
+
+
 #This is a simple NN considered. It is composed of:
 #One flatten layer to get 68 dimensional vectors as input
 #One dense layer with 35 neurons and LeakyRelu activation
 #One final Dense Layer with the 3 actions considered
 #the input is 20 observation days from the past, 8 observations from the past week and 
 #40 observations from the past hours
+# model = Sequential()
+# model.add(Flatten(input_shape=(1,1,68)))
+# model.add(Dense(35,activation='linear'))
+# model.add(LeakyReLU(alpha=.001))
+# model.add(Dense(nb_actions))
+# model.add(Activation('linear'))
+
+
+# For case we want to use nouron is CNN
 model = Sequential()
-model.add(Flatten(input_shape=(1,1,68)))
-model.add(Dense(35,activation='linear'))
+model.add(Reshape((68, 1), input_shape=(1, 1, 68)))
+model.add(Conv1D(32, 3, activation='linear'))
+model.add(LeakyReLU(alpha=.001))
+model.add(Flatten())
+model.add(Dense(35, activation='linear'))
 model.add(LeakyReLU(alpha=.001))
 model.add(Dense(nb_actions))
 model.add(Activation('linear'))
@@ -80,33 +94,33 @@ model.add(Activation('linear'))
 #end: where the walks will finish. We are defining February 22nd of 2011
 #nOutput:number of walks
 
-# dqt = DeepQTrading(
-#     model=model,
-#     explorations=[(0.2, global_config.epoch)],
-#     trainSize=datetime.timedelta(days=360*5),
-#     validationSize=datetime.timedelta(days=30*6),
-#     testSize=datetime.timedelta(days=30*6),
-#     outputFile="./Output/csv/walks/walks",
-#     begin=datetime.datetime(2001, 1, 1, 0, 0, 0, 0),
-#     end=datetime.datetime(2011, 2, 28, 0, 0, 0, 0),
-#     nbActions=nb_actions,
-#     isOnlyShort=isOnlyShort,
-#     ensembleFolderName=global_config.ensemble_folder
-# )
-
 dqt = DeepQTrading(
     model=model,
-    explorations=[(0.2,global_config.epoch)],
-    trainSize=datetime.timedelta(days=272),
-    validationSize=datetime.timedelta(days=72),
-    testSize=datetime.timedelta(days=72),
+    explorations=[(0.2, global_config.epoch)],
+    trainSize=datetime.timedelta(days=360*5),
+    validationSize=datetime.timedelta(days=30*6),
+    testSize=datetime.timedelta(days=30*6),
     outputFile="./Output/csv/walks/walks",
-    begin=datetime.datetime(2022,3,7,0,0,0,0),
-    end=datetime.datetime(2024,6,20,0,0,0,0),
+    begin=datetime.datetime(2001, 1, 1, 0, 0, 0, 0),
+    end=datetime.datetime(2011, 2, 28, 0, 0, 0, 0),
     nbActions=nb_actions,
     isOnlyShort=isOnlyShort,
     ensembleFolderName=global_config.ensemble_folder
 )
+
+# dqt = DeepQTrading(
+#     model=model,
+#     explorations=[(0.2,global_config.epoch)],
+#     trainSize=datetime.timedelta(days=272),
+#     validationSize=datetime.timedelta(days=72),
+#     testSize=datetime.timedelta(days=72),
+#     outputFile="./Output/csv/walks/walks",
+#     begin=datetime.datetime(2022,3,7,0,0,0,0),
+#     end=datetime.datetime(2024,6,20,0,0,0,0),
+#     nbActions=nb_actions,
+#     isOnlyShort=isOnlyShort,
+#     ensembleFolderName=global_config.ensemble_folder
+# )
 
 
 dqt.run()

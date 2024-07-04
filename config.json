@@ -1,9 +1,9 @@
 {
     "trend_type": "TrendWA",
     "ensemble_type": "Author",
-    "num_files": 4,
-    "MK": "BTC-USD",
+    "num_files": 8,
+    "MK": "dax",
     "ensemble_folder": "",
     "label_threshold": 0.005,
-    "epoch": 50
+    "epoch": 1
 }
