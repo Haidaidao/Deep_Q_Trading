@@ -48,7 +48,7 @@ class SpEnv(gym.Env):
 
     #Observation window is the time window regarding the "hourly" dataset
     #ensemble variable tells to save or not the decisions at each walk
-    def __init__(self, type = "train" , iteration = 0, minLimit=None, maxLimit=None, operationCost = 0, observationWindow = 40, ensamble = None, callback = None, isOnlyShort=False, columnName = "iteration-1", name="Day"):
+    def __init__(self, type = "train" , iteration = 0, minLimit=None, maxLimit=None, operationCost = 0, observationWindow = 20, ensamble = None, callback = None, isOnlyShort=False, columnName = "iteration-1", name="Day"):
         #Declare the episode as the first episode
         self.episode=1
 
@@ -63,8 +63,6 @@ class SpEnv(gym.Env):
         #the input feature vector is composed of data from hours, weeks and days
         #20 from days, 8 from weeks and 40 hours, ending with 40 dimensional feature vectors
         spTimeserie = pandas.read_csv('./datasets/'+MK+self.name+'.csv')[minLimit:maxLimit+1] # opening the dataset
-        # print(spTimeserie)
-        # print("=========================")
         # print(spTimeserie)
         #Converts each column to a list
         Date = spTimeserie.loc[:, 'Date'].tolist()
@@ -84,8 +82,6 @@ class SpEnv(gym.Env):
 
         self.dayData = DailyWeeklyData(f'Output/trend/{MK}Day.csv', 1, 'day_test.txt')
         self.weekData = DailyWeeklyData(f'Output/trend/{MK}Week.csv', 7, 'week_test.txt')
-        # self.dayData = TrendReader(f'./datasets/'+MK+'Day.csv')
-        # self.weekData = TrendReader(f'./datasets/'+MK+'Week.csv')   
         self.output=False
 
         #ensamble is the table of validation and testing
@@ -256,26 +252,15 @@ class SpEnv(gym.Env):
 
         #The state is prepared by the environment, which is simply the feature vector
         date = datetime.strptime(date, "%m/%d/%Y")
-       #print(date)
-        array = numpy.array(
-            [list(
-                map(
-                    lambda x: (x["Close"]-x["Open"])/x["Open"],
-                        self.history[self.currentObservation-self.observationWindow:self.currentObservation]  + 
-                        self.dayData.get(date,20,"Day") + 
-                        self.weekData.get(date,8,"Week")))])
 
-        # print(array)
-        # print("===================")
+        array = numpy.array(
+                [list(
+                    map(
+                        lambda x: (x["Close"]-x["Open"])/x["Open"],
+                            self.history[self.currentObservation-self.observationWindow:self.currentObservation] 
+                            )) + self.dayData.get(date) + self.weekData.get(date)])
 
         return  array
-    
-        # return  numpy.array(
-        #     [list(
-        #         map(
-        #             lambda x: (x["Close"]-x["Open"])/x["Open"],
-        #                 self.history[self.currentObservation-self.observationWindow:self.currentObservation]
-        #                 ))])
 
     def resetEnv(self):
         self.currentObservation=self.observationWindow
