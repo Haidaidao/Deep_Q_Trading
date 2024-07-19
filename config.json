@@ -5,5 +5,5 @@
     "MK": "dax",
     "ensemble_folder": "",
     "label_threshold": 0.005,
-    "epoch": 50
+    "epoch": 1
 }

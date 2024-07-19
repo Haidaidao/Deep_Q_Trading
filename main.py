@@ -62,24 +62,24 @@ isOnlyShort=sys.argv[2]==1
 #One final Dense Layer with the 3 actions considered
 #the input is 20 observation days from the past, 8 observations from the past week and 
 #40 observations from the past hours
-# model = Sequential()
-# model.add(Flatten(input_shape=(1,1,68)))
-# model.add(Dense(35,activation='linear'))
-# model.add(LeakyReLU(alpha=.001))
-# model.add(Dense(nb_actions))
-# model.add(Activation('linear'))
-
-
-# For case we want to use nouron is CNN
 model = Sequential()
-model.add(Reshape((68, 1), input_shape=(1, 1, 68)))
-model.add(Conv1D(32, 3, activation='linear'))
-model.add(LeakyReLU(alpha=.001))
-model.add(Flatten())
-model.add(Dense(35, activation='linear'))
+model.add(Flatten(input_shape=(1,1,68)))
+model.add(Dense(35,activation='linear'))
 model.add(LeakyReLU(alpha=.001))
 model.add(Dense(nb_actions))
 model.add(Activation('linear'))
+
+
+# For case we want to use nouron is CNN
+# model = Sequential()
+# model.add(Reshape((68, 1), input_shape=(1, 1, 68)))
+# model.add(Conv1D(32, 3, activation='linear'))
+# model.add(LeakyReLU(alpha=.001))
+# model.add(Flatten())
+# model.add(Dense(35, activation='linear'))
+# model.add(LeakyReLU(alpha=.001))
+# model.add(Dense(nb_actions))
+# model.add(Activation('linear'))
 
 
 #Define the DeepQTrading class with the following parameters:
