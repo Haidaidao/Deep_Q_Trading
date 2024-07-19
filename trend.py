@@ -114,9 +114,9 @@ class TrendGenerator:
         trends = []  # Danh sách để lưu trữ xu hướng của mỗi cửa sổ
         
         # Duyệt qua mỗi cửa sổ con trong tập dữ liệu
-        for i in range(len(prices) - window_size + 1):
+        for i in range(window_size, len(prices)):
             # Lấy cửa sổ con hiện tại
-            window = prices[i:i+window_size]
+            window = prices[i-window_size:i]
             
             
             # Kiểm tra xu hướng tăng
@@ -130,10 +130,10 @@ class TrendGenerator:
                 trends.append(0)
 
         count = 0 
-        for i in range(window_size - 1):
+        for i in range(window_size):
             trends = [0] + trends
         for index, row in df_result.iterrows():
-            if count >= window_size -1: 
+            if count >= window_size: 
                 df_result.at[index, 'trend'] = trends[count]
             else:
                 df_result.at[index, 'trend'] = 0
