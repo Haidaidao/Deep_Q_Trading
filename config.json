@@ -1,6 +1,6 @@
 {
     "trend_type": "TrendWA",
-    "ensemble_type": "Random",
+    "ensemble_type": "BaseRule",
     "num_files": 8,
     "MK": "dax",
     "ensemble_folder": "",

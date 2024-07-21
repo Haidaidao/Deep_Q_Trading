@@ -460,7 +460,7 @@ def BaseRule(numWalks,perc,type,numDel):
 
         for k in range(0,len(df1)):
             if(df1.index[k] in df2.index):
-                key = (df1['ensemble'][k], int(df2.loc[df1.index[k],'ensemble']), int(getAction(df3, df2.index[k])))
+                key = (df1['ensemble'][k], int(df2.loc[df1.index[k],'ensemble']), int(getAction(df3, df1.index[k])))
                 df.loc[df1.index[k]] = rules.get(key, 0)
             else:
                 df.loc[df1.index[k]] = 0
