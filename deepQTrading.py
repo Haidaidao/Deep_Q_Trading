@@ -29,13 +29,12 @@ import pandas as pd
 #Library used to manipulate time
 import datetime
 
-from trend import Trend
-from macd import MACD
+# from trend import Trend
+# from macd import MACD
 from AgentObject import AgentObject
 import global_config
 
 MK= global_config.MK
-# MK="dax"
 
 
 # Find the index of the same day or next day in the dataframe
